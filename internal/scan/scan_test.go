@@ -234,3 +234,42 @@ func TestDotnetBuildFoldersGroup(t *testing.T) {
 		t.Fatalf("want bin and obj as one item, got %+v", got)
 	}
 }
+
+func TestOllamaModelsAreListed(t *testing.T) {
+	home := t.TempDir()
+	models := filepath.Join(home, ".ollama/models")
+	man := func(rel, body string) {
+		write(t, filepath.Join(models, "manifests", rel), 0)
+		os.WriteFile(filepath.Join(models, "manifests", rel), []byte(body), 0o644)
+	}
+	man("registry.ollama.ai/library/llama3.1/8b", `{"config":{"digest":"sha256:c","size":10},"layers":[{"digest":"sha256:base","size":4000},{"digest":"sha256:t1","size":20}]}`)
+	man("registry.ollama.ai/sam/coder/latest", `{"config":{"digest":"sha256:c2","size":10},"layers":[{"digest":"sha256:base","size":4000},{"digest":"sha256:t2","size":30}]}`)
+	man("registry.ollama.ai/library/tiny/latest", `{"config":{"digest":"sha256:c3","size":5},"layers":[{"digest":"sha256:x","size":100}]}`)
+	write(t, filepath.Join(models, "blobs/sha256-base"), 4000)
+
+	res, err := scanner(home).Scan(context.Background(), Options{SkipProjects: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	items := byRule(res)["ollama-models"]
+	if len(items) != 1 {
+		t.Fatalf("want one Ollama item, got %d", len(items))
+	}
+	d := items[0].Details
+	if len(d) != 3 {
+		t.Fatalf("want 3 models, got %+v", d)
+	}
+	names := map[string]Detail{}
+	for _, x := range d {
+		names[x.Name] = x
+	}
+	if x, ok := names["llama3.1:8b"]; !ok || !x.Shared || x.Bytes != 4030 || x.Command != "ollama rm llama3.1:8b" {
+		t.Errorf("llama3.1:8b = %+v", x)
+	}
+	if x, ok := names["sam/coder:latest"]; !ok || !x.Shared {
+		t.Errorf("sam/coder:latest = %+v", x)
+	}
+	if x := names["tiny:latest"]; x.Shared {
+		t.Error("tiny shares nothing")
+	}
+}

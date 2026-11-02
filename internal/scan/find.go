@@ -38,6 +38,8 @@ type Item struct {
 	// Notes are extra findings, like a virtual environment whose Python
 	// is gone.
 	Notes []string `json:"notes,omitempty"`
+	// Details break the item into named parts, like models in a folder.
+	Details []Detail `json:"details,omitempty"`
 }
 
 // Cleanable reports whether the item may be moved to the vault.
@@ -231,6 +233,9 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 			}
 			if c.rule.MinAgeDays > 0 && (it.Newest.IsZero() || now.Sub(it.Newest) < time.Duration(c.rule.MinAgeDays)*24*time.Hour) {
 				return
+			}
+			if d := detailers[c.rule.ID]; d != nil {
+				it.Details = d(c.paths[0])
 			}
 			it.ID = itemID(it.Rule, it.Paths)
 			items[i] = it
