@@ -1,0 +1,11 @@
+# build output
+/leftover
+/leftover.exe
+/dist/
+
+# editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
