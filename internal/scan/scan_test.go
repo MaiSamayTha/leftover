@@ -273,3 +273,24 @@ func TestOllamaModelsAreListed(t *testing.T) {
 		t.Error("tiny shares nothing")
 	}
 }
+
+func TestParseDockerDF(t *testing.T) {
+	out := []byte(`{"Active":"2","Reclaimable":"9.8GB (79%)","Size":"12.4GB","TotalCount":"14","Type":"Images"}
+{"Active":"1","Reclaimable":"0B (0%)","Size":"2.1kB","TotalCount":"3","Type":"Containers"}
+{"Active":"1","Reclaimable":"512MB (12%)","Size":"4.3GB","TotalCount":"5","Type":"Local Volumes"}
+not json
+{"Active":"0","Reclaimable":"3.2GB","Size":"3.2GB","TotalCount":"40","Type":"Build Cache"}`)
+	d := parseDockerDF(out)
+	if len(d) != 4 {
+		t.Fatalf("want 4 rows, got %+v", d)
+	}
+	if d[0].Bytes != 12_400_000_000 || d[0].Command != "docker image prune -a" || d[0].Name != "Images" || d[0].Reclaimable != 9_800_000_000 {
+		t.Errorf("images row = %+v", d[0])
+	}
+	if d[1].Name != "Containers" || d[1].Bytes != 2100 {
+		t.Errorf("containers row = %+v", d[1])
+	}
+	if d[3].Bytes != 3_200_000_000 {
+		t.Errorf("build cache row = %+v", d[3])
+	}
+}

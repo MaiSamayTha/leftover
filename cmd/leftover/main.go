@@ -231,6 +231,17 @@ func printScan(res *scan.Result, f filter) {
 			}
 			fmt.Printf("  %s %s  %s  %s  %s%s%s\n", verdictMark(it.Verdict), lpad(human(it.Bytes), 8),
 				dim(it.ID), pad(clip(it.Name+extra, 28), 28), clip(tilde(where), 48), idle, noteMark(it))
+			for i, d := range it.Details {
+				if i == 5 {
+					fmt.Println(dim(fmt.Sprintf("%15s and %d more", "", len(it.Details)-5)))
+					break
+				}
+				shared := ""
+				if d.Shared {
+					shared = " (shares layers)"
+				}
+				fmt.Printf("%s %s  %s%s\n", dim(fmt.Sprintf("%13s└", "")), lpad(human(d.Bytes), 8), d.Name, dim(shared))
+			}
 		}
 	}
 	fmt.Printf("\n%s in %d folders, %.1fs.", bold(human(safe)+" can be cleared safely"), res.Folders, res.Took.Seconds())

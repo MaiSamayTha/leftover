@@ -18,6 +18,8 @@ type Detail struct {
 	// Shared is set when some of the space is also used by other parts,
 	// so removing this part alone frees less than Bytes.
 	Shared bool `json:"shared,omitempty"`
+	// Reclaimable is how much the tool's own command says it could free.
+	Reclaimable int64 `json:"reclaimable,omitempty"`
 	// Command removes just this part with the tool's own command.
 	Command string `json:"command,omitempty"`
 }
