@@ -1,0 +1,146 @@
+{
+  "group": "Apps and tools",
+  "rules": [
+    {
+      "id": "docker-disk",
+      "tool": "Docker Desktop",
+      "kind": "Virtual disk",
+      "name": "Docker disk image",
+      "verdict": "keep",
+      "what": "The single disk file Docker Desktop keeps your images, containers and volumes in. Volumes can hold databases, so Leftover never moves this file. Use Docker's own commands to see and reclaim space inside it.",
+      "command": "docker system df",
+      "paths": {
+        "darwin": ["~/Library/Containers/com.docker.docker/Data/vms/0/data"],
+        "windows": ["{localappdata}/Docker/wsl"],
+        "linux": ["~/.docker/desktop/vms/0/data"]
+      }
+    },
+    {
+      "id": "playwright-browsers",
+      "tool": "Playwright",
+      "kind": "Browser binaries",
+      "name": "Playwright browsers",
+      "verdict": "redownload",
+      "what": "Chromium, Firefox and WebKit builds Playwright downloaded for testing. Each Playwright upgrade adds new ones.",
+      "comeback": "Run npx playwright install to download the versions your project needs.",
+      "source": "https://playwright.dev/docs/browsers#managing-browser-binaries",
+      "each": true,
+      "env": [{ "var": "PLAYWRIGHT_BROWSERS_PATH" }],
+      "paths": {
+        "darwin": ["{cache}/ms-playwright"],
+        "linux": ["{cache}/ms-playwright"],
+        "windows": ["{localappdata}/ms-playwright"]
+      }
+    },
+    {
+      "id": "puppeteer-browsers",
+      "tool": "Puppeteer",
+      "kind": "Browser binaries",
+      "name": "Puppeteer browsers",
+      "verdict": "redownload",
+      "what": "Chrome builds Puppeteer downloaded when it was installed.",
+      "comeback": "Run npx puppeteer browsers install chrome, or reinstall the package.",
+      "source": "https://pptr.dev/guides/configuration",
+      "env": [{ "var": "PUPPETEER_CACHE_DIR" }],
+      "paths": { "all": ["~/.cache/puppeteer"] }
+    },
+    {
+      "id": "cypress-cache",
+      "tool": "Cypress",
+      "kind": "App binaries",
+      "name": "Cypress binaries",
+      "verdict": "redownload",
+      "what": "Cypress app versions downloaded by your projects. Old versions are never removed on their own.",
+      "comeback": "npx cypress install downloads the version a project needs.",
+      "source": "https://docs.cypress.io/app/references/advanced-installation#Binary-cache",
+      "command": "npx cypress cache prune",
+      "env": [{ "var": "CYPRESS_CACHE_FOLDER" }],
+      "each": true,
+      "paths": {
+        "darwin": ["{cache}/Cypress"],
+        "linux": ["{cache}/Cypress"],
+        "windows": ["{localappdata}/Cypress/Cache"]
+      }
+    },
+    {
+      "id": "electron-cache",
+      "tool": "Electron",
+      "kind": "Download cache",
+      "name": "Electron downloads",
+      "verdict": "redownload",
+      "what": "Electron releases downloaded when installing Electron apps you are developing.",
+      "comeback": "Downloaded again the next time a project installs Electron.",
+      "source": "https://www.electronjs.org/docs/latest/tutorial/installation#cache",
+      "env": [{ "var": "electron_config_cache" }],
+      "paths": {
+        "darwin": ["{cache}/electron"],
+        "linux": ["{cache}/electron"],
+        "windows": ["{localappdata}/electron/Cache"]
+      }
+    },
+    {
+      "id": "jetbrains-caches",
+      "tool": "JetBrains IDEs",
+      "kind": "IDE caches",
+      "name": "JetBrains IDE caches",
+      "verdict": "rebuild",
+      "what": "Indexes and caches for each JetBrains IDE version. Folders for versions you no longer use stay behind after every upgrade.",
+      "comeback": "The IDE rebuilds its indexes the next time it opens a project. Your settings live elsewhere and aren't touched.",
+      "source": "https://www.jetbrains.com/help/idea/directories-used-by-the-ide-to-store-settings-caches-plugins-and-logs.html",
+      "each": true,
+      "paths": {
+        "darwin": ["{cache}/JetBrains"],
+        "linux": ["{cache}/JetBrains"],
+        "windows": ["{localappdata}/JetBrains"]
+      }
+    },
+    {
+      "id": "vscode-caches",
+      "tool": "VS Code",
+      "kind": "App cache",
+      "name": "VS Code caches",
+      "verdict": "review",
+      "what": "VS Code's compiled code cache and copies of extension installers. VS Code doesn't document these folders, so Leftover only shows them.",
+      "paths": {
+        "darwin": ["{data}/Code/CachedData", "{data}/Code/CachedExtensionVSIXs", "{data}/Code/Cache"],
+        "linux": ["{config}/Code/CachedData", "{config}/Code/CachedExtensionVSIXs", "{config}/Code/Cache"],
+        "windows": ["{appdata}/Code/CachedData", "{appdata}/Code/CachedExtensionVSIXs", "{appdata}/Code/Cache"]
+      }
+    },
+    {
+      "id": "cursor-caches",
+      "tool": "Cursor",
+      "kind": "App cache",
+      "name": "Cursor caches",
+      "verdict": "review",
+      "what": "Cursor's compiled code cache and copies of extension installers. They aren't documented, so Leftover only shows them.",
+      "paths": {
+        "darwin": ["{data}/Cursor/CachedData", "{data}/Cursor/CachedExtensionVSIXs", "{data}/Cursor/Cache"],
+        "linux": ["{config}/Cursor/CachedData", "{config}/Cursor/CachedExtensionVSIXs", "{config}/Cursor/Cache"],
+        "windows": ["{appdata}/Cursor/CachedData", "{appdata}/Cursor/CachedExtensionVSIXs", "{appdata}/Cursor/Cache"]
+      }
+    },
+    {
+      "id": "ai-agent-history",
+      "tool": "Claude Code, Codex CLI",
+      "kind": "Session history",
+      "name": "Coding agent history",
+      "verdict": "keep",
+      "what": "Saved conversations from AI coding agents. They're yours and can't be recovered once gone.",
+      "paths": { "all": ["~/.claude/projects", "~/.codex/sessions"] }
+    },
+    {
+      "id": "user-temp",
+      "tool": "Your system",
+      "kind": "Temporary files",
+      "name": "Old temporary files",
+      "verdict": "rebuild",
+      "what": "Files apps left in your temporary folder that haven't been touched for over a week.",
+      "comeback": "Temporary files are meant to be thrown away. Any app that still needs one creates it again.",
+      "source": "https://learn.microsoft.com/en-us/windows/configuration/storage/storage-sense",
+      "each": true,
+      "min_age_days": 7,
+      "paths": { "windows": ["{temp}"] }
+    }
+  ]
+}

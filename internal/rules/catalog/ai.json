@@ -1,0 +1,81 @@
+{
+  "group": "AI models",
+  "rules": [
+    {
+      "id": "hf-hub",
+      "tool": "Hugging Face",
+      "kind": "Model cache",
+      "name": "Hugging Face model",
+      "verdict": "redownload",
+      "what": "Model weights and files downloaded from the Hugging Face Hub by transformers, diffusers and other libraries.",
+      "comeback": "Downloaded again the next time code loads the model, as long as it is still on the Hub.",
+      "source": "https://huggingface.co/docs/huggingface_hub/guides/manage-cache",
+      "env": [{ "var": "HF_HUB_CACHE" }, { "var": "HF_HOME", "join": "hub" }],
+      "each": true,
+      "paths": { "all": ["~/.cache/huggingface/hub"] }
+    },
+    {
+      "id": "hf-datasets",
+      "tool": "Hugging Face",
+      "kind": "Dataset cache",
+      "name": "Hugging Face datasets",
+      "verdict": "redownload",
+      "what": "Datasets downloaded and processed by the datasets library.",
+      "comeback": "Downloaded and processed again the next time code loads the dataset.",
+      "source": "https://huggingface.co/docs/datasets/cache",
+      "env": [{ "var": "HF_DATASETS_CACHE" }, { "var": "HF_HOME", "join": "datasets" }],
+      "paths": { "all": ["~/.cache/huggingface/datasets"] }
+    },
+    {
+      "id": "ollama-models",
+      "tool": "Ollama",
+      "kind": "Models",
+      "name": "Ollama models",
+      "verdict": "redownload",
+      "what": "Models you have pulled with Ollama.",
+      "comeback": "Pull any model again with ollama pull. To remove just one, use ollama rm.",
+      "source": "https://github.com/ollama/ollama/blob/main/docs/faq.md#where-are-models-stored",
+      "command": "ollama list",
+      "env": [{ "var": "OLLAMA_MODELS" }],
+      "paths": {
+        "all": ["~/.ollama/models"],
+        "linux": ["/usr/share/ollama/.ollama/models"]
+      }
+    },
+    {
+      "id": "lmstudio-models",
+      "tool": "LM Studio",
+      "kind": "Models",
+      "name": "LM Studio model",
+      "verdict": "review",
+      "what": "Models in LM Studio's library. Some may have been imported from your own files rather than downloaded, so Leftover can't promise they come back.",
+      "comeback": "Models downloaded inside LM Studio can be downloaded again from its Discover tab.",
+      "source": "https://lmstudio.ai/docs/app/advanced/import-model",
+      "each": true,
+      "paths": { "all": ["~/.lmstudio/models", "~/.cache/lm-studio/models"] }
+    },
+    {
+      "id": "torch-hub",
+      "tool": "PyTorch",
+      "kind": "Model cache",
+      "name": "PyTorch Hub cache",
+      "verdict": "redownload",
+      "what": "Models and weights downloaded through torch.hub and torchvision.",
+      "comeback": "Downloaded again the next time code loads them.",
+      "source": "https://pytorch.org/docs/stable/hub.html#where-are-my-downloaded-models-saved",
+      "env": [{ "var": "TORCH_HOME" }],
+      "paths": { "all": ["~/.cache/torch"] }
+    },
+    {
+      "id": "whisper-models",
+      "tool": "Whisper",
+      "kind": "Model cache",
+      "name": "Whisper models",
+      "verdict": "redownload",
+      "what": "Speech recognition models downloaded by OpenAI's Whisper package.",
+      "comeback": "Downloaded again the first time you load a model.",
+      "source": "https://github.com/openai/whisper/blob/main/whisper/__init__.py",
+      "paths": { "all": ["~/.cache/whisper"] }
+    }
+  ]
+}

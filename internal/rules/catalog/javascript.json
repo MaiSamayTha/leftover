@@ -1,0 +1,165 @@
+{
+  "group": "JavaScript",
+  "rules": [
+    {
+      "id": "node-modules",
+      "tool": "npm, Yarn, pnpm, Bun",
+      "kind": "Project dependencies",
+      "name": "node_modules",
+      "verdict": "redownload",
+      "what": "Every package this project depends on, installed from its package.json and lockfile.",
+      "comeback": "Run your package manager's install command (npm install, yarn, pnpm install or bun install) and it is rebuilt exactly from the lockfile.",
+      "source": "https://docs.npmjs.com/cli/v10/configuring-npm/folders",
+      "project": { "dirs": ["node_modules"], "beside": ["package.json"] }
+    },
+    {
+      "id": "next-build",
+      "tool": "Next.js",
+      "kind": "Build output",
+      "name": ".next",
+      "verdict": "rebuild",
+      "what": "Next.js build output and its development cache.",
+      "comeback": "Created again the next time you run next dev or next build.",
+      "source": "https://nextjs.org/docs/app/api-reference/config/next-config-js/distDir",
+      "project": { "dirs": [".next"], "beside": ["package.json"] }
+    },
+    {
+      "id": "nuxt-build",
+      "tool": "Nuxt",
+      "kind": "Build output",
+      "name": ".nuxt and .output",
+      "verdict": "rebuild",
+      "what": "Files Nuxt generates while developing and building your app.",
+      "comeback": "Generated again by nuxt dev or nuxt build.",
+      "source": "https://nuxt.com/docs/guide/directory-structure/nuxt",
+      "project": { "dirs": [".nuxt", ".output"], "beside": ["nuxt.config.ts", "nuxt.config.js"] }
+    },
+    {
+      "id": "svelte-kit",
+      "tool": "SvelteKit",
+      "kind": "Build output",
+      "name": ".svelte-kit",
+      "verdict": "rebuild",
+      "what": "Generated types and build files for a SvelteKit project.",
+      "comeback": "SvelteKit generates it again whenever you run dev or build.",
+      "source": "https://svelte.dev/docs/kit/project-structure",
+      "project": { "dirs": [".svelte-kit"], "beside": ["svelte.config.js", "svelte.config.ts"] }
+    },
+    {
+      "id": "turbo-cache",
+      "tool": "Turborepo",
+      "kind": "Build cache",
+      "name": ".turbo",
+      "verdict": "rebuild",
+      "what": "Turborepo's local task cache, so unchanged tasks can be skipped.",
+      "comeback": "Filled again as tasks run. The first run afterwards is just slower.",
+      "source": "https://turborepo.com/docs/crafting-your-repository/caching",
+      "project": { "dirs": [".turbo"], "beside": ["package.json", "turbo.json"] }
+    },
+    {
+      "id": "parcel-cache",
+      "tool": "Parcel",
+      "kind": "Build cache",
+      "name": ".parcel-cache",
+      "verdict": "rebuild",
+      "what": "Parcel's build cache.",
+      "comeback": "Parcel rebuilds it on the next build.",
+      "source": "https://parceljs.org/features/development/#caching",
+      "project": { "dirs": [".parcel-cache"], "beside": ["package.json"] }
+    },
+    {
+      "id": "npm-cache",
+      "tool": "npm",
+      "kind": "Package cache",
+      "name": "npm cache",
+      "verdict": "redownload",
+      "what": "A copy of every package npm has ever downloaded, kept to speed up installs.",
+      "comeback": "npm downloads packages again the next time an install needs them.",
+      "source": "https://docs.npmjs.com/cli/v10/commands/npm-cache",
+      "command": "npm cache clean --force",
+      "env": [{ "var": "npm_config_cache", "join": "_cacache" }],
+      "paths": {
+        "unix": ["~/.npm/_cacache"],
+        "windows": ["{localappdata}/npm-cache/_cacache"]
+      }
+    },
+    {
+      "id": "yarn-cache",
+      "tool": "Yarn",
+      "kind": "Package cache",
+      "name": "Yarn cache",
+      "verdict": "redownload",
+      "what": "Packages Yarn has downloaded, shared across projects.",
+      "comeback": "Yarn fetches packages again on the next install.",
+      "source": "https://classic.yarnpkg.com/en/docs/cli/cache",
+      "command": "yarn cache clean",
+      "env": [{ "var": "YARN_CACHE_FOLDER" }],
+      "paths": {
+        "darwin": ["{cache}/Yarn"],
+        "linux": ["{cache}/yarn"],
+        "windows": ["{localappdata}/Yarn/Cache"],
+        "all": ["~/.yarn/berry/cache"]
+      }
+    },
+    {
+      "id": "pnpm-store",
+      "tool": "pnpm",
+      "kind": "Package store",
+      "name": "pnpm store",
+      "verdict": "review",
+      "what": "pnpm's shared package store. Your projects' node_modules folders are hard links into it, so moving it frees almost nothing until those projects are cleaned too.",
+      "comeback": "pnpm's own prune command removes only packages no project uses, which is the safe way to shrink it.",
+      "source": "https://pnpm.io/cli/store",
+      "command": "pnpm store prune",
+      "paths": {
+        "darwin": ["~/Library/pnpm/store"],
+        "linux": ["{data}/pnpm/store"],
+        "windows": ["{localappdata}/pnpm/store"]
+      }
+    },
+    {
+      "id": "bun-cache",
+      "tool": "Bun",
+      "kind": "Package cache",
+      "name": "Bun install cache",
+      "verdict": "redownload",
+      "what": "Packages Bun has downloaded, shared across projects.",
+      "comeback": "Bun downloads packages again on the next install.",
+      "source": "https://bun.sh/docs/install/cache",
+      "command": "bun pm cache rm",
+      "env": [{ "var": "BUN_INSTALL_CACHE_DIR" }],
+      "paths": { "all": ["~/.bun/install/cache"] }
+    },
+    {
+      "id": "deno-cache",
+      "tool": "Deno",
+      "kind": "Module cache",
+      "name": "Deno cache",
+      "verdict": "redownload",
+      "what": "Remote modules and compiled code Deno has cached.",
+      "comeback": "Deno downloads and compiles modules again when a script needs them.",
+      "source": "https://docs.deno.com/runtime/fundamentals/modules/",
+      "env": [{ "var": "DENO_DIR" }],
+      "paths": {
+        "darwin": ["{cache}/deno"],
+        "linux": ["{cache}/deno"],
+        "windows": ["{localappdata}/deno"]
+      }
+    },
+    {
+      "id": "node-gyp",
+      "tool": "node-gyp",
+      "kind": "Header cache",
+      "name": "node-gyp headers",
+      "verdict": "redownload",
+      "what": "Node.js headers downloaded to compile native add-ons.",
+      "comeback": "node-gyp downloads the headers again the next time a native package builds.",
+      "source": "https://github.com/nodejs/node-gyp#options",
+      "paths": {
+        "darwin": ["{cache}/node-gyp"],
+        "linux": ["{cache}/node-gyp"],
+        "windows": ["{localappdata}/node-gyp/Cache"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "group": "Rust, Go and JVM",
+  "rules": [
+    {
+      "id": "cargo-target",
+      "tool": "Cargo",
+      "kind": "Build output",
+      "name": "target",
+      "verdict": "rebuild",
+      "what": "Everything Cargo compiled for this project, for every profile and target.",
+      "comeback": "Cargo compiles it again on the next build. The first build afterwards takes longer.",
+      "source": "https://doc.rust-lang.org/cargo/reference/build-cache.html",
+      "command": "cargo clean",
+      "project": { "dirs": ["target"], "beside": ["Cargo.toml"], "inside": ["CACHEDIR.TAG", ".rustc_info.json"] }
+    },
+    {
+      "id": "cargo-registry",
+      "tool": "Cargo",
+      "kind": "Package cache",
+      "name": "Cargo registry cache",
+      "verdict": "redownload",
+      "what": "Downloaded crates and their unpacked sources, plus git dependencies.",
+      "comeback": "Cargo downloads crates again when a build needs them.",
+      "source": "https://doc.rust-lang.org/cargo/guide/cargo-home.html#caching-the-cargo-home-in-ci",
+      "env": [{ "var": "CARGO_HOME", "join": "registry" }],
+      "paths": { "all": ["~/.cargo/registry", "~/.cargo/git"] }
+    },
+    {
+      "id": "go-build-cache",
+      "tool": "Go",
+      "kind": "Build cache",
+      "name": "Go build cache",
+      "verdict": "rebuild",
+      "what": "Compiled packages and test results the go command reuses between builds.",
+      "comeback": "The go command fills it again as you build and test.",
+      "source": "https://pkg.go.dev/cmd/go#hdr-Build_and_test_caching",
+      "command": "go clean -cache",
+      "env": [{ "var": "GOCACHE" }],
+      "paths": {
+        "darwin": ["{cache}/go-build"],
+        "linux": ["{cache}/go-build"],
+        "windows": ["{localappdata}/go-build"]
+      }
+    },
+    {
+      "id": "go-mod-cache",
+      "tool": "Go",
+      "kind": "Module cache",
+      "name": "Go module cache",
+      "verdict": "redownload",
+      "what": "Source code of every Go module you have downloaded.",
+      "comeback": "The go command downloads modules again when a build needs them.",
+      "source": "https://go.dev/ref/mod#module-cache",
+      "command": "go clean -modcache",
+      "env": [{ "var": "GOMODCACHE" }, { "var": "GOPATH", "join": "pkg/mod" }],
+      "paths": { "all": ["~/go/pkg/mod"] }
+    },
+    {
+      "id": "gradle-caches",
+      "tool": "Gradle",
+      "kind": "Dependency cache",
+      "name": "Gradle caches",
+      "verdict": "redownload",
+      "what": "Dependencies, compiled build scripts and transforms Gradle shares across projects.",
+      "comeback": "Gradle downloads and rebuilds what it needs on the next build.",
+      "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
+      "env": [{ "var": "GRADLE_USER_HOME", "join": "caches" }],
+      "paths": { "all": ["~/.gradle/caches"] }
+    },
+    {
+      "id": "gradle-wrapper",
+      "tool": "Gradle",
+      "kind": "Downloaded tools",
+      "name": "Gradle wrapper distributions",
+      "verdict": "redownload",
+      "what": "Full Gradle versions downloaded by projects' Gradle wrappers. Old versions pile up here.",
+      "comeback": "The wrapper downloads the version a project needs the next time it runs.",
+      "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
+      "each": true,
+      "env": [{ "var": "GRADLE_USER_HOME", "join": "wrapper/dists" }],
+      "paths": { "all": ["~/.gradle/wrapper/dists"] }
+    },
+    {
+      "id": "gradle-project",
+      "tool": "Gradle",
+      "kind": "Build output",
+      "name": "Gradle build folders",
+      "verdict": "rebuild",
+      "what": "This project's Gradle build output and its local cache.",
+      "comeback": "Gradle builds it again on the next build.",
+      "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
+      "project": { "dirs": ["build", ".gradle"], "beside": ["build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"], "group": true }
+    },
+    {
+      "id": "maven-repo",
+      "tool": "Maven",
+      "kind": "Dependency cache",
+      "name": "Maven local repository",
+      "verdict": "redownload",
+      "what": "Every library Maven has downloaded. Anything you installed yourself with mvn install lives here too and needs installing again.",
+      "comeback": "Maven downloads dependencies again on the next build.",
+      "source": "https://maven.apache.org/guides/introduction/introduction-to-repositories.html",
+      "paths": { "all": ["~/.m2/repository"] }
+    },
+    {
+      "id": "maven-target",
+      "tool": "Maven",
+      "kind": "Build output",
+      "name": "target",
+      "verdict": "rebuild",
+      "what": "Maven's build output for this project.",
+      "comeback": "Maven builds it again with mvn package or mvn install.",
+      "source": "https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html",
+      "command": "mvn clean",
+      "project": { "dirs": ["target"], "beside": ["pom.xml"] }
+    }
+  ]
+}

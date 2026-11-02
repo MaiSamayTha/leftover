@@ -1,0 +1,141 @@
+{
+  "group": "Python",
+  "rules": [
+    {
+      "id": "python-venv",
+      "tool": "Python",
+      "kind": "Virtual environment",
+      "name": "Virtual environment",
+      "verdict": "redownload",
+      "what": "A virtual environment with this project's installed packages. The project lists its dependencies, so it can be recreated.",
+      "comeback": "Recreate it from the project's requirements (for example uv sync, poetry install, or python -m venv .venv then pip install -r requirements.txt).",
+      "source": "https://docs.python.org/3/library/venv.html",
+      "project": {
+        "dirs": [".venv", "venv", "env", ".env"],
+        "inside": ["pyvenv.cfg"],
+        "beside": ["pyproject.toml", "requirements.txt", "Pipfile", "setup.py", "uv.lock", "poetry.lock"]
+      }
+    },
+    {
+      "id": "python-venv-unlisted",
+      "tool": "Python",
+      "kind": "Virtual environment",
+      "name": "Virtual environment (no requirements file)",
+      "verdict": "review",
+      "what": "A virtual environment with no requirements file next to it, so Leftover can't tell how to rebuild it. If the folder it belongs to is gone, it may be an orphan.",
+      "comeback": "Before removing it, save its package list with pip freeze so you can recreate it.",
+      "source": "https://docs.python.org/3/library/venv.html",
+      "project": { "dirs": [".venv", "venv", "env", ".env"], "inside": ["pyvenv.cfg"] }
+    },
+    {
+      "id": "pycache",
+      "tool": "Python",
+      "kind": "Compiled bytecode",
+      "name": "__pycache__",
+      "verdict": "rebuild",
+      "what": "Compiled bytecode Python writes next to your source files to start faster.",
+      "comeback": "Python writes it again automatically the next time the code runs.",
+      "source": "https://docs.python.org/3/tutorial/modules.html#compiled-python-files",
+      "project": { "dirs": ["__pycache__"], "group": true }
+    },
+    {
+      "id": "python-tool-caches",
+      "tool": "pytest, mypy, Ruff",
+      "kind": "Tool cache",
+      "name": "Test and lint caches",
+      "verdict": "rebuild",
+      "what": "Caches pytest, mypy and Ruff keep between runs.",
+      "comeback": "Each tool rebuilds its cache on its next run.",
+      "source": "https://docs.pytest.org/en/stable/how-to/cache.html",
+      "project": { "dirs": [".pytest_cache", ".mypy_cache", ".ruff_cache"], "group": true }
+    },
+    {
+      "id": "tox-envs",
+      "tool": "tox",
+      "kind": "Test environments",
+      "name": ".tox",
+      "verdict": "rebuild",
+      "what": "Environments tox creates to run your tests against different setups.",
+      "comeback": "tox recreates them on its next run.",
+      "source": "https://tox.wiki/en/latest/config.html#work_dir",
+      "project": { "dirs": [".tox", ".nox"], "beside": ["tox.ini", "noxfile.py", "pyproject.toml", "setup.cfg"] }
+    },
+    {
+      "id": "pip-cache",
+      "tool": "pip",
+      "kind": "Package cache",
+      "name": "pip cache",
+      "verdict": "redownload",
+      "what": "Wheels and downloads pip keeps to make installs faster.",
+      "comeback": "pip downloads packages again when it needs them.",
+      "source": "https://pip.pypa.io/en/stable/topics/caching/",
+      "command": "pip cache purge",
+      "env": [{ "var": "PIP_CACHE_DIR" }],
+      "paths": {
+        "darwin": ["{cache}/pip"],
+        "linux": ["{cache}/pip"],
+        "windows": ["{localappdata}/pip/Cache"]
+      }
+    },
+    {
+      "id": "uv-cache",
+      "tool": "uv",
+      "kind": "Package cache",
+      "name": "uv cache",
+      "verdict": "redownload",
+      "what": "Packages, wheels and Python builds uv has downloaded.",
+      "comeback": "uv downloads what it needs again on the next sync or install.",
+      "source": "https://docs.astral.sh/uv/concepts/cache/",
+      "command": "uv cache clean",
+      "env": [{ "var": "UV_CACHE_DIR" }],
+      "paths": {
+        "unix": ["{xdgcache}/uv"],
+        "windows": ["{localappdata}/uv/cache"]
+      }
+    },
+    {
+      "id": "poetry-cache",
+      "tool": "Poetry",
+      "kind": "Package cache",
+      "name": "Poetry cache",
+      "verdict": "redownload",
+      "what": "Package metadata and downloaded files Poetry keeps between installs.",
+      "comeback": "Poetry downloads them again on the next install.",
+      "source": "https://python-poetry.org/docs/configuration/#cache-dir",
+      "command": "poetry cache clear --all PyPI",
+      "paths": {
+        "darwin": ["{cache}/pypoetry/cache", "{cache}/pypoetry/artifacts"],
+        "linux": ["{cache}/pypoetry/cache", "{cache}/pypoetry/artifacts"],
+        "windows": ["{localappdata}/pypoetry/Cache/cache", "{localappdata}/pypoetry/Cache/artifacts"]
+      }
+    },
+    {
+      "id": "conda-pkgs",
+      "tool": "Conda",
+      "kind": "Package cache",
+      "name": "Conda package cache",
+      "verdict": "review",
+      "what": "Downloaded conda packages. Some may be hard-linked into your environments, so conda's own clean command is the safe way to shrink it.",
+      "comeback": "conda clean only removes packages no environment is using.",
+      "source": "https://docs.conda.io/projects/conda/en/latest/commands/clean.html",
+      "command": "conda clean --all",
+      "paths": {
+        "all": ["~/miniconda3/pkgs", "~/anaconda3/pkgs", "~/miniforge3/pkgs", "~/.conda/pkgs"],
+        "darwin": ["~/opt/miniconda3/pkgs", "~/opt/anaconda3/pkgs"]
+      }
+    },
+    {
+      "id": "conda-envs",
+      "tool": "Conda",
+      "kind": "Environments",
+      "name": "Conda environments",
+      "verdict": "keep",
+      "what": "Your conda environments. Each one can hold packages you installed by hand, so Leftover never touches them.",
+      "command": "conda env list",
+      "each": true,
+      "paths": {
+        "all": ["~/miniconda3/envs", "~/anaconda3/envs", "~/miniforge3/envs", "~/.conda/envs"]
+      }
+    }
+  ]
+}

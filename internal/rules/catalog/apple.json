@@ -1,0 +1,141 @@
+{
+  "group": "Apple and mobile",
+  "rules": [
+    {
+      "id": "xcode-derived-data",
+      "tool": "Xcode",
+      "kind": "Build output",
+      "name": "Derived Data",
+      "verdict": "rebuild",
+      "what": "Xcode's build products, indexes and logs for every project you have opened.",
+      "comeback": "Xcode rebuilds it the next time you build or open a project. The first build afterwards is slower.",
+      "source": "https://developer.apple.com/forums/thread/812408",
+      "each": true,
+      "paths": { "darwin": ["~/Library/Developer/Xcode/DerivedData"] }
+    },
+    {
+      "id": "xcode-device-support",
+      "tool": "Xcode",
+      "kind": "Debug symbols",
+      "name": "Device support files",
+      "verdict": "redownload",
+      "what": "Debug symbols Xcode copies from each iPhone, iPad, Watch or Apple TV you connect, one folder per OS version. Old versions stay forever.",
+      "comeback": "Xcode copies them again the next time you connect a device running that version.",
+      "source": "https://developer.apple.com/forums/thread/812408",
+      "each": true,
+      "paths": {
+        "darwin": [
+          "~/Library/Developer/Xcode/iOS DeviceSupport",
+          "~/Library/Developer/Xcode/watchOS DeviceSupport",
+          "~/Library/Developer/Xcode/tvOS DeviceSupport",
+          "~/Library/Developer/Xcode/visionOS DeviceSupport"
+        ]
+      }
+    },
+    {
+      "id": "simulator-caches",
+      "tool": "Xcode",
+      "kind": "Simulator cache",
+      "name": "Simulator caches",
+      "verdict": "rebuild",
+      "what": "Caches the iOS Simulator builds for faster launches.",
+      "comeback": "Rebuilt the next time a simulator starts.",
+      "source": "https://developer.apple.com/forums/thread/812408",
+      "paths": { "darwin": ["~/Library/Developer/CoreSimulator/Caches"] }
+    },
+    {
+      "id": "simulator-devices",
+      "tool": "Xcode",
+      "kind": "Simulators",
+      "name": "Simulator devices",
+      "verdict": "keep",
+      "what": "Your simulators and the apps and data installed on them. Remove old ones from Xcode's Devices window, or delete the ones whose runtime is gone with simctl.",
+      "command": "xcrun simctl delete unavailable",
+      "paths": { "darwin": ["~/Library/Developer/CoreSimulator/Devices"] }
+    },
+    {
+      "id": "xcode-archives",
+      "tool": "Xcode",
+      "kind": "Archives",
+      "name": "Xcode archives",
+      "verdict": "keep",
+      "what": "Builds you archived for release. They hold the debug symbols you need to read crash reports from those versions.",
+      "each": true,
+      "paths": { "darwin": ["~/Library/Developer/Xcode/Archives"] }
+    },
+    {
+      "id": "cocoapods-cache",
+      "tool": "CocoaPods",
+      "kind": "Package cache",
+      "name": "CocoaPods cache",
+      "verdict": "redownload",
+      "what": "Pods CocoaPods has downloaded, shared across projects.",
+      "comeback": "pod install downloads them again.",
+      "source": "https://guides.cocoapods.org/terminal/commands.html#pod_cache_clean",
+      "command": "pod cache clean --all",
+      "paths": { "darwin": ["{cache}/CocoaPods"] }
+    },
+    {
+      "id": "swiftpm-cache",
+      "tool": "Swift Package Manager",
+      "kind": "Package cache",
+      "name": "SwiftPM cache",
+      "verdict": "redownload",
+      "what": "Package repositories Swift Package Manager has cloned.",
+      "comeback": "SwiftPM fetches packages again when a project resolves them.",
+      "source": "https://www.swift.org/documentation/package-manager/",
+      "paths": { "darwin": ["{cache}/org.swift.swiftpm"], "linux": ["{cache}/org.swift.swiftpm"] }
+    },
+    {
+      "id": "swiftpm-build",
+      "tool": "Swift Package Manager",
+      "kind": "Build output",
+      "name": ".build",
+      "verdict": "rebuild",
+      "what": "Swift Package Manager's build output and checkouts for this package.",
+      "comeback": "swift build rebuilds it.",
+      "source": "https://www.swift.org/documentation/package-manager/",
+      "project": { "dirs": [".build"], "beside": ["Package.swift"] }
+    },
+    {
+      "id": "homebrew-cache",
+      "tool": "Homebrew",
+      "kind": "Download cache",
+      "name": "Homebrew downloads",
+      "verdict": "redownload",
+      "what": "Bottles and source downloads Homebrew keeps after installing or upgrading.",
+      "comeback": "Homebrew downloads them again if it ever needs to reinstall.",
+      "source": "https://docs.brew.sh/FAQ#how-do-i-uninstall-old-versions-of-a-formula",
+      "command": "brew cleanup --prune=all",
+      "env": [{ "var": "HOMEBREW_CACHE" }],
+      "paths": { "darwin": ["{cache}/Homebrew"], "linux": ["{cache}/Homebrew"] }
+    },
+    {
+      "id": "android-system-images",
+      "tool": "Android SDK",
+      "kind": "Emulator images",
+      "name": "Android system images",
+      "verdict": "redownload",
+      "what": "Android OS images used to create emulators, one per API level and architecture.",
+      "comeback": "Download any image again from Android Studio's SDK Manager or with sdkmanager.",
+      "source": "https://developer.android.com/tools/sdkmanager",
+      "each": true,
+      "env": [{ "var": "ANDROID_HOME", "join": "system-images" }, { "var": "ANDROID_SDK_ROOT", "join": "system-images" }],
+      "paths": {
+        "darwin": ["~/Library/Android/sdk/system-images"],
+        "linux": ["~/Android/Sdk/system-images"],
+        "windows": ["{localappdata}/Android/Sdk/system-images"]
+      }
+    },
+    {
+      "id": "android-avd",
+      "tool": "Android SDK",
+      "kind": "Emulators",
+      "name": "Android emulators",
+      "verdict": "keep",
+      "what": "Emulators you created, with everything installed on them. Remove unused ones from Android Studio's Device Manager.",
+      "each": true,
+      "paths": { "all": ["~/.android/avd"] }
+    }
+  ]
+}
