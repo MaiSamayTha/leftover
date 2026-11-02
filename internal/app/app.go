@@ -356,14 +356,13 @@ func startsWithDotDot(rel string) bool {
 }
 
 func projectMatches(r *rules.Rule, parent, dir string) bool {
-	ok := len(r.Project.Beside) == 0
-	for _, b := range r.Project.Beside {
-		if _, err := os.Lstat(filepath.Join(parent, b)); err == nil {
-			ok = true
-			break
+	siblings := map[string]bool{}
+	if entries, err := os.ReadDir(parent); err == nil {
+		for _, e := range entries {
+			siblings[e.Name()] = true
 		}
 	}
-	if !ok {
+	if !r.Project.MatchesBeside(siblings) {
 		return false
 	}
 	if len(r.Project.Inside) == 0 {

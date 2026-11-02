@@ -108,3 +108,16 @@ func TestLocationsAreOSSpecific(t *testing.T) {
 		t.Fatalf("Xcode paths should exist on macOS, got %v", got)
 	}
 }
+
+func TestBesideGlobs(t *testing.T) {
+	p := &Project{Dirs: []string{"bin"}, Beside: []string{"*.csproj"}}
+	if !p.MatchesBeside(map[string]bool{"App.csproj": true, "Program.cs": true}) {
+		t.Error("*.csproj should match App.csproj")
+	}
+	if p.MatchesBeside(map[string]bool{"notes.txt": true}) {
+		t.Error("*.csproj should not match notes.txt")
+	}
+	if !(&Project{}).MatchesBeside(nil) {
+		t.Error("no beside rule means any folder qualifies")
+	}
+}

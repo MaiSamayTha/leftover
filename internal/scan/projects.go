@@ -138,17 +138,8 @@ func (pf *projectFinder) walk(ctx context.Context, dir string, depth int, projec
 func (pf *projectFinder) match(parent, child, name string, siblings map[string]bool) *rules.Rule {
 	for _, r := range pf.byName[name] {
 		p := r.Project
-		if len(p.Beside) > 0 {
-			ok := false
-			for _, b := range p.Beside {
-				if siblings[b] {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				continue
-			}
+		if !p.MatchesBeside(siblings) {
+			continue
 		}
 		if len(p.Inside) > 0 {
 			ok := false

@@ -81,6 +81,28 @@ type Project struct {
 	Group bool `json:"group,omitempty"`
 }
 
+// MatchesBeside reports whether the folder's neighbours satisfy Beside.
+// Patterns may use * and ?, as in "*.csproj".
+func (p *Project) MatchesBeside(siblings map[string]bool) bool {
+	if len(p.Beside) == 0 {
+		return true
+	}
+	for _, b := range p.Beside {
+		if !strings.ContainsAny(b, "*?[") {
+			if siblings[b] {
+				return true
+			}
+			continue
+		}
+		for name := range siblings {
+			if ok, _ := path.Match(b, name); ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // Rule is one kind of thing Leftover can find.
 type Rule struct {
 	ID      string  `json:"id"`
@@ -250,6 +272,11 @@ func (r *Rule) check() error {
 		for _, d := range r.Project.Dirs {
 			if d == "" || strings.ContainsAny(d, "/\\") {
 				return fmt.Errorf("project dir %q must be a plain folder name", d)
+			}
+		}
+		for _, b := range r.Project.Beside {
+			if _, err := path.Match(b, ""); err != nil || strings.ContainsAny(b, "/\\") {
+				return fmt.Errorf("bad beside pattern %q", b)
 			}
 		}
 		return nil

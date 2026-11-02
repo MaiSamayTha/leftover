@@ -1,0 +1,108 @@
+{
+  "group": "Ruby, PHP, .NET and more",
+  "rules": [
+    {
+      "id": "bundler-vendor",
+      "tool": "Bundler",
+      "kind": "Project dependencies",
+      "name": "vendor/bundle",
+      "verdict": "redownload",
+      "what": "Gems Bundler installed inside this project instead of system-wide.",
+      "comeback": "bundle install puts them back exactly as the Gemfile.lock lists them.",
+      "source": "https://bundler.io/guides/deploying.html",
+      "project": { "dirs": ["bundle"], "inside": ["ruby"] }
+    },
+    {
+      "id": "composer-vendor",
+      "tool": "Composer",
+      "kind": "Project dependencies",
+      "name": "vendor",
+      "verdict": "redownload",
+      "what": "Every PHP package this project depends on, installed by Composer.",
+      "comeback": "composer install rebuilds it from composer.lock.",
+      "source": "https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+      "project": { "dirs": ["vendor"], "beside": ["composer.json"], "inside": ["autoload.php"] }
+    },
+    {
+      "id": "composer-cache",
+      "tool": "Composer",
+      "kind": "Package cache",
+      "name": "Composer cache",
+      "verdict": "redownload",
+      "what": "PHP packages Composer has downloaded, shared across projects.",
+      "comeback": "Composer downloads packages again when an install needs them.",
+      "source": "https://getcomposer.org/doc/03-cli.md#clear-cache-clearcache-cc",
+      "command": "composer clear-cache",
+      "env": [{ "var": "COMPOSER_CACHE_DIR" }],
+      "paths": {
+        "darwin": ["{cache}/composer"],
+        "linux": ["{cache}/composer", "~/.composer/cache"],
+        "windows": ["{localappdata}/Composer"]
+      }
+    },
+    {
+      "id": "nuget-packages",
+      "tool": "NuGet",
+      "kind": "Package cache",
+      "name": "NuGet packages",
+      "verdict": "redownload",
+      "what": "Every NuGet package your .NET projects have restored, kept in one shared folder.",
+      "comeback": "dotnet restore downloads the packages a project needs again.",
+      "source": "https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders",
+      "command": "dotnet nuget locals all --clear",
+      "env": [{ "var": "NUGET_PACKAGES" }],
+      "paths": { "all": ["~/.nuget/packages"] }
+    },
+    {
+      "id": "dotnet-build",
+      "tool": ".NET",
+      "kind": "Build output",
+      "name": "bin and obj",
+      "verdict": "rebuild",
+      "what": "Compiled output and intermediate build files for this .NET project.",
+      "comeback": "dotnet build (or building in your IDE) recreates both folders.",
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-clean",
+      "command": "dotnet clean",
+      "project": { "dirs": ["bin", "obj"], "beside": ["*.csproj", "*.fsproj", "*.vbproj"], "group": true }
+    },
+    {
+      "id": "dart-pub-cache",
+      "tool": "Dart and Flutter",
+      "kind": "Package cache",
+      "name": "Pub cache",
+      "verdict": "redownload",
+      "what": "Dart and Flutter packages downloaded by pub, shared across projects.",
+      "comeback": "dart pub get or flutter pub get downloads them again.",
+      "source": "https://dart.dev/tools/pub/glossary#system-cache",
+      "command": "dart pub cache clean",
+      "env": [{ "var": "PUB_CACHE" }],
+      "paths": {
+        "unix": ["~/.pub-cache"],
+        "windows": ["{localappdata}/Pub/Cache"]
+      }
+    },
+    {
+      "id": "flutter-build",
+      "tool": "Dart and Flutter",
+      "kind": "Build output",
+      "name": "build and .dart_tool",
+      "verdict": "rebuild",
+      "what": "Flutter's build output and Dart's generated tool files for this project.",
+      "comeback": "flutter build or flutter run recreates them, and flutter pub get restores .dart_tool.",
+      "source": "https://docs.flutter.dev/reference/flutter-cli",
+      "command": "flutter clean",
+      "project": { "dirs": ["build", ".dart_tool"], "beside": ["pubspec.yaml"], "group": true }
+    },
+    {
+      "id": "terraform-plugins",
+      "tool": "Terraform",
+      "kind": "Downloaded providers",
+      "name": ".terraform",
+      "verdict": "redownload",
+      "what": "Providers and modules terraform init downloaded for this configuration. Your state file sits next to it, not in it.",
+      "comeback": "terraform init downloads them again.",
+      "source": "https://developer.hashicorp.com/terraform/cli/init",
+      "project": { "dirs": [".terraform"], "beside": ["*.tf"], "inside": ["providers", "modules"] }
+    }
+  ]
+}

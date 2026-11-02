@@ -218,3 +218,19 @@ func TestMinAge(t *testing.T) {
 		t.Fatalf("only the old temp entry should be reported, got %+v", items)
 	}
 }
+
+func TestDotnetBuildFoldersGroup(t *testing.T) {
+	home := t.TempDir()
+	write(t, filepath.Join(home, "src/Api/Api.csproj"), 10)
+	write(t, filepath.Join(home, "src/Api/bin/Debug/api.dll"), 9_000)
+	write(t, filepath.Join(home, "src/Api/obj/project.assets.json"), 4_000)
+	write(t, filepath.Join(home, "src/scripts/bin/run.sh"), 100) // not a .NET bin
+	res, err := scanner(home).Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := byRule(res)["dotnet-build"]
+	if len(got) != 1 || len(got[0].Paths) != 2 {
+		t.Fatalf("want bin and obj as one item, got %+v", got)
+	}
+}
