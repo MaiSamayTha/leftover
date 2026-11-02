@@ -72,10 +72,10 @@ func until(t, now time.Time) string {
 	if d <= 0 {
 		return "expired"
 	}
-	days := int(d.Hours() / 24)
-	if days == 0 {
+	if d < 24*time.Hour {
 		return fmt.Sprintf("%dh left", int(d.Hours())+1)
 	}
+	days := int((d + 24*time.Hour - 1) / (24 * time.Hour))
 	return fmt.Sprintf("%d days left", days)
 }
 
