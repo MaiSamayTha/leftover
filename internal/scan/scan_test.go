@@ -294,3 +294,32 @@ not json
 		t.Errorf("build cache row = %+v", d[3])
 	}
 }
+
+func TestEntryLabel(t *testing.T) {
+	for in, want := range map[string]string{
+		"models--meta-llama--Llama-3.1-8B":   "meta-llama/Llama-3.1-8B",
+		"datasets--squad":                    "squad",
+		"MyApp-bxyzqwertyuiopasdfghjklzxcvb": "MyApp",
+		"chromium-1243":                      "chromium-1243",
+		"IntelliJIdea2024.1":                 "IntelliJIdea2024.1",
+	} {
+		if got := entryLabel(in); got != want {
+			t.Errorf("%s: got %q want %q", in, got, want)
+		}
+	}
+}
+
+func TestVaultsOnOtherDrivesAreNotRescanned(t *testing.T) {
+	home := t.TempDir()
+	// A cleaned project's node_modules, sitting in a vault, still has
+	// nested packages with their own package.json files.
+	write(t, filepath.Join(home, ".leftover-vault/20260101-000000-abc123/items/0/react/package.json"), 10)
+	write(t, filepath.Join(home, ".leftover-vault/20260101-000000-abc123/items/0/react/node_modules/x.js"), 9_000)
+	res, err := scanner(home).Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n := len(byRule(res)["node-modules"]); n != 0 {
+		t.Fatalf("items inside a vault were reported again: %d", n)
+	}
+}

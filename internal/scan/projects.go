@@ -43,6 +43,9 @@ var skipNames = map[string]bool{
 	".npm": true, ".cargo": true, ".rustup": true, ".m2": true, ".ollama": true,
 	".docker": true, ".lmstudio": true, ".bun": true, ".nvm": true, ".pyenv": true,
 	".local": true, ".vscode": true, ".cursor": true, ".android": true,
+	// Leftover's own vault on other drives. Things in it were already
+	// cleaned and must never show up again as if they were new.
+	".leftover-vault": true,
 }
 
 // homeSkips are skipped only directly under the home folder.

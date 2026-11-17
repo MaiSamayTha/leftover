@@ -21,11 +21,14 @@ import (
 // Item is one thing Leftover found: a cache, a model, a project's
 // dependencies. Grouped rules can put several folders in one item.
 type Item struct {
-	ID      string        `json:"id"`
-	Rule    string        `json:"rule"`
-	Tool    string        `json:"tool"`
-	Kind    string        `json:"kind"`
-	Name    string        `json:"name"`
+	ID   string `json:"id"`
+	Rule string `json:"rule"`
+	Tool string `json:"tool"`
+	Kind string `json:"kind"`
+	Name string `json:"name"`
+	// Label names the specific thing when a rule lists entries one by one,
+	// like "meta-llama/Llama-3.1-8B" for a Hugging Face model.
+	Label   string        `json:"label,omitempty"`
 	Group   string        `json:"group"`
 	Verdict rules.Verdict `json:"verdict"`
 	Paths   []string      `json:"paths"`
@@ -234,6 +237,9 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 			if c.rule.MinAgeDays > 0 && (it.Newest.IsZero() || now.Sub(it.Newest) < time.Duration(c.rule.MinAgeDays)*24*time.Hour) {
 				return
 			}
+			if c.rule.Each {
+				it.Label = entryLabel(filepath.Base(c.paths[0]))
+			}
 			if d := detailers[c.rule.ID]; d != nil {
 				it.Details = d(c.paths[0])
 			}
@@ -388,3 +394,17 @@ func (s *pathSet) has(p string) bool {
 }
 
 func (s *pathSet) exact(p string) bool { return s.m[norm(p)] }
+
+// entryLabel makes a readable name from a folder name inside a cache.
+func entryLabel(name string) string {
+	for _, prefix := range []string{"models--", "datasets--", "spaces--"} {
+		if strings.HasPrefix(name, prefix) {
+			return strings.ReplaceAll(strings.TrimPrefix(name, prefix), "--", "/")
+		}
+	}
+	// Xcode names DerivedData folders Project-<28 random letters>.
+	if i := strings.LastIndexByte(name, '-'); i > 0 && len(name)-i-1 == 28 {
+		return name[:i]
+	}
+	return name
+}
