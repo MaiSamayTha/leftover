@@ -203,7 +203,9 @@ func (v *Vault) Restore(id string, strict bool) (Entry, []string, error) {
 			if strict {
 				return e, nil, fmt.Errorf("%s exists again; move it away or restore beside it", p)
 			}
-			t = freeName(p)
+			if t, err = freeName(p); err != nil {
+				return e, nil, err
+			}
 		}
 		targets[i] = t
 	}
@@ -227,15 +229,21 @@ func (v *Vault) Restore(id string, strict bool) (Entry, []string, error) {
 	return e, restored, nil
 }
 
-func freeName(p string) string {
+// freeName finds an unused "<p> (restored N)" name beside p. It gives up on
+// any error other than "not there", which would otherwise repeat forever.
+func freeName(p string) (string, error) {
 	for i := 1; ; i++ {
 		suffix := " (restored)"
 		if i > 1 {
 			suffix = fmt.Sprintf(" (restored %d)", i)
 		}
 		c := p + suffix
-		if _, err := os.Lstat(c); errors.Is(err, fs.ErrNotExist) {
-			return c
+		_, err := os.Lstat(c)
+		if errors.Is(err, fs.ErrNotExist) {
+			return c, nil
+		}
+		if err != nil {
+			return "", fmt.Errorf("couldn't find a free name beside %s: %w", p, friendly(err))
 		}
 	}
 }

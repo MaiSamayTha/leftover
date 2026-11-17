@@ -3,6 +3,7 @@ package vault
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -156,6 +157,26 @@ func TestFailedRollbackKeepsFiles(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(a, "x.pyc")); err != nil {
 		t.Fatal("a's files were lost")
+	}
+}
+
+func TestFreeName(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "node_modules")
+	mk(t, filepath.Join(p+" (restored)", "a"), "a")
+	got, err := freeName(p)
+	if err != nil || got != p+" (restored 2)" {
+		t.Fatalf("got %q, %v", got, err)
+	}
+	// On Unix a path under a file fails with "not a directory", which used
+	// to loop forever. Windows reports it as missing instead.
+	if runtime.GOOS == "windows" {
+		return
+	}
+	file := filepath.Join(dir, "file")
+	mk(t, file, "x")
+	if _, err := freeName(filepath.Join(file, "node_modules")); err == nil {
+		t.Fatal("expected an error, not a name")
 	}
 }
 
