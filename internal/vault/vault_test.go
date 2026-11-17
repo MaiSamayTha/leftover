@@ -127,6 +127,38 @@ func TestMoveIsAllOrNothing(t *testing.T) {
 	}
 }
 
+func TestFailedRollbackKeepsFiles(t *testing.T) {
+	v, _ := setup(t)
+	a := filepath.Join(v.Home, "p", "a", "__pycache__")
+	b := filepath.Join(v.Home, "p", "b", "__pycache__")
+	mk(t, filepath.Join(a, "x.pyc"), "x")
+	mk(t, filepath.Join(b, "y.pyc"), "y")
+	// b can't be moved in, and a can't be moved back out of the vault.
+	rename = func(from, to string) error {
+		if from == b || to == a {
+			return &os.LinkError{Op: "rename", Old: from, New: to, Err: os.ErrPermission}
+		}
+		return os.Rename(from, to)
+	}
+	t.Cleanup(func() { rename = os.Rename })
+
+	e, err := v.Move(req(a, b))
+	if err == nil {
+		t.Fatal("expected the move to fail")
+	}
+	list, _ := v.List()
+	if len(list) != 1 || list[0].State != Moving {
+		t.Fatalf("the entry holding a's files must be kept as interrupted, got %v", list)
+	}
+	rename = os.Rename
+	if _, _, err := v.Restore(e.ID, true); err != nil {
+		t.Fatalf("the kept entry must restore: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(a, "x.pyc")); err != nil {
+		t.Fatal("a's files were lost")
+	}
+}
+
 func TestGuards(t *testing.T) {
 	v, base := setup(t)
 	mk(t, filepath.Join(v.Home, "x"), "x")

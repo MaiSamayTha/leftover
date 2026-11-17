@@ -155,8 +155,17 @@ func (v *Vault) Move(req Request) (Entry, error) {
 	}
 	for i, p := range e.Paths {
 		if err := rename(p, e.slot(i)); err != nil {
+			stuck := false
 			for j := i - 1; j >= 0; j-- {
-				rename(e.slot(j), e.Paths[j])
+				if rename(e.slot(j), e.Paths[j]) != nil {
+					stuck = true
+				}
+			}
+			if stuck {
+				// Something couldn't be put back, so the entry still holds
+				// real files. Keep it (it lists as interrupted) rather than
+				// deleting them along with the entry folder.
+				return e, fmt.Errorf("couldn't move %s: %w; some folders are still in the vault, restore entry %s to get them back", p, friendly(err), e.ID)
 			}
 			os.RemoveAll(e.dir)
 			return Entry{}, fmt.Errorf("couldn't move %s: %w", p, friendly(err))
