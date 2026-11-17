@@ -104,6 +104,10 @@ var ErrNotCleanable = errors.New("this item is marked as your data or as unverif
 // ErrOtherDrive is returned when no vault can be made on an item's drive.
 var ErrOtherDrive = errors.New("can't make a vault on this drive, and Leftover never copies between drives")
 
+// rename is os.Rename, kept in a variable so tests can make a move fail
+// the same way on every OS.
+var rename = os.Rename
+
 // Move puts every path of a request into one new vault entry. If any path
 // can't be moved, the ones already moved are put back and nothing changes.
 func (v *Vault) Move(req Request) (Entry, error) {
@@ -150,9 +154,18 @@ func (v *Vault) Move(req Request) (Entry, error) {
 		return Entry{}, err
 	}
 	for i, p := range e.Paths {
-		if err := os.Rename(p, e.slot(i)); err != nil {
+		if err := rename(p, e.slot(i)); err != nil {
+			stuck := false
 			for j := i - 1; j >= 0; j-- {
-				os.Rename(e.slot(j), e.Paths[j])
+				if rename(e.slot(j), e.Paths[j]) != nil {
+					stuck = true
+				}
+			}
+			if stuck {
+				// Something couldn't be put back, so the entry still holds
+				// real files. Keep it (it lists as interrupted) rather than
+				// deleting them along with the entry folder.
+				return e, fmt.Errorf("couldn't move %s: %w; some folders are still in the vault, restore entry %s to get them back", p, friendly(err), e.ID)
 			}
 			os.RemoveAll(e.dir)
 			return Entry{}, fmt.Errorf("couldn't move %s: %w", p, friendly(err))
@@ -190,7 +203,9 @@ func (v *Vault) Restore(id string, strict bool) (Entry, []string, error) {
 			if strict {
 				return e, nil, fmt.Errorf("%s exists again; move it away or restore beside it", p)
 			}
-			t = freeName(p)
+			if t, err = freeName(p); err != nil {
+				return e, nil, err
+			}
 		}
 		targets[i] = t
 	}
@@ -214,15 +229,21 @@ func (v *Vault) Restore(id string, strict bool) (Entry, []string, error) {
 	return e, restored, nil
 }
 
-func freeName(p string) string {
+// freeName finds an unused "<p> (restored N)" name beside p. It gives up on
+// any error other than "not there", which would otherwise repeat forever.
+func freeName(p string) (string, error) {
 	for i := 1; ; i++ {
 		suffix := " (restored)"
 		if i > 1 {
 			suffix = fmt.Sprintf(" (restored %d)", i)
 		}
 		c := p + suffix
-		if _, err := os.Lstat(c); errors.Is(err, fs.ErrNotExist) {
-			return c
+		_, err := os.Lstat(c)
+		if errors.Is(err, fs.ErrNotExist) {
+			return c, nil
+		}
+		if err != nil {
+			return "", fmt.Errorf("couldn't find a free name beside %s: %w", p, friendly(err))
 		}
 	}
 }

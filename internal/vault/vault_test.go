@@ -3,6 +3,7 @@ package vault
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -95,21 +96,27 @@ func TestRestoreBesideWhenRecreated(t *testing.T) {
 	}
 }
 
+// failOn makes every rename of path fail until the test ends.
+func failOn(t *testing.T, path string) {
+	t.Helper()
+	rename = func(from, to string) error {
+		if from == path {
+			return &os.LinkError{Op: "rename", Old: from, New: to, Err: os.ErrPermission}
+		}
+		return os.Rename(from, to)
+	}
+	t.Cleanup(func() { rename = os.Rename })
+}
+
 func TestMoveIsAllOrNothing(t *testing.T) {
 	v, _ := setup(t)
 	a := filepath.Join(v.Home, "p", "a", "__pycache__")
 	b := filepath.Join(v.Home, "p", "b", "__pycache__")
 	mk(t, filepath.Join(a, "x.pyc"), "x")
 	mk(t, filepath.Join(b, "y.pyc"), "y")
-	// Make the second one fail to move by locking its parent.
-	parent := filepath.Dir(b)
-	if err := os.Chmod(parent, 0o500); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(parent, 0o755)
-	if os.Getuid() == 0 {
-		t.Skip("root ignores permissions")
-	}
+	// Make the second rename fail. Locking the parent folder with chmod
+	// doesn't stop renames on Windows, so fail it directly instead.
+	failOn(t, b)
 	if _, err := v.Move(req(a, b)); err == nil {
 		t.Fatal("expected the move to fail")
 	}
@@ -118,6 +125,58 @@ func TestMoveIsAllOrNothing(t *testing.T) {
 	}
 	if list, _ := v.List(); len(list) != 0 {
 		t.Fatal("a failed move must not leave an entry behind")
+	}
+}
+
+func TestFailedRollbackKeepsFiles(t *testing.T) {
+	v, _ := setup(t)
+	a := filepath.Join(v.Home, "p", "a", "__pycache__")
+	b := filepath.Join(v.Home, "p", "b", "__pycache__")
+	mk(t, filepath.Join(a, "x.pyc"), "x")
+	mk(t, filepath.Join(b, "y.pyc"), "y")
+	// b can't be moved in, and a can't be moved back out of the vault.
+	rename = func(from, to string) error {
+		if from == b || to == a {
+			return &os.LinkError{Op: "rename", Old: from, New: to, Err: os.ErrPermission}
+		}
+		return os.Rename(from, to)
+	}
+	t.Cleanup(func() { rename = os.Rename })
+
+	e, err := v.Move(req(a, b))
+	if err == nil {
+		t.Fatal("expected the move to fail")
+	}
+	list, _ := v.List()
+	if len(list) != 1 || list[0].State != Moving {
+		t.Fatalf("the entry holding a's files must be kept as interrupted, got %v", list)
+	}
+	rename = os.Rename
+	if _, _, err := v.Restore(e.ID, true); err != nil {
+		t.Fatalf("the kept entry must restore: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(a, "x.pyc")); err != nil {
+		t.Fatal("a's files were lost")
+	}
+}
+
+func TestFreeName(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "node_modules")
+	mk(t, filepath.Join(p+" (restored)", "a"), "a")
+	got, err := freeName(p)
+	if err != nil || got != p+" (restored 2)" {
+		t.Fatalf("got %q, %v", got, err)
+	}
+	// On Unix a path under a file fails with "not a directory", which used
+	// to loop forever. Windows reports it as missing instead.
+	if runtime.GOOS == "windows" {
+		return
+	}
+	file := filepath.Join(dir, "file")
+	mk(t, file, "x")
+	if _, err := freeName(filepath.Join(file, "node_modules")); err == nil {
+		t.Fatal("expected an error, not a name")
 	}
 }
 
