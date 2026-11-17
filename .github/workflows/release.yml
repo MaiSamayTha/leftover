@@ -1,0 +1,56 @@
+name: release
+
+# Push a tag like v0.1.0 to build every platform, write checksums and
+# publish a GitHub release. The install scripts and the website download
+# from the latest release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: test
+        run: go test ./... && sh scripts/e2e.sh
+      - name: build
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -eu
+          mkdir -p dist
+          for target in darwin/arm64 darwin/amd64 linux/amd64 linux/arm64 windows/amd64 windows/arm64; do
+            goos=${target%/*}; goarch=${target#*/}
+            name=$goos; [ "$goos" = darwin ] && name=macos
+            stage="build/leftover-$name-$goarch"
+            mkdir -p "$stage"
+            exe=leftover; [ "$goos" = windows ] && exe=leftover.exe
+            GOOS=$goos GOARCH=$goarch CGO_ENABLED=0 go build -trimpath \
+              -ldflags "-s -w -X main.version=${VERSION#v}" -o "$stage/$exe" ./cmd/leftover
+            cp LICENSE README.md "$stage/"
+            case $goos in
+              darwin) cp assets/leftover.icns "$stage/" ;;
+              linux) cp assets/leftover.svg "$stage/" ;;
+              windows) cp assets/leftover.ico "$stage/" ;;
+            esac
+            if [ "$goos" = windows ]; then
+              (cd "$stage" && zip -q -9 "../../dist/leftover-$name-$goarch.zip" *)
+            else
+              tar -C "$stage" -czf "dist/leftover-$name-$goarch.tar.gz" .
+            fi
+          done
+          (cd dist && sha256sum * > checksums.txt && cat checksums.txt)
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" dist/* \
+            --title "Leftover ${{ github.ref_name }}" \
+            --notes "Verify downloads against checksums.txt, or use the install scripts, which do it for you."

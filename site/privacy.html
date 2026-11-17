@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Privacy — Leftover</title>
+  <meta name="description" content="Leftover runs on your computer and sends nothing anywhere. Here is exactly what it reads, what it writes, and what this website does.">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="wordmark" href="./"><img src="assets/icon.svg" alt="">Leftover</a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="./#how">How it works</a>
+        <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>
+        <a class="pill" href="./#download">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="prose narrow">
+    <h1 class="headline headline-md">Privacy, in plain English.</h1>
+    <p class="lede">Leftover looks through your disk, so you should know exactly what it does there. The short version: it runs on your computer, it never sends anything anywhere, and it only changes what you tell it to.</p>
+
+    <h2>The app</h2>
+    <h3>What it collects</h3>
+    <p>Nothing. Leftover has no account, no analytics, no crash reporting and no update checks. It contains no networking code that talks to the internet, and it works the same with the network unplugged.</p>
+
+    <h3>What it reads</h3>
+    <p>To find caches, Leftover reads folder listings and file sizes in your home folder and in the places tools are documented to keep their data. It does not open or read the contents of your files, with three small exceptions it needs to explain what it found: a Python environment's <code>pyvenv.cfg</code> (to see if its Python still exists), Ollama's model manifests (to list your models), and the names of files next to a folder (to tell a Node.js <code>node_modules</code> from any other folder of that name).</p>
+    <p>If Docker is installed, Leftover runs <code>docker system df</code> on your machine to show what is inside Docker's disk image. That command only reads, and its output stays on your computer.</p>
+
+    <h3>What it writes</h3>
+    <p>Scanning only reads. Leftover writes to a single folder of its own: settings, the result of the last scan, a history log, and the vault. Run <code>leftover where</code> to see where it is on your machine.</p>
+    <p>Outside that folder, the only changes are the ones you confirm: moving an item you picked into the vault, putting one back, or emptying the vault. Moving into the vault is a rename on the same drive, so nothing is copied and nothing is deleted. Items stay restorable for 14 days unless you change that. Every move, restore and deletion is written to the history log, which you can read in the app or with <code>leftover history</code>.</p>
+
+    <h3>The window</h3>
+    <p>The app's window is a page served by Leftover itself to your computer only, on a private address (127.0.0.1) with a random key that changes every launch. Other websites can't reach it. When it opens in Chrome, Edge or Brave, it uses a separate profile with syncing, update checks and other background requests switched off.</p>
+
+    <h3>Checking for yourself</h3>
+    <p>Leftover is open source under the MIT license and uses nothing beyond Go's standard library, so the whole program is short enough to read. The code is on <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>, and every release lists checksums so you can verify what you downloaded.</p>
+
+    <h2>This website</h2>
+    <p>This site is a few static files. It sets no cookies, runs no analytics, embeds nothing from other companies and loads no fonts, scripts or images from anywhere else. The only script animates the page.</p>
+    <p>Like any website, the service that hosts these files may keep ordinary server logs, such as IP addresses and the pages requested, for security and operations. Downloads are served by GitHub, under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>. We don't receive or look at personal data from either.</p>
+
+    <h2>Questions</h2>
+    <p>If anything here is unclear, or you find Leftover doing something this page doesn't describe, please <a href="https://github.com/MaiSamayTha/leftover/issues">open an issue</a>. That would be a bug, and it will be treated as one.</p>
+    <p class="updated">Last updated November 2026.</p>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <p>Copyright © 2026 Samay. Leftover is released under the MIT License.</p>
+    </div>
+  </footer>
+</body>
+</html>

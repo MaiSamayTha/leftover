@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leftover — Know what it is. Then let it go.</title>
+  <meta name="description" content="Leftover finds the gigabytes your dev tools leave behind, explains exactly what each one is, and clears it safely with a 14-day undo. Runs entirely on your computer.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta property="og:title" content="Leftover — Know what it is. Then let it go.">
+  <meta property="og:description" content="Find the gigabytes your dev tools leave behind, see exactly what they are, and clear them safely. Runs 100% locally.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="wordmark" href="#top"><img src="assets/icon.svg" alt="">Leftover</a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#how">How it works</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#cli">Command line</a>
+        <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>
+        <a class="pill" href="#download">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="wrap">
+        <h1 class="headline reveal">Your disk isn't full. It's full of <em>leftovers.</em></h1>
+        <p class="subhead reveal">Leftover finds the gigabytes your dev tools leave behind, tells you exactly what they are, and clears them safely.</p>
+        <div class="hero-cta reveal">
+          <a class="pill pill-lg" href="#download">Download for free</a>
+          <a class="link-arrow" href="https://github.com/MaiSamayTha/leftover">View on GitHub</a>
+        </div>
+        <p class="hero-note reveal">macOS, Windows and Linux. Runs entirely on your computer.</p>
+
+        <div class="disk reveal" id="disk" aria-label="Example: a nearly full disk splits into the dev caches filling it">
+          <div class="disk-head"><b>Your disk</b><span id="disk-label">482 GB of 500 GB used</span></div>
+          <div class="disk-bar">
+            <div class="disk-fill"></div>
+            <div class="disk-segs">
+              <span data-grow="47" class="s1"></span>
+              <span data-grow="38" class="s2"></span>
+              <span data-grow="21" class="s3"></span>
+              <span data-grow="16" class="s4"></span>
+              <span data-grow="12" class="s5"></span>
+              <span data-grow="348" class="s0"></span>
+            </div>
+          </div>
+          <div class="disk-legend">
+            <span><i class="s1"></i>AI models <b>47 GB</b></span>
+            <span><i class="s2"></i>Docker <b>38 GB</b></span>
+            <span><i class="s3"></i>node_modules <b>21 GB</b></span>
+            <span><i class="s4"></i>Xcode <b>16 GB</b></span>
+            <span><i class="s5"></i>Python <b>12 GB</b></span>
+          </div>
+          <div class="disk-caption">Example machine. Your numbers will be different, and Leftover shows you exactly what they are.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-scan" id="how">
+      <div class="wrap center">
+        <p class="eyebrow reveal">Scan</p>
+        <h2 class="headline reveal">Every cache. Every tool. One scan.</h2>
+        <p class="subhead reveal">npm, pip, uv, Cargo, Gradle, Xcode, Docker, Ollama, Hugging Face and dozens more. Leftover knows where each one keeps its stuff, and finds the project folders too.</p>
+      </div>
+      <div class="wrap">
+        <div class="window reveal" id="scan-window">
+          <div class="window-bar"><i></i><i></i><i></i><span>Leftover</span></div>
+          <div class="window-body">
+            <div class="window-side">
+              <div class="side-item on"><i class="d d-safe"></i>Safe to clear<b id="scan-total">0 B</b></div>
+              <div class="side-item"><i class="d d-review"></i>Worth a look</div>
+              <div class="side-item"><i class="d d-keep"></i>Your data</div>
+              <div class="side-item side-gap">Vault</div>
+              <div class="side-item">History</div>
+            </div>
+            <div class="window-main">
+              <div class="scan-status" id="scan-status">Scanning… <span id="scan-folders">0</span> folders</div>
+              <ul class="rows" id="scan-rows"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-explain">
+      <div class="wrap split">
+        <div class="split-copy">
+          <p class="eyebrow reveal">Explain</p>
+          <h2 class="headline headline-md reveal">No guesswork. Every item comes with a reason.</h2>
+          <p class="subhead reveal">Leftover tells you what each folder is, which tool made it, and how it comes back. Every “safe” verdict links to the tool's own documentation. Anything it can't vouch for is shown, explained and left alone.</p>
+          <ul class="verdicts reveal">
+            <li><i class="d d-safe"></i><b>Rebuilds itself.</b> Build output and caches your tools recreate.</li>
+            <li><i class="d d-safe"></i><b>Downloads again.</b> Packages and models fetched on demand.</li>
+            <li><i class="d d-review"></i><b>Worth a look.</b> Known, but not guaranteed to come back. Never cleaned.</li>
+            <li><i class="d d-keep"></i><b>Your data.</b> Shown so you understand the space. Never touched.</li>
+          </ul>
+        </div>
+        <div class="card-stage" id="explain-stage">
+          <div class="row row-big"><span class="row-name">node_modules<small>~/code/landing-2024</small></span><span class="row-size">2.3 GB</span></div>
+          <div class="verdict-card">
+            <span class="badge badge-safe">Downloads again</span>
+            <h3>node_modules</h3>
+            <p class="vc-meta">npm · Project dependencies · untouched 7 months</p>
+            <h4>What it is</h4>
+            <p>Every package this project depends on, installed from its package.json and lockfile.</p>
+            <h4>How it comes back</h4>
+            <p>Run <code>npm install</code> and it is rebuilt exactly from the lockfile.</p>
+            <a class="vc-source">docs.npmjs.com/cli/configuring-npm/folders</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-vault">
+      <div class="wrap center">
+        <p class="eyebrow reveal">Vault</p>
+        <h2 class="headline reveal">Nothing is deleted until you're sure.</h2>
+        <p class="subhead reveal">Cleared items move into a vault on the same drive. It's instant, and anything can be put back exactly where it was for 14 days. If your tools already rebuilt it, Leftover restores beside the new copy instead of overwriting it.</p>
+      </div>
+      <div class="wrap">
+        <div class="vault-stage reveal" id="vault-stage">
+          <div class="v-list">
+            <div class="v-row"><span class="v-check"></span><span class="row-name">Gradle caches<small>~/.gradle/caches</small></span><span class="row-size">3.3 GB</span></div>
+            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">target<small>~/code/engine</small></span><span class="row-size">6.2 GB</span></div>
+            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">node_modules<small>~/code/old-site</small></span><span class="row-size">1.2 GB</span></div>
+            <div class="v-row"><span class="v-check"></span><span class="row-name">npm cache<small>~/.npm/_cacache</small></span><span class="row-size">2.7 GB</span></div>
+            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">Derived Data<small>~/Library/Developer/Xcode</small></span><span class="row-size">9.8 GB</span></div>
+          </div>
+          <div class="v-tray" aria-hidden="true">
+            <div class="v-tray-head"><b>Vault</b><span class="v-count">17.2 GB · 14 days left</span></div>
+            <div class="v-tray-items">
+              <span class="chip">target</span><span class="chip chip-back">node_modules<em>Put back ↩</em></span><span class="chip">Derived Data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-privacy" id="privacy">
+      <div class="wrap center">
+        <p class="eyebrow eyebrow-dark reveal">Privacy</p>
+        <h2 class="headline reveal">It never leaves your computer.</h2>
+        <p class="subhead reveal">A tool that looks through your disk should be one you never have to wonder about. Leftover is a single program that runs on your machine, talks to no one, and keeps a record of every change it makes.</p>
+
+        <div class="boundary reveal" id="boundary" aria-hidden="true">
+          <svg viewBox="0 0 600 340" class="boundary-svg">
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0" stop-color="#30d158" stop-opacity=".22"/>
+                <stop offset="1" stop-color="#30d158" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="300" cy="170" rx="290" ry="165" fill="url(#glow)" class="b-glow"/>
+            <rect x="150" y="70" width="300" height="180" rx="14" class="b-screen"/>
+            <path d="M120 262h360l-22 18H142z" class="b-base"/>
+            <g class="b-scan">
+              <rect x="176" y="98" width="120" height="10" rx="5"/>
+              <rect x="176" y="120" width="200" height="10" rx="5"/>
+              <rect x="176" y="142" width="160" height="10" rx="5"/>
+              <rect x="176" y="164" width="230" height="10" rx="5"/>
+              <rect x="176" y="186" width="140" height="10" rx="5"/>
+              <rect x="176" y="208" width="180" height="10" rx="5"/>
+            </g>
+            <path d="M300 160 C 380 120, 470 70, 590 30" class="b-try b-try1"/>
+            <path d="M300 160 C 220 110, 120 80, 10 40" class="b-try b-try2"/>
+            <path d="M300 160 C 400 200, 500 260, 590 320" class="b-try b-try3"/>
+            <ellipse cx="300" cy="170" rx="240" ry="140" class="b-ring"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <div class="trust-grid">
+          <div class="trust reveal"><i class="t-ico t-local"></i><h3>Runs 100% locally</h3><p>Scanning, explaining and cleaning all happen on your machine. There is no server.</p></div>
+          <div class="trust reveal"><i class="t-ico t-account"></i><h3>No account</h3><p>No sign-up, no sign-in, no email. Download it and run it.</p></div>
+          <div class="trust reveal"><i class="t-ico t-telemetry"></i><h3>No telemetry</h3><p>No analytics, no crash reporting, no update checks. Nothing about you or your files is collected.</p></div>
+          <div class="trust reveal"><i class="t-ico t-offline"></i><h3>Works offline</h3><p>Everything Leftover knows is built in. Unplug the network and it works exactly the same.</p></div>
+          <div class="trust reveal"><i class="t-ico t-code"></i><h3>Open source</h3><p>Every line is on GitHub under the MIT license, with no dependencies beyond Go's standard library.</p></div>
+          <div class="trust reveal"><i class="t-ico t-undo"></i><h3>Reversible by design</h3><p>A 14-day vault with one-click put back, and a history of every move, restore and deletion.</p></div>
+        </div>
+        <p class="privacy-foot reveal">Read <a href="privacy.html">the plain-English privacy statement</a> or <a href="https://github.com/MaiSamayTha/leftover">check the code yourself</a>.</p>
+      </div>
+    </section>
+
+    <section class="scene scene-tools">
+      <div class="wrap center">
+        <h2 class="headline headline-md reveal">Knows the tools you use.</h2>
+        <p class="subhead reveal">Each one comes with a written rule: where it keeps things, what they are, and the documentation that says they come back.</p>
+      </div>
+      <div class="marquee reveal" aria-label="Supported tools">
+        <div class="marquee-track">
+          <span>npm</span><span>Yarn</span><span>pnpm</span><span>Bun</span><span>Deno</span><span>Next.js</span><span>Turborepo</span><span>pip</span><span>uv</span><span>Poetry</span><span>Conda</span><span>Cargo</span><span>Go</span><span>Gradle</span><span>Maven</span><span>Xcode</span><span>CocoaPods</span><span>Swift PM</span><span>Homebrew</span><span>Android SDK</span><span>Docker</span><span>Ollama</span><span>Hugging Face</span><span>LM Studio</span><span>PyTorch</span><span>Playwright</span><span>Cypress</span><span>JetBrains</span><span>NuGet</span><span>Composer</span><span>Flutter</span><span>Terraform</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-cli" id="cli">
+      <div class="wrap split">
+        <div class="split-copy">
+          <p class="eyebrow reveal">Command line</p>
+          <h2 class="headline headline-md reveal">Prefer the terminal? So do we.</h2>
+          <p class="subhead reveal">The same program is a full command line tool. Scan, ask why a folder exists, clear what's safe, and pipe <code>--json</code> into anything.</p>
+        </div>
+        <div class="terminal reveal" id="terminal" aria-label="Example terminal session">
+          <div class="window-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+          <pre id="term"></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="scene scene-download" id="download">
+      <div class="wrap center">
+        <h2 class="headline reveal">Reclaim what's yours.</h2>
+        <p class="subhead reveal">Free. Local. Open source.</p>
+        <div class="downloads reveal">
+          <a class="dl" data-os="mac" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-arm64.tar.gz"><b>macOS</b><small>Apple silicon</small></a>
+          <a class="dl" data-os="mac-intel" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-amd64.tar.gz"><b>macOS</b><small>Intel</small></a>
+          <a class="dl" data-os="windows" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-amd64.zip"><b>Windows</b><small>64-bit</small></a>
+          <a class="dl" data-os="linux" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.tar.gz"><b>Linux</b><small>x86-64</small></a>
+        </div>
+        <div class="install reveal">
+          <p>Or install from the terminal. The script checks every download against its published checksum.</p>
+          <div class="install-cmd" data-unix><code>curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh</code><button class="copy" type="button">Copy</button></div>
+          <div class="install-cmd" data-win><code>irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex</code><button class="copy" type="button">Copy</button></div>
+          <p class="fine"><a href="https://github.com/MaiSamayTha/leftover/releases">All releases and checksums</a> · <a href="https://github.com/MaiSamayTha/leftover#build-it-yourself">Build it yourself</a></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-top">
+        <a class="wordmark" href="#top"><img src="assets/icon.svg" alt="">Leftover</a>
+        <nav aria-label="Footer">
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>
+          <a href="https://github.com/MaiSamayTha/leftover/issues">Report an issue</a>
+          <a href="https://github.com/MaiSamayTha/leftover/blob/main/LICENSE">MIT License</a>
+        </nav>
+      </div>
+      <p>Leftover moves things into a vault you can restore from; it never deletes anything you haven't confirmed. This site has no analytics, no cookies and loads nothing from anyone else.</p>
+      <p>Copyright © 2026 Samay.</p>
+    </div>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>
