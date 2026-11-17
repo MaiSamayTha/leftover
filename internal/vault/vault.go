@@ -104,6 +104,10 @@ var ErrNotCleanable = errors.New("this item is marked as your data or as unverif
 // ErrOtherDrive is returned when no vault can be made on an item's drive.
 var ErrOtherDrive = errors.New("can't make a vault on this drive, and Leftover never copies between drives")
 
+// rename is os.Rename, kept in a variable so tests can make a move fail
+// the same way on every OS.
+var rename = os.Rename
+
 // Move puts every path of a request into one new vault entry. If any path
 // can't be moved, the ones already moved are put back and nothing changes.
 func (v *Vault) Move(req Request) (Entry, error) {
@@ -150,9 +154,9 @@ func (v *Vault) Move(req Request) (Entry, error) {
 		return Entry{}, err
 	}
 	for i, p := range e.Paths {
-		if err := os.Rename(p, e.slot(i)); err != nil {
+		if err := rename(p, e.slot(i)); err != nil {
 			for j := i - 1; j >= 0; j-- {
-				os.Rename(e.slot(j), e.Paths[j])
+				rename(e.slot(j), e.Paths[j])
 			}
 			os.RemoveAll(e.dir)
 			return Entry{}, fmt.Errorf("couldn't move %s: %w", p, friendly(err))

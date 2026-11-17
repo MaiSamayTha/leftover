@@ -95,21 +95,27 @@ func TestRestoreBesideWhenRecreated(t *testing.T) {
 	}
 }
 
+// failOn makes every rename of path fail until the test ends.
+func failOn(t *testing.T, path string) {
+	t.Helper()
+	rename = func(from, to string) error {
+		if from == path {
+			return &os.LinkError{Op: "rename", Old: from, New: to, Err: os.ErrPermission}
+		}
+		return os.Rename(from, to)
+	}
+	t.Cleanup(func() { rename = os.Rename })
+}
+
 func TestMoveIsAllOrNothing(t *testing.T) {
 	v, _ := setup(t)
 	a := filepath.Join(v.Home, "p", "a", "__pycache__")
 	b := filepath.Join(v.Home, "p", "b", "__pycache__")
 	mk(t, filepath.Join(a, "x.pyc"), "x")
 	mk(t, filepath.Join(b, "y.pyc"), "y")
-	// Make the second one fail to move by locking its parent.
-	parent := filepath.Dir(b)
-	if err := os.Chmod(parent, 0o500); err != nil {
-		t.Fatal(err)
-	}
-	defer os.Chmod(parent, 0o755)
-	if os.Getuid() == 0 {
-		t.Skip("root ignores permissions")
-	}
+	// Make the second rename fail. Locking the parent folder with chmod
+	// doesn't stop renames on Windows, so fail it directly instead.
+	failOn(t, b)
 	if _, err := v.Move(req(a, b)); err == nil {
 		t.Fatal("expected the move to fail")
 	}
