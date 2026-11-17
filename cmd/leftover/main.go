@@ -65,11 +65,18 @@ func usage(w io.Writer) {
 	fmt.Fprintln(w, "Leftover finds the space your dev tools leave behind, explains it, and clears it safely.")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  leftover                         open the app")
 	sorted := append([]command(nil), commands...)
+	width := 0
+	for _, c := range sorted {
+		if n := len(strings.TrimSpace(c.name + " " + c.args)); n > width {
+			width = n
+		}
+	}
+	width += 3
+	fmt.Fprintf(w, "  leftover %s%s\n", pad("", width), "open the app")
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].name < sorted[j].name })
 	for _, c := range sorted {
-		fmt.Fprintf(w, "  leftover %s\n", pad(strings.TrimSpace(c.name+" "+c.args), 24)+c.short)
+		fmt.Fprintf(w, "  leftover %s\n", pad(strings.TrimSpace(c.name+" "+c.args), width)+c.short)
 	}
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Run 'leftover <command> -h' for a command's options.")

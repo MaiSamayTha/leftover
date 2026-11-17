@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Leftover</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <div class="window">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="icon.svg" alt="" width="26" height="26">
+        <span>Leftover</span>
+      </div>
+      <nav>
+        <a class="nav" data-view="overview" href="#overview"><i class="ico ico-overview"></i>Overview</a>
+        <div class="nav-label">Found</div>
+        <a class="nav" data-view="safe" href="#safe"><i class="dot dot-safe"></i>Safe to clear<span class="count" id="count-safe"></span></a>
+        <a class="nav" data-view="review" href="#review"><i class="dot dot-review"></i>Worth a look<span class="count" id="count-review"></span></a>
+        <a class="nav" data-view="keep" href="#keep"><i class="dot dot-keep"></i>Your data<span class="count" id="count-keep"></span></a>
+        <div class="nav-label">Leftover</div>
+        <a class="nav" data-view="vault" href="#vault"><i class="ico ico-vault"></i>Vault<span class="count" id="count-vault"></span></a>
+        <a class="nav" data-view="history" href="#history"><i class="ico ico-history"></i>History</a>
+        <a class="nav" data-view="settings" href="#settings"><i class="ico ico-settings"></i>Settings</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="local-badge"><i class="ico ico-lock"></i>Runs only on this computer</div>
+        <div class="version" id="version"></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="toolbar">
+        <h1 id="title">Overview</h1>
+        <div class="toolbar-actions">
+          <input id="search" class="search" type="search" placeholder="Search" autocomplete="off" spellcheck="false" hidden>
+          <button id="scan-btn" class="btn btn-primary">Scan</button>
+        </div>
+      </header>
+      <div class="content">
+        <section id="view" class="view" aria-live="polite"></section>
+        <aside id="inspector" class="inspector" hidden></aside>
+      </div>
+      <footer id="actionbar" class="actionbar" hidden>
+        <span id="selection-summary"></span>
+        <div class="actionbar-buttons">
+          <button id="clear-selection" class="btn">Deselect</button>
+          <button id="clean-btn" class="btn btn-primary">Move to Vault</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <div id="sheet" class="sheet-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+      <h2 id="sheet-title"></h2>
+      <div id="sheet-body"></div>
+      <div class="sheet-buttons">
+        <button id="sheet-cancel" class="btn">Cancel</button>
+        <button id="sheet-ok" class="btn btn-primary"></button>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
