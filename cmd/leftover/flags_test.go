@@ -87,6 +87,12 @@ func fakeHome(t *testing.T) string {
 	t.Setenv("XDG_CACHE_HOME", "")
 	t.Setenv("XDG_DATA_HOME", "")
 	t.Setenv("LOCALAPPDATA", filepath.Join(home, "AppData", "Local"))
+	t.Setenv("APPDATA", filepath.Join(home, "AppData", "Roaming"))
+	// The test's home is itself inside the real temp folder, which is a
+	// cache Leftover knows on Windows; point TEMP elsewhere so the home
+	// isn't treated as part of it and skipped.
+	t.Setenv("TEMP", filepath.Join(home, "AppData", "Local", "Temp"))
+	t.Setenv("TMP", filepath.Join(home, "AppData", "Local", "Temp"))
 	t.Setenv("NO_COLOR", "1")
 
 	web := filepath.Join(home, "code", "web")

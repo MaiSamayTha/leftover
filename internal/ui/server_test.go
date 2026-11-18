@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -103,8 +104,13 @@ func TestSettingsValidated(t *testing.T) {
 func TestWhyExplainsAnyFolder(t *testing.T) {
 	srv := testServer(t)
 	home := srv.App.Scanner.Host.Home
+	web := filepath.Join(home, "code", "web")
+	if err := os.MkdirAll(filepath.Join(web, "node_modules"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(web, "package.json"), []byte("{}"), 0o644)
 
-	w := call(srv, "POST", "/api/why", `{"path":"~/.cache/pip"}`, nil)
+	w := call(srv, "POST", "/api/why", `{"path":"~/code/web/node_modules"}`, nil)
 	var got struct {
 		Path  string `json:"path"`
 		Known bool   `json:"known"`
@@ -115,8 +121,8 @@ func TestWhyExplainsAnyFolder(t *testing.T) {
 	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil || w.Code != 200 {
 		t.Fatalf("%d %s", w.Code, w.Body)
 	}
-	if !got.Known || got.Rule.ID != "pip-cache" || got.Path != filepath.Join(home, ".cache", "pip") {
-		t.Fatalf("~/.cache/pip should be explained as the pip cache, got %+v", got)
+	if !got.Known || got.Rule.ID != "node-modules" || got.Path != filepath.Join(web, "node_modules") {
+		t.Fatalf("~/code/web/node_modules should be explained as node_modules, got %+v", got)
 	}
 
 	w = call(srv, "POST", "/api/why", `{"path":"`+filepath.ToSlash(filepath.Join(home, "notes"))+`"}`, nil)
