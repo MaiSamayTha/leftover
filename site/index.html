@@ -1,257 +1,463 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js" data-theme="light" data-accent="green">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leftover — Know what it is. Then let it go.</title>
-  <meta name="description" content="Leftover finds the gigabytes your dev tools leave behind, explains exactly what each one is, and clears it safely with a 14-day undo. Runs entirely on your computer.">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
-  <meta property="og:title" content="Leftover — Know what it is. Then let it go.">
-  <meta property="og:description" content="Find the gigabytes your dev tools leave behind, see exactly what they are, and clear them safely. Runs 100% locally.">
-  <meta property="og:type" content="website">
-  <meta name="theme-color" content="#fbfbfd" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Leftover: find and safely clear what your dev tools leave behind</title>
+<meta name="description" content="Leftover finds the gigabytes your dev tools leave behind, tells you exactly what they are, and clears them safely into a vault you can restore from. Free, local, open source.">
+<meta property="og:title" content="Leftover: your disk isn’t full. It’s full of leftovers.">
+<meta property="og:description" content="Find the gigabytes your dev tools leave behind, see exactly what they are, and clear them safely. Runs 100% locally.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://maisamaytha.github.io/leftover/">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/landing.css">
+<script src="assets/landing.js" defer></script>
 </head>
 <body>
-  <header class="nav">
-    <div class="wrap">
-      <a class="wordmark" href="#top"><img src="assets/icon.svg" alt="">Leftover</a>
-      <nav class="nav-links" aria-label="Main">
-        <a href="#how">How it works</a>
-        <a href="#privacy">Privacy</a>
-        <a href="#cli">Command line</a>
-        <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>
-        <a class="pill" href="#download">Download</a>
-      </nav>
+<div id="top" style="overflow-x:clip;background:var(--bg);color:var(--ink);">
+
+<div style="position:fixed;top:12px;left:0;right:0;z-index:100;display:flex;justify-content:center;padding:0 12px;pointer-events:none;">
+  <nav data-x="nav" aria-label="Main" style="pointer-events:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;max-width:780px;padding:6px;border-radius:999px;background:var(--nav);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border:1px solid var(--hair);box-shadow:0 8px 32px -12px rgba(0,0,0,.18);transition:box-shadow .4s ease;">
+    <a href="#top" style="display:flex;align-items:center;gap:9px;padding:2px 12px 2px 4px;color:var(--ink);font-size:16px;font-weight:600;letter-spacing:-0.02em;text-decoration:none;"><span style="width:28px;height:28px;border-radius:9px;background:var(--ink);display:grid;place-items:center;"><span style="width:10px;height:10px;border-radius:50%;border:2px solid var(--bg);"></span></span>Leftover</a>
+    <div data-x="navlinks" style="position:relative;display:var(--navl,flex);align-items:center;gap:2px;">
+      <span data-x="navind" style="position:absolute;left:0;top:0;bottom:0;width:0;border-radius:999px;background:color-mix(in oklch, var(--ink) 8%, transparent);opacity:0;transition:transform .45s cubic-bezier(.2,.7,.2,1),width .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease;"></span>
+      <a class="h-ink" data-nav="features" href="#features" style="position:relative;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink2);text-decoration:none;transition:color .3s ease;">Features</a>
+      <a class="h-ink" data-nav="privacy" href="#privacy" style="position:relative;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink2);text-decoration:none;transition:color .3s ease;">Privacy</a>
+      <a class="h-ink" data-nav="docs" href="#docs" style="position:relative;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink2);text-decoration:none;transition:color .3s ease;">CLI &amp; Docs</a>
+      <a class="h-ink" href="https://github.com/MaiSamayTha/leftover" style="position:relative;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--ink2);text-decoration:none;transition:color .3s ease;">GitHub ↗</a>
     </div>
-  </header>
+    <a class="h-dim" data-dl href="#download" style="display:flex;align-items:center;gap:5px;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;text-decoration:none;white-space:nowrap;">Download<span data-dl-os style="opacity:.6;font-weight:500;display:var(--navl,inline);"></span></a>
+  </nav>
+</div>
 
-  <main id="top">
-    <section class="hero">
-      <div class="wrap">
-        <h1 class="headline reveal">Your disk isn't full. It's full of <em>leftovers.</em></h1>
-        <p class="subhead reveal">Leftover finds the gigabytes your dev tools leave behind, tells you exactly what they are, and clears them safely.</p>
-        <div class="hero-cta reveal">
-          <a class="pill pill-lg" href="#download">Download for free</a>
-          <a class="link-arrow" href="https://github.com/MaiSamayTha/leftover">View on GitHub</a>
-        </div>
-        <p class="hero-note reveal">macOS, Windows and Linux. Runs entirely on your computer.</p>
-
-        <div class="disk reveal" id="disk" aria-label="Example: a nearly full disk splits into the dev caches filling it">
-          <div class="disk-head"><b>Your disk</b><span id="disk-label">482 GB of 500 GB used</span></div>
-          <div class="disk-bar">
-            <div class="disk-fill"></div>
-            <div class="disk-segs">
-              <span data-grow="47" class="s1"></span>
-              <span data-grow="38" class="s2"></span>
-              <span data-grow="21" class="s3"></span>
-              <span data-grow="16" class="s4"></span>
-              <span data-grow="12" class="s5"></span>
-              <span data-grow="348" class="s0"></span>
-            </div>
-          </div>
-          <div class="disk-legend">
-            <span><i class="s1"></i>AI models <b>47 GB</b></span>
-            <span><i class="s2"></i>Docker <b>38 GB</b></span>
-            <span><i class="s3"></i>node_modules <b>21 GB</b></span>
-            <span><i class="s4"></i>Xcode <b>16 GB</b></span>
-            <span><i class="s5"></i>Python <b>12 GB</b></span>
-          </div>
-          <div class="disk-caption">Example machine. Your numbers will be different, and Leftover shows you exactly what they are.</div>
-        </div>
+<main>
+<section data-scene="hero" style="background:var(--bg);position:relative;overflow:hidden;">
+  <canvas data-x="lbg" data-cy=".40" data-rx=".34" data-ry=".36" data-bar="1" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+  <div style="position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:min(8vh,80px);padding:120px 24px 80px;text-align:center;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:min(2.4vh,22px);">
+      <a class="h-bd" data-x="hin" data-d="0" href="#features" style="display:inline-flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border-radius:999px;background:color-mix(in oklch, var(--win) 65%, transparent);border:1px solid var(--hair);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-size:13px;font-weight:500;color:var(--ink);text-decoration:none;"><span style="padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:12px;font-weight:600;">New</span>Breaks down Ollama and Hugging Face models<span style="color:var(--ink2);">›</span></a>
+      <h1 data-x="hin" data-d="0" style="margin:0;font-size:clamp(42px,min(7.2vw,9vh),108px);line-height:1.04;letter-spacing:-0.035em;font-weight:600;text-wrap:balance;">Your disk isn’t full.<br><span style="color:var(--ink2);">It’s full of leftovers.</span></h1>
+      <p data-x="hin" data-d="1" style="margin:0;max-width:600px;font-size:clamp(18px,1.5vw,22px);line-height:1.5;color:var(--ink2);letter-spacing:-0.01em;text-wrap:pretty;">Leftover finds the gigabytes your dev tools leave behind, tells you exactly what they are, and clears them safely.</p>
+      <div data-x="hin" data-d="2" style="display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:center;margin-top:6px;">
+        <a class="h-o88" data-dl href="#download" style="background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:500;padding:12px 24px;border-radius:980px;text-decoration:none;">Download<span data-dl-os></span></a>
+        <a href="https://github.com/MaiSamayTha/leftover" style="font-size:17px;font-weight:500;color:var(--accent-ink);">View on GitHub ›</a>
       </div>
-    </section>
-
-    <section class="scene scene-scan" id="how">
-      <div class="wrap center">
-        <p class="eyebrow reveal">Scan</p>
-        <h2 class="headline reveal">Every cache. Every tool. One scan.</h2>
-        <p class="subhead reveal">npm, pip, uv, Cargo, Gradle, Xcode, Docker, Ollama, Hugging Face and dozens more. Leftover knows where each one keeps its stuff, and finds the project folders too.</p>
-      </div>
-      <div class="wrap">
-        <div class="window reveal" id="scan-window">
-          <div class="window-bar"><i></i><i></i><i></i><span>Leftover</span></div>
-          <div class="window-body">
-            <div class="window-side">
-              <div class="side-item on"><i class="d d-safe"></i>Safe to clear<b id="scan-total">0 B</b></div>
-              <div class="side-item"><i class="d d-review"></i>Worth a look</div>
-              <div class="side-item"><i class="d d-keep"></i>Your data</div>
-              <div class="side-item side-gap">Vault</div>
-              <div class="side-item">History</div>
-            </div>
-            <div class="window-main">
-              <div class="scan-status" id="scan-status">Scanning… <span id="scan-folders">0</span> folders</div>
-              <ul class="rows" id="scan-rows"></ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene scene-explain">
-      <div class="wrap split">
-        <div class="split-copy">
-          <p class="eyebrow reveal">Explain</p>
-          <h2 class="headline headline-md reveal">No guesswork. Every item comes with a reason.</h2>
-          <p class="subhead reveal">Leftover tells you what each folder is, which tool made it, and how it comes back. Every “safe” verdict links to the tool's own documentation. Anything it can't vouch for is shown, explained and left alone.</p>
-          <ul class="verdicts reveal">
-            <li><i class="d d-safe"></i><b>Rebuilds itself.</b> Build output and caches your tools recreate.</li>
-            <li><i class="d d-safe"></i><b>Downloads again.</b> Packages and models fetched on demand.</li>
-            <li><i class="d d-review"></i><b>Worth a look.</b> Known, but not guaranteed to come back. Never cleaned.</li>
-            <li><i class="d d-keep"></i><b>Your data.</b> Shown so you understand the space. Never touched.</li>
-          </ul>
-        </div>
-        <div class="card-stage" id="explain-stage">
-          <div class="row row-big"><span class="row-name">node_modules<small>~/code/landing-2024</small></span><span class="row-size">2.3 GB</span></div>
-          <div class="verdict-card">
-            <span class="badge badge-safe">Downloads again</span>
-            <h3>node_modules</h3>
-            <p class="vc-meta">npm · Project dependencies · untouched 7 months</p>
-            <h4>What it is</h4>
-            <p>Every package this project depends on, installed from its package.json and lockfile.</p>
-            <h4>How it comes back</h4>
-            <p>Run <code>npm install</code> and it is rebuilt exactly from the lockfile.</p>
-            <a class="vc-source">docs.npmjs.com/cli/configuring-npm/folders</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene scene-vault">
-      <div class="wrap center">
-        <p class="eyebrow reveal">Vault</p>
-        <h2 class="headline reveal">Nothing is deleted until you're sure.</h2>
-        <p class="subhead reveal">Cleared items move into a vault on the same drive. It's instant, and anything can be put back exactly where it was for 14 days. If your tools already rebuilt it, Leftover restores beside the new copy instead of overwriting it.</p>
-      </div>
-      <div class="wrap">
-        <div class="vault-stage reveal" id="vault-stage">
-          <div class="v-list">
-            <div class="v-row"><span class="v-check"></span><span class="row-name">Gradle caches<small>~/.gradle/caches</small></span><span class="row-size">3.3 GB</span></div>
-            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">target<small>~/code/engine</small></span><span class="row-size">6.2 GB</span></div>
-            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">node_modules<small>~/code/old-site</small></span><span class="row-size">1.2 GB</span></div>
-            <div class="v-row"><span class="v-check"></span><span class="row-name">npm cache<small>~/.npm/_cacache</small></span><span class="row-size">2.7 GB</span></div>
-            <div class="v-row" data-pick><span class="v-check"></span><span class="row-name">Derived Data<small>~/Library/Developer/Xcode</small></span><span class="row-size">9.8 GB</span></div>
-          </div>
-          <div class="v-tray" aria-hidden="true">
-            <div class="v-tray-head"><b>Vault</b><span class="v-count">17.2 GB · 14 days left</span></div>
-            <div class="v-tray-items">
-              <span class="chip">target</span><span class="chip chip-back">node_modules<em>Put back ↩</em></span><span class="chip">Derived Data</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene scene-privacy" id="privacy">
-      <div class="wrap center">
-        <p class="eyebrow eyebrow-dark reveal">Privacy</p>
-        <h2 class="headline reveal">It never leaves your computer.</h2>
-        <p class="subhead reveal">A tool that looks through your disk should be one you never have to wonder about. Leftover is a single program that runs on your machine, talks to no one, and keeps a record of every change it makes.</p>
-
-        <div class="boundary reveal" id="boundary" aria-hidden="true">
-          <svg viewBox="0 0 600 340" class="boundary-svg">
-            <defs>
-              <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-                <stop offset="0" stop-color="#30d158" stop-opacity=".22"/>
-                <stop offset="1" stop-color="#30d158" stop-opacity="0"/>
-              </radialGradient>
-            </defs>
-            <ellipse cx="300" cy="170" rx="290" ry="165" fill="url(#glow)" class="b-glow"/>
-            <rect x="150" y="70" width="300" height="180" rx="14" class="b-screen"/>
-            <path d="M120 262h360l-22 18H142z" class="b-base"/>
-            <g class="b-scan">
-              <rect x="176" y="98" width="120" height="10" rx="5"/>
-              <rect x="176" y="120" width="200" height="10" rx="5"/>
-              <rect x="176" y="142" width="160" height="10" rx="5"/>
-              <rect x="176" y="164" width="230" height="10" rx="5"/>
-              <rect x="176" y="186" width="140" height="10" rx="5"/>
-              <rect x="176" y="208" width="180" height="10" rx="5"/>
-            </g>
-            <path d="M300 160 C 380 120, 470 70, 590 30" class="b-try b-try1"/>
-            <path d="M300 160 C 220 110, 120 80, 10 40" class="b-try b-try2"/>
-            <path d="M300 160 C 400 200, 500 260, 590 320" class="b-try b-try3"/>
-            <ellipse cx="300" cy="170" rx="240" ry="140" class="b-ring"/>
-          </svg>
-        </div>
-      </div>
-
-      <div class="wrap">
-        <div class="trust-grid">
-          <div class="trust reveal"><i class="t-ico t-local"></i><h3>Runs 100% locally</h3><p>Scanning, explaining and cleaning all happen on your machine. There is no server.</p></div>
-          <div class="trust reveal"><i class="t-ico t-account"></i><h3>No account</h3><p>No sign-up, no sign-in, no email. Download it and run it.</p></div>
-          <div class="trust reveal"><i class="t-ico t-telemetry"></i><h3>No telemetry</h3><p>No analytics, no crash reporting, no update checks. Nothing about you or your files is collected.</p></div>
-          <div class="trust reveal"><i class="t-ico t-offline"></i><h3>Works offline</h3><p>Everything Leftover knows is built in. Unplug the network and it works exactly the same.</p></div>
-          <div class="trust reveal"><i class="t-ico t-code"></i><h3>Open source</h3><p>Every line is on GitHub under the MIT license, with no dependencies beyond Go's standard library.</p></div>
-          <div class="trust reveal"><i class="t-ico t-undo"></i><h3>Reversible by design</h3><p>A 14-day vault with one-click put back, and a history of every move, restore and deletion.</p></div>
-        </div>
-        <p class="privacy-foot reveal">Read <a href="privacy.html">the plain-English privacy statement</a> or <a href="https://github.com/MaiSamayTha/leftover">check the code yourself</a>.</p>
-      </div>
-    </section>
-
-    <section class="scene scene-tools">
-      <div class="wrap center">
-        <h2 class="headline headline-md reveal">Knows the tools you use.</h2>
-        <p class="subhead reveal">Each one comes with a written rule: where it keeps things, what they are, and the documentation that says they come back.</p>
-      </div>
-      <div class="marquee reveal" aria-label="Supported tools">
-        <div class="marquee-track">
-          <span>npm</span><span>Yarn</span><span>pnpm</span><span>Bun</span><span>Deno</span><span>Next.js</span><span>Turborepo</span><span>pip</span><span>uv</span><span>Poetry</span><span>Conda</span><span>Cargo</span><span>Go</span><span>Gradle</span><span>Maven</span><span>Xcode</span><span>CocoaPods</span><span>Swift PM</span><span>Homebrew</span><span>Android SDK</span><span>Docker</span><span>Ollama</span><span>Hugging Face</span><span>LM Studio</span><span>PyTorch</span><span>Playwright</span><span>Cypress</span><span>JetBrains</span><span>NuGet</span><span>Composer</span><span>Flutter</span><span>Terraform</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene scene-cli" id="cli">
-      <div class="wrap split">
-        <div class="split-copy">
-          <p class="eyebrow reveal">Command line</p>
-          <h2 class="headline headline-md reveal">Prefer the terminal? So do we.</h2>
-          <p class="subhead reveal">The same program is a full command line tool. Scan, ask why a folder exists, clear what's safe, and pipe <code>--json</code> into anything.</p>
-        </div>
-        <div class="terminal reveal" id="terminal" aria-label="Example terminal session">
-          <div class="window-bar"><i></i><i></i><i></i><span>Terminal</span></div>
-          <pre id="term"></pre>
-        </div>
-      </div>
-    </section>
-
-    <section class="scene scene-download" id="download">
-      <div class="wrap center">
-        <h2 class="headline reveal">Reclaim what's yours.</h2>
-        <p class="subhead reveal">Free. Local. Open source.</p>
-        <div class="downloads reveal">
-          <a class="dl" data-os="mac" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-arm64.tar.gz"><b>macOS</b><small>Apple silicon</small></a>
-          <a class="dl" data-os="mac-intel" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-amd64.tar.gz"><b>macOS</b><small>Intel</small></a>
-          <a class="dl" data-os="windows" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-amd64.zip"><b>Windows</b><small>64-bit</small></a>
-          <a class="dl" data-os="linux" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.tar.gz"><b>Linux</b><small>x86-64</small></a>
-        </div>
-        <div class="install reveal">
-          <p>Or install from the terminal. The script checks every download against its published checksum.</p>
-          <div class="install-cmd" data-unix><code>curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh</code><button class="copy" type="button">Copy</button></div>
-          <div class="install-cmd" data-win><code>irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex</code><button class="copy" type="button">Copy</button></div>
-          <p class="fine"><a href="https://github.com/MaiSamayTha/leftover/releases">All releases and checksums</a> · <a href="https://github.com/MaiSamayTha/leftover#build-it-yourself">Build it yourself</a></p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer">
-    <div class="wrap">
-      <div class="footer-top">
-        <a class="wordmark" href="#top"><img src="assets/icon.svg" alt="">Leftover</a>
-        <nav aria-label="Footer">
-          <a href="privacy.html">Privacy</a>
-          <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>
-          <a href="https://github.com/MaiSamayTha/leftover/issues">Report an issue</a>
-          <a href="https://github.com/MaiSamayTha/leftover/blob/main/LICENSE">MIT License</a>
-        </nav>
-      </div>
-      <p>Leftover moves things into a vault you can restore from; it never deletes anything you haven't confirmed. This site has no analytics, no cookies and loads nothing from anyone else.</p>
-      <p>Copyright © 2026 Samay.</p>
     </div>
-  </footer>
+    <div data-x="hin" data-d="3" style="width:100%;max-width:1080px;text-align:left;" aria-hidden="true">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:18px;">
+        <div style="display:grid;">
+          <div data-x="hA" style="grid-area:1/1;display:flex;flex-direction:column;gap:6px;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink2);">Startup disk</span>
+            <span style="font-size:clamp(26px,3vw,40px);font-weight:600;letter-spacing:-0.03em;line-height:1.05;font-variant-numeric:tabular-nums;"><span data-x="hused">150</span> GB <span style="color:var(--ink2);font-weight:500;">of 500 GB used</span></span>
+          </div>
+          <div data-x="hB" style="grid-area:1/1;display:flex;flex-direction:column;gap:6px;opacity:0;">
+            <span style="font-size:13px;font-weight:600;color:var(--ink2);">Look closer</span>
+            <span style="font-size:clamp(26px,3vw,40px);font-weight:600;letter-spacing:-0.03em;line-height:1.05;font-variant-numeric:tabular-nums;"><span style="color:var(--accent-ink);"><span data-x="hsumn">148</span> GB</span> <span style="color:var(--ink2);font-weight:500;">of it is leftovers.</span></span>
+          </div>
+        </div>
+        <span data-x="hwarn" style="flex:none;font-size:13px;font-weight:600;color:var(--warn-ink);padding:6px 12px;border-radius:980px;background:color-mix(in oklch, var(--warn) 16%, transparent);opacity:0;white-space:nowrap;">Almost full</span>
+      </div>
+      <div style="position:relative;">
+        <div style="position:relative;height:clamp(44px,7vh,68px);border-radius:16px;background:var(--chip);overflow:hidden;box-shadow:inset 0 0 0 1px var(--hair);">
+          <div data-x="hfill" style="position:absolute;left:0;top:0;bottom:0;width:30%;background:oklch(0.68 0.16 150);"></div>
+          <div data-x="hsegs" style="position:absolute;left:0;top:0;bottom:0;width:96%;display:flex;opacity:0;"><div data-x="hseg" style="flex-grow:332;flex-basis:0;min-width:0;background:var(--seg0);"></div><div data-x="hseg" style="flex-grow:47;flex-basis:0;min-width:0;background:oklch(0.68 0.13 300);"></div><div data-x="hseg" style="flex-grow:38;flex-basis:0;min-width:0;background:oklch(0.66 0.13 250);"></div><div data-x="hseg" style="flex-grow:21;flex-basis:0;min-width:0;background:oklch(0.7 0.13 155);"></div><div data-x="hseg" style="flex-grow:16;flex-basis:0;min-width:0;background:oklch(0.72 0.11 205);"></div><div data-x="hseg" style="flex-grow:12;flex-basis:0;min-width:0;background:oklch(0.7 0.13 45);"></div><div data-x="hseg" style="flex-grow:14;flex-basis:0;min-width:0;background:oklch(0.8 0.12 95);"></div></div>
+        </div>
+      </div>
+      <div data-x="hlabs" style="display:flex;width:96%;margin-top:16px;min-height:40px;"><div data-x="hlab" style="flex-grow:332;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--seg0);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Apps &amp; documents</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">332 GB</div></div><div data-x="hlab" style="flex-grow:47;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.68 0.13 300);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">AI models</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">47 GB</div></div><div data-x="hlab" style="flex-grow:38;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.66 0.13 250);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Package caches</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">38 GB</div></div><div data-x="hlab" style="flex-grow:21;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.7 0.13 155);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">node_modules</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">21 GB</div></div><div data-x="hlab" style="flex-grow:16;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.72 0.11 205);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Xcode</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">16 GB</div></div><div data-x="hlab" style="flex-grow:12;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.7 0.13 45);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rust</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">12 GB</div></div><div data-x="hlab" style="flex-grow:14;flex-basis:0;min-width:0;padding-right:8px;opacity:0;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:oklch(0.8 0.12 95);flex:none;"></span><span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Other</span></div><div style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;padding-left:14px;white-space:nowrap;">14 GB</div></div></div>
+    </div>
+  </div>
+</section>
 
-  <script src="assets/main.js"></script>
+<section id="features" data-scene="scan" style="background:var(--bg);position:relative;">
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;padding:120px 24px 100px;gap:40px;">
+    <div data-x="shead" style="text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <div style="font-size:17px;font-weight:600;color:var(--accent-ink);">Scan</div>
+      <h2 style="margin:0;font-size:clamp(36px,min(5.6vw,7.4vh),80px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance;">Every cache. Every tool. One scan.</h2>
+      <p style="margin:0;max-width:560px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:var(--ink2);text-wrap:pretty;">From node_modules to model caches in a single pass. Biggest first, so you know where to start.</p>
+    </div>
+    <div data-x="swin" aria-hidden="true" style="width:100%;max-width:1040px;transform-origin:top center;opacity:0;">
+      <div style="border-radius:14px;background:var(--win);border:1px solid var(--hair);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;">
+        <div style="height:52px;display:flex;align-items:center;gap:14px;padding:0 16px;background:var(--winbar);border-bottom:1px solid var(--hair);">
+          <div style="display:flex;gap:8px;flex:none;"><span style="width:12px;height:12px;border-radius:50%;background:#FF5F57;"></span><span style="width:12px;height:12px;border-radius:50%;background:#FEBC2E;"></span><span style="width:12px;height:12px;border-radius:50%;background:#28C840;"></span></div>
+          <div style="font-size:13px;font-weight:600;flex:none;">Leftover</div>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div data-x="sstat" style="font-size:12px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-variant-numeric:tabular-nums;">Ready to scan</div>
+            <div data-x="sprogw" style="width:min(240px,70%);height:3px;border-radius:2px;background:var(--hair);overflow:hidden;"><div data-x="sprog" style="height:100%;width:0;background:var(--accent);"></div></div>
+          </div>
+          <div style="text-align:right;flex:none;"><div style="font-size:11px;color:var(--ink2);">Found</div><div data-x="stotal" style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;">0.0 GB</div></div>
+        </div>
+        <div style="display:flex;">
+          <div style="display:var(--side,flex);flex-direction:column;gap:2px;width:200px;flex:none;padding:14px 10px;background:var(--winside);border-right:1px solid var(--hair);">
+            <div style="font-size:11px;font-weight:600;color:var(--ink3);padding:4px 10px 6px;">Categories</div>
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:7px;font-size:13px;background:color-mix(in oklch, var(--accent) 14%, transparent);font-weight:600;"><span>All</span><span data-x="scat" data-c="All" style="color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:400;">0.0</span></div><div style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:7px;font-size:13px;background:transparent;font-weight:400;"><span>AI models</span><span data-x="scat" data-c="AI models" style="color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:400;">0.0</span></div><div style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:7px;font-size:13px;background:transparent;font-weight:400;"><span>Packages</span><span data-x="scat" data-c="Packages" style="color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:400;">0.0</span></div><div style="display:flex;justify-content:space-between;padding:7px 10px;border-radius:7px;font-size:13px;background:transparent;font-weight:400;"><span>Build output</span><span data-x="scat" data-c="Build output" style="color:var(--ink2);font-variant-numeric:tabular-nums;font-weight:400;">0.0</span></div>
+            <div style="font-size:11px;font-weight:600;color:var(--ink3);padding:14px 10px 6px;">Safety</div>
+            <div style="display:flex;justify-content:space-between;padding:7px 10px;font-size:13px;"><span>Vault</span><span style="color:var(--ink2);">Empty</span></div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;gap:12px;padding:8px 18px;border-bottom:1px solid var(--hair);font-size:11px;font-weight:600;color:var(--ink2);"><span></span><span>Name</span><span>Verdict</span><span style="text-align:right;">Size</span></div>
+            <div style="position:relative;height:440px;overflow:hidden;">
+              <div data-x="srow" data-i="0" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Ol</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Ollama models</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/.ollama/models</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="1" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">nm</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">node_modules · 214 projects</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/code/**/node_modules</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="2" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">HF</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Hugging Face models</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/.cache/huggingface/hub</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="3" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Xc</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Xcode Derived Data</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/Library/Developer/Xcode/DerivedData</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Rebuilds itself</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="4" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Rs</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rust target · 31 projects</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/code/**/target</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Rebuilds itself</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="5" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Gr</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Gradle caches</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/.gradle/caches</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="6" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">LM</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">LM Studio models</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/.lmstudio/models</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--warn) 20%, transparent);color:var(--warn-ink);white-space:nowrap;">Worth a look</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="7" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">np</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">npm cache</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/.npm/_cacache</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="8" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">uv</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">pip &amp; uv caches</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/Library/Caches/pip · ~/.cache/uv</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+              <div data-x="srow" data-i="9" style="position:absolute;left:0;right:0;top:0;height:44px;padding:0 18px;display:grid;grid-template-columns:28px minmax(0,1fr) auto 76px;align-items:center;gap:12px;border-bottom:1px solid var(--hair);background:var(--win);opacity:0;">
+                <span style="width:28px;height:28px;border-radius:7px;background:var(--chip);color:var(--ink2);display:grid;place-items:center;font-size:11px;font-weight:600;font-family:ui-monospace,'SF Mono',Menlo,monospace;">py</span>
+                <div style="min-width:0;"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Python venvs · 18</div><div style="display:var(--path,block);font-size:11px;color:var(--ink3);font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/code/**/.venv</div></div>
+                <span style="font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:color-mix(in oklch, var(--accent) 15%, transparent);color:var(--accent-ink);white-space:nowrap;">Downloads again</span>
+                <div data-x="ssize" style="text-align:right;font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;">0.0 GB</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--hair);background:var(--winbar);">
+              <span style="font-size:12px;color:var(--ink2);">Nothing is moved until you choose.</span>
+              <span data-x="sbtn" style="font-size:12px;font-weight:500;padding:5px 12px;border-radius:980px;background:var(--accent);color:var(--on-accent);opacity:.45;white-space:nowrap;">Move to Vault</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-scene="explain" style="background:var(--dk);color:#F5F5F7;position:relative;">
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;padding:120px 24px 100px;gap:44px;">
+    <div data-x="ehead" style="text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <div style="font-size:17px;font-weight:600;color:var(--accent-dk);">Explain</div>
+      <h2 style="margin:0;font-size:clamp(36px,min(5.6vw,7.4vh),80px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance;">No guesswork.<br><span style="color:#86868B;">Every item comes with a reason.</span></h2>
+    </div>
+    <div style="width:100%;max-width:760px;display:flex;flex-direction:column;">
+      <div data-x="eg" aria-hidden="true" style="overflow:hidden;max-height:68px;opacity:.55;">
+        <div style="height:60px;margin-bottom:8px;border-radius:16px;background:rgba(255,255,255,.07);display:grid;grid-template-columns:32px minmax(0,1fr) auto 80px;align-items:center;gap:14px;padding:0 18px;">
+          <span style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:11px;font-weight:600;color:#A1A1A6;font-family:ui-monospace,'SF Mono',Menlo,monospace;">Ol</span>
+          <span style="font-size:15px;font-weight:600;">Ollama models</span>
+          <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:color-mix(in oklch, var(--accent-dk) 18%, transparent);color:var(--accent-dk);">Downloads again</span>
+          <span style="text-align:right;font-size:15px;font-variant-numeric:tabular-nums;">29.1 GB</span>
+        </div>
+      </div>
+      <div data-x="ef" style="height:64px;border-radius:16px;background:rgba(255,255,255,.1);display:grid;grid-template-columns:32px minmax(0,1fr) auto 80px;align-items:center;gap:14px;padding:0 18px;transform-origin:center;">
+        <span style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:11px;font-weight:600;color:#D1D1D6;font-family:ui-monospace,'SF Mono',Menlo,monospace;">nm</span>
+        <div style="min-width:0;"><div style="font-size:15px;font-weight:600;">node_modules · 214 projects</div><div style="font-size:12px;color:#86868B;font-family:ui-monospace,'SF Mono',Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">~/code/**/node_modules</div></div>
+        <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:color-mix(in oklch, var(--accent-dk) 18%, transparent);color:var(--accent-dk);">Downloads again</span>
+        <span style="text-align:right;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;">21.3 GB</span>
+      </div>
+      <div data-x="eg" aria-hidden="true" style="overflow:hidden;max-height:68px;opacity:.55;">
+        <div style="height:60px;margin-top:8px;border-radius:16px;background:rgba(255,255,255,.07);display:grid;grid-template-columns:32px minmax(0,1fr) auto 80px;align-items:center;gap:14px;padding:0 18px;">
+          <span style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:11px;font-weight:600;color:#A1A1A6;font-family:ui-monospace,'SF Mono',Menlo,monospace;">HF</span>
+          <span style="font-size:15px;font-weight:600;">Hugging Face models</span>
+          <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:color-mix(in oklch, var(--accent-dk) 18%, transparent);color:var(--accent-dk);">Downloads again</span>
+          <span style="text-align:right;font-size:15px;font-variant-numeric:tabular-nums;">18.2 GB</span>
+        </div>
+      </div>
+      <div data-x="ecard" style="margin-top:14px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.1);padding:clamp(20px,3vw,30px);transform-origin:top center;">
+        <div data-x="eblk" style="display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;">
+          <span style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:20px;background:color-mix(in oklch, var(--accent-dk) 18%, transparent);color:var(--accent-dk);"><span style="width:7px;height:7px;border-radius:50%;background:var(--accent-dk);"></span>Downloads again</span>
+          <span style="font-size:clamp(17px,1.6vw,21px);font-weight:600;letter-spacing:-0.015em;">Your package manager puts this back.</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:24px;margin-top:24px;">
+          <div data-x="eblk" style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:13px;font-weight:600;color:#86868B;">What it is</div><div style="font-size:15px;line-height:1.5;color:#E5E5EA;text-wrap:pretty;">Every package your projects depend on, installed from each one’s package.json and lockfile. 61 of these projects haven’t changed in three months.</div></div>
+          <div data-x="eblk" style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:13px;font-weight:600;color:#86868B;">Why it’s safe</div><div style="font-size:15px;line-height:1.5;color:#E5E5EA;text-wrap:pretty;">The lockfile records every package and its exact version. Nothing in here was written by you.</div></div>
+          <div data-x="eblk" style="display:flex;flex-direction:column;gap:8px;"><div style="font-size:13px;font-weight:600;color:#86868B;">What brings it back</div><div style="font-size:15px;line-height:1.5;color:#E5E5EA;text-wrap:pretty;"><code style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;padding:2px 7px;border-radius:6px;background:rgba(255,255,255,.1);color:#F5F5F7;">npm install</code> (or yarn, pnpm, bun) rebuilds it exactly from the lockfile.</div></div>
+        </div>
+        <div data-x="eblk" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;">
+          <a href="https://docs.npmjs.com/cli/v10/configuring-npm/folders" rel="noopener noreferrer" style="color:var(--accent-dk);">Source: npm Docs, folders ↗</a>
+          <span style="color:#86868B;">Restorable from the vault for 14 days</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-scene="quar" style="background:var(--bg);position:relative;">
+  <div style="position:relative;display:flex;flex-direction:column;align-items:center;padding:120px 24px 100px;gap:44px;">
+    <div data-x="qhead" style="text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;">
+      <div style="font-size:17px;font-weight:600;color:var(--accent-ink);">Vault</div>
+      <h2 style="margin:0;font-size:clamp(36px,min(5.6vw,7.4vh),80px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance;">Nothing is deleted until you’re sure.</h2>
+      <p style="margin:0;max-width:580px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:var(--ink2);text-wrap:pretty;">Move, don’t delete. Cleaned items wait in a vault on the same drive for 14 days, and one click puts them back exactly where they were.</p>
+    </div>
+    <div data-x="qstage" aria-hidden="true" style="width:100%;max-width:1000px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:28px;align-items:start;">
+      <div style="position:relative;z-index:2;border-radius:22px;background:var(--win);border:1px solid var(--hair);box-shadow:var(--shadow);padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px 10px;">
+          <span style="font-size:15px;font-weight:600;">Safe to clear</span>
+          <span data-x="qstat" style="font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums;">Nothing selected</span>
+        </div>
+        <div data-x="qslot" data-i="0" style="position:relative;height:56px;">
+          <div data-x="qph" style="position:absolute;inset:4px 6px;border:1.5px dashed var(--hair);border-radius:12px;opacity:0;"></div>
+          <div data-x="qcard" style="position:absolute;inset:4px 6px;border-radius:12px;background:var(--win);display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:12px;padding:0 12px;">
+            <span data-x="qchk" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ink3);display:grid;place-items:center;"><svg data-x="qtick" width="12" height="12" viewBox="0 0 12 12" style="opacity:0;"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" style="stroke:var(--on-accent);" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+            <div style="min-width:0;"><div style="display:flex;gap:8px;align-items:baseline;"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Xcode Derived Data</span><span data-x="qrest" data-i="0" style="font-size:12px;font-weight:600;color:var(--accent-ink);opacity:0;">Restored</span></div><div style="font-size:12px;color:var(--ink2);">Rebuilds itself</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;">16.0 GB</span>
+          </div>
+        </div>
+        <div data-x="qslot" data-i="1" style="position:relative;height:56px;">
+          <div data-x="qph" style="position:absolute;inset:4px 6px;border:1.5px dashed var(--hair);border-radius:12px;opacity:0;"></div>
+          <div data-x="qcard" style="position:absolute;inset:4px 6px;border-radius:12px;background:var(--win);display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:12px;padding:0 12px;">
+            <span data-x="qchk" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ink3);display:grid;place-items:center;"><svg data-x="qtick" width="12" height="12" viewBox="0 0 12 12" style="opacity:0;"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" style="stroke:var(--on-accent);" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+            <div style="min-width:0;"><div style="display:flex;gap:8px;align-items:baseline;"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rust target · 31 projects</span><span data-x="qrest" data-i="1" style="font-size:12px;font-weight:600;color:var(--accent-ink);opacity:0;">Restored</span></div><div style="font-size:12px;color:var(--ink2);">Rebuilds itself</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;">12.4 GB</span>
+          </div>
+        </div>
+        <div data-x="qslot" data-i="2" style="position:relative;height:56px;">
+          <div data-x="qph" style="position:absolute;inset:4px 6px;border:1.5px dashed var(--hair);border-radius:12px;opacity:0;"></div>
+          <div data-x="qcard" style="position:absolute;inset:4px 6px;border-radius:12px;background:var(--win);display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:12px;padding:0 12px;">
+            <span data-x="qchk" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ink3);display:grid;place-items:center;"><svg data-x="qtick" width="12" height="12" viewBox="0 0 12 12" style="opacity:0;"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" style="stroke:var(--on-accent);" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+            <div style="min-width:0;"><div style="display:flex;gap:8px;align-items:baseline;"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">npm cache</span><span data-x="qrest" data-i="2" style="font-size:12px;font-weight:600;color:var(--accent-ink);opacity:0;">Restored</span></div><div style="font-size:12px;color:var(--ink2);">Downloads again</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;">4.8 GB</span>
+          </div>
+        </div>
+        <div data-x="qslot" data-i="3" style="position:relative;height:56px;">
+          <div data-x="qph" style="position:absolute;inset:4px 6px;border:1.5px dashed var(--hair);border-radius:12px;opacity:0;"></div>
+          <div data-x="qcard" style="position:absolute;inset:4px 6px;border-radius:12px;background:var(--win);display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:12px;padding:0 12px;">
+            <span data-x="qchk" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ink3);display:grid;place-items:center;"><svg data-x="qtick" width="12" height="12" viewBox="0 0 12 12" style="opacity:0;"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" style="stroke:var(--on-accent);" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+            <div style="min-width:0;"><div style="display:flex;gap:8px;align-items:baseline;"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">pip &amp; uv caches</span><span data-x="qrest" data-i="3" style="font-size:12px;font-weight:600;color:var(--accent-ink);opacity:0;">Restored</span></div><div style="font-size:12px;color:var(--ink2);">Downloads again</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;">4.1 GB</span>
+          </div>
+        </div>
+        <div data-x="qslot" data-i="4" style="position:relative;height:56px;">
+          <div data-x="qph" style="position:absolute;inset:4px 6px;border:1.5px dashed var(--hair);border-radius:12px;opacity:0;"></div>
+          <div data-x="qcard" style="position:absolute;inset:4px 6px;border-radius:12px;background:var(--win);display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:12px;padding:0 12px;">
+            <span data-x="qchk" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--ink3);display:grid;place-items:center;"><svg data-x="qtick" width="12" height="12" viewBox="0 0 12 12" style="opacity:0;"><path d="M2.5 6.2l2.3 2.3 4.7-5" fill="none" style="stroke:var(--on-accent);" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+            <div style="min-width:0;"><div style="display:flex;gap:8px;align-items:baseline;"><span style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Python venvs · 18</span><span data-x="qrest" data-i="4" style="font-size:12px;font-weight:600;color:var(--accent-ink);opacity:0;">Restored</span></div><div style="font-size:12px;color:var(--ink2);">Downloads again</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;">3.7 GB</span>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;padding:10px 14px 8px;">
+          <span data-x="qbtn" style="font-size:13px;font-weight:500;padding:7px 15px;border-radius:980px;background:var(--accent);color:var(--on-accent);opacity:.45;">Move to Vault</span>
+        </div>
+      </div>
+      <div style="position:relative;z-index:1;border-radius:22px;background:var(--win);border:1px solid var(--hair);box-shadow:var(--shadow);padding:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px 10px;">
+          <div style="display:flex;flex-direction:column;gap:2px;"><span style="font-size:15px;font-weight:600;">Vault</span><span style="font-size:12px;color:var(--ink2);">Emptied after 14 days, or whenever you choose</span></div>
+          <span data-x="qtotal" style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;">0.0 GB</span>
+        </div>
+        <div style="position:relative;min-height:168px;">
+          <div data-x="qempty" style="position:absolute;inset:4px 6px;border-radius:12px;border:1.5px dashed var(--hair);display:grid;place-items:center;padding:20px;text-align:center;font-size:13px;color:var(--ink2);">Empty. Cleaned items wait here.</div>
+          <div data-x="qtray" data-i="0" style="position:relative;height:48px;margin:4px 6px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--hair);display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:0 8px 0 14px;opacity:0;">
+            <div style="min-width:0;"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Xcode Derived Data</div><div data-x="qcd" style="font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;">Restorable for 14 days</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink2);">16.0 GB</span>
+            <span data-x="qrbtn" style="font-size:12px;font-weight:500;padding:5px 11px;border-radius:980px;border:1px solid var(--hair);color:var(--ink);">Restore</span>
+          </div>
+          <div data-x="qtray" data-i="1" style="position:relative;height:48px;margin:4px 6px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--hair);display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:0 8px 0 14px;opacity:0;">
+            <div style="min-width:0;"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Rust target · 31 projects</div><div data-x="qcd" style="font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;">Restorable for 14 days</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink2);">12.4 GB</span>
+            <span data-x="qrbtn" style="font-size:12px;font-weight:500;padding:5px 11px;border-radius:980px;border:1px solid var(--hair);color:var(--ink);">Restore</span>
+          </div>
+          <div data-x="qtray" data-i="2" style="position:relative;height:48px;margin:4px 6px 12px;border-radius:12px;background:var(--bg2);border:1px solid var(--hair);display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:0 8px 0 14px;opacity:0;">
+            <div style="min-width:0;"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">npm cache</div><div data-x="qcd" style="font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums;">Restorable for 14 days</div></div>
+            <span style="font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink2);">4.8 GB</span>
+            <span data-x="qrbtn" style="font-size:12px;font-weight:500;padding:5px 11px;border-radius:980px;border:1px solid var(--hair);color:var(--ink);">Restore</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy" style="background:var(--pv);color:#F5F5F7;">
+  <div data-scene="privacy" style="position:relative;">
+    <div style="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 24px 100px;gap:min(4vh,40px);text-align:center;">
+      <div data-x="phead" style="display:flex;flex-direction:column;gap:14px;align-items:center;">
+        <div style="font-size:17px;font-weight:600;color:var(--accent-dk);">Privacy</div>
+        <h2 style="margin:0;font-size:clamp(42px,min(7vw,9vh),104px);line-height:1.02;letter-spacing:-0.04em;font-weight:600;text-wrap:balance;">It never leaves your computer.</h2>
+        <p style="margin:0;max-width:540px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:#A1A1A6;text-wrap:pretty;">Leftover does all of its work on your machine. There is no server on the other end.</p>
+      </div>
+      <div data-x="pstage" aria-hidden="true" style="position:relative;width:min(540px,86vw,50vh);aspect-ratio:1;container-type:inline-size;opacity:0;">
+        <div data-x="pglow" style="position:absolute;inset:6%;border-radius:50%;background:radial-gradient(circle,color-mix(in oklch, var(--accent-dk) 16%, transparent),transparent 68%);opacity:0;"></div>
+        <div data-x="pring" style="position:absolute;inset:10%;border-radius:50%;border:1px solid color-mix(in oklch, var(--accent-dk) 50%, transparent);box-shadow:0 0 5cqw color-mix(in oklch, var(--accent-dk) 22%, transparent),inset 0 0 5cqw color-mix(in oklch, var(--accent-dk) 12%, transparent);opacity:0;"></div>
+        <div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(8deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(38deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(66deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(98deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(128deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(158deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(188deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(218deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(248deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(278deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(306deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div><div style="position:absolute;left:50%;top:50%;width:50cqw;height:2px;margin-top:-1px;transform-origin:0 50%;transform:rotate(336deg);-webkit-mask-image:linear-gradient(90deg,#000 72%,transparent 81%);mask-image:linear-gradient(90deg,#000 72%,transparent 81%);"><div data-x="pdot" style="position:absolute;left:0;top:0;width:6cqw;border-top:2px dotted rgba(245,245,247,.8);opacity:0;"></div></div>
+        <div style="position:absolute;left:50%;top:50%;width:46cqw;height:30cqw;transform:translate(-50%,-50%);border:1.5px solid rgba(245,245,247,.6);border-radius:2.4cqw;background:#0A0A0B;padding:3.2cqw 3.6cqw;display:flex;flex-direction:column;gap:2cqw;text-align:left;">
+          <div style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:2.1cqw;color:#86868B;">scanning ~/</div>
+          <div style="display:flex;align-items:center;gap:1.4cqw;"><span style="width:1cqw;height:1cqw;border-radius:50%;background:var(--accent-dk);flex:none;"></span><div style="flex:1;height:1cqw;border-radius:1cqw;background:rgba(255,255,255,.08);overflow:hidden;"><div data-x="pbar" style="height:100%;width:50%;border-radius:1cqw;background:color-mix(in oklch, var(--accent-dk) 70%, transparent);"></div></div></div><div style="display:flex;align-items:center;gap:1.4cqw;"><span style="width:1cqw;height:1cqw;border-radius:50%;background:var(--accent-dk);flex:none;"></span><div style="flex:1;height:1cqw;border-radius:1cqw;background:rgba(255,255,255,.08);overflow:hidden;"><div data-x="pbar" style="height:100%;width:50%;border-radius:1cqw;background:color-mix(in oklch, var(--accent-dk) 70%, transparent);"></div></div></div><div style="display:flex;align-items:center;gap:1.4cqw;"><span style="width:1cqw;height:1cqw;border-radius:50%;background:var(--accent-dk);flex:none;"></span><div style="flex:1;height:1cqw;border-radius:1cqw;background:rgba(255,255,255,.08);overflow:hidden;"><div data-x="pbar" style="height:100%;width:50%;border-radius:1cqw;background:color-mix(in oklch, var(--accent-dk) 70%, transparent);"></div></div></div><div style="display:flex;align-items:center;gap:1.4cqw;"><span style="width:1cqw;height:1cqw;border-radius:50%;background:var(--accent-dk);flex:none;"></span><div style="flex:1;height:1cqw;border-radius:1cqw;background:rgba(255,255,255,.08);overflow:hidden;"><div data-x="pbar" style="height:100%;width:50%;border-radius:1cqw;background:color-mix(in oklch, var(--accent-dk) 70%, transparent);"></div></div></div><div style="display:flex;align-items:center;gap:1.4cqw;"><span style="width:1cqw;height:1cqw;border-radius:50%;background:var(--accent-dk);flex:none;"></span><div style="flex:1;height:1cqw;border-radius:1cqw;background:rgba(255,255,255,.08);overflow:hidden;"><div data-x="pbar" style="height:100%;width:50%;border-radius:1cqw;background:color-mix(in oklch, var(--accent-dk) 70%, transparent);"></div></div></div>
+        </div>
+        <div style="position:absolute;left:50%;top:calc(50% + 15.6cqw);width:60cqw;height:2.4cqw;transform:translateX(-50%);border:1.5px solid rgba(245,245,247,.6);border-radius:0.4cqw 0.4cqw 2cqw 2cqw;background:#0A0A0B;"></div>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:1080px;margin:0 auto;padding:40px 24px 150px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px;">
+      <div data-reveal="0" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="11" rx="2"></rect><path d="M2 19h20"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">Runs 100% locally.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">Scanning and cleanup happen on your machine. Nothing is sent anywhere.</div>
+      </div>
+      <div data-reveal="80" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c1.2-3.5 4-5 7-5s5.8 1.5 7 5"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">No account. No sign-in.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">Open it and it works. There’s nothing to register and nobody to log in to.</div>
+      </div>
+      <div data-reveal="160" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18v-5M10 18V9M15 18v-3M20 18V6"></path><path d="M3 3l18 18"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">No telemetry.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">No analytics, no crash reports, no update checks. Nothing about you or your files is collected.</div>
+      </div>
+      <div data-reveal="0" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a10.5 10.5 0 0 1 15 0M8 15.5a5.5 5.5 0 0 1 8 0"></path><circle cx="12" cy="19" r="1"></circle><path d="M3 3l18 18"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">Works offline.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">Turn off Wi‑Fi. Leftover won’t notice.</div>
+      </div>
+      <div data-reveal="80" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7l-5 5 5 5M15 7l5 5-5 5"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">Open source.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">Read every line on GitHub. Build it yourself if you’d rather.</div>
+      </div>
+      <div data-reveal="160" style="border-radius:22px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:30px;display:flex;flex-direction:column;gap:14px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" style="stroke:var(--accent-dk);" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"></path><path d="M4 4v4h4"></path></svg>
+        <h3 style="margin:0;font-size:21px;font-weight:600;letter-spacing:-0.02em;">Reversible by design.</h3>
+        <div style="font-size:15px;line-height:1.5;color:#A1A1A6;">A 14-day vault and one-click restore. Change your mind; nothing’s lost.</div>
+      </div>
+    </div>
+    <div data-reveal="0" style="max-width:680px;margin:96px auto 0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;">
+      <div style="font-size:13px;font-weight:600;color:#86868B;">Our privacy policy, in short</div>
+      <p style="margin:0;font-size:clamp(19px,1.8vw,24px);line-height:1.5;color:#E5E5EA;letter-spacing:-0.01em;text-wrap:pretty;">Leftover reads folder names, paths and sizes on your computer so it can show you what’s there. The results stay in memory and in one local file you can delete. Nothing is uploaded, because there’s nowhere to upload it to.</p>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;">
+        <a href="privacy.html" style="font-size:17px;color:var(--accent-dk);">Read it in full ›</a>
+        <a href="https://github.com/MaiSamayTha/leftover" style="font-size:17px;color:var(--accent-dk);">Read the code ›</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background:var(--bg);padding:150px 0 160px;overflow:hidden;">
+  <div data-reveal="0" style="text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;padding:0 24px;">
+    <h2 style="margin:0;font-size:clamp(36px,5.6vw,76px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance;">Knows where every tool<br>leaves its leftovers.</h2>
+    <p style="margin:0;max-width:580px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:var(--ink2);text-wrap:pretty;">Package managers, build systems, simulators and model caches. Leftover reads each one’s layout, so it can tell a cache from your work.</p>
+  </div>
+  <div aria-hidden="true" style="margin-top:64px;display:flex;flex-direction:column;gap:14px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);">
+    <div data-x="mq" data-dir="1" style="display:flex;gap:12px;padding-right:12px;width:max-content;"><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">npm</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">pnpm</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Yarn</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Bun</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">pip</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">uv</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Poetry</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Conda</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Cargo</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Go modules</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Gradle</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Maven</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">CocoaPods</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Composer</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">npm</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">pnpm</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Yarn</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Bun</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">pip</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">uv</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Poetry</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Conda</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Cargo</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Go modules</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Gradle</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Maven</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">CocoaPods</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Composer</span></div>
+    <div data-x="mq" data-dir="-1" style="display:flex;gap:12px;padding-right:12px;width:max-content;"><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Xcode</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Swift Package Manager</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Homebrew</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Ollama</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Hugging Face</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">LM Studio</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">PyTorch</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Playwright</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Android SDK</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Flutter</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Deno</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Electron</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Next.js</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Terraform</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Xcode</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Swift Package Manager</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Homebrew</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Ollama</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Hugging Face</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">LM Studio</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">PyTorch</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Playwright</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Android SDK</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Flutter</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Deno</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Electron</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Next.js</span><span style="flex:none;padding:12px 22px;border-radius:999px;border:1px solid var(--hair);background:var(--win);font-size:clamp(15px,1.4vw,19px);font-weight:500;color:var(--ink2);white-space:nowrap;letter-spacing:-0.01em;">Terraform</span></div>
+  </div>
+</section>
+
+<section id="docs" style="background:var(--dk);color:#F5F5F7;padding:150px 24px 160px;">
+  <div data-reveal="0" style="text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center;">
+    <div style="font-size:17px;font-weight:600;color:var(--accent-dk);">CLI</div>
+    <h2 style="margin:0;font-size:clamp(36px,5.6vw,80px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance;">Prefer the terminal?<br><span style="color:#86868B;">So do we.</span></h2>
+    <p style="margin:0;max-width:540px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:#A1A1A6;text-wrap:pretty;">Same scan, same verdicts, same undo. Add <code style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:.85em;">--json</code> to script it.</p>
+    <a href="#download" style="margin-top:8px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:14px;padding:9px 16px;border-radius:980px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#E5E5EA;text-decoration:none;">Homebrew, Scoop or a one-line install ›</a>
+  </div>
+  <div data-x="term" data-reveal="0" style="max-width:860px;margin:56px auto 0;border-radius:18px;background:#0D0D0F;border:1px solid rgba(255,255,255,.1);box-shadow:0 40px 100px -30px rgba(0,0,0,.8);overflow:hidden;text-align:left;">
+    <div style="height:40px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.07);position:relative;">
+      <span style="width:12px;height:12px;border-radius:50%;background:#3A3A3C;"></span><span style="width:12px;height:12px;border-radius:50%;background:#3A3A3C;"></span><span style="width:12px;height:12px;border-radius:50%;background:#3A3A3C;"></span>
+      <span style="position:absolute;left:0;right:0;text-align:center;font-size:12px;color:#8E8E93;pointer-events:none;">~ — leftover</span>
+    </div>
+    <div style="padding:22px 24px 26px;font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,monospace;font-size:clamp(11px,1.45vw,14px);line-height:1.65;color:#E5E5EA;overflow-x:auto;">
+      <div data-x="tl" data-kind="cmd" data-text="leftover scan" data-pause="0.7" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">$ </span><span data-x="tcmd" style="color:#F5F5F7;">leftover scan</span><span data-x="tcar" style="display:inline-block;width:.6em;height:1.15em;vertical-align:-.22em;background:#E5E5EA;opacity:0;"></span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">Safe to clear</span><span style="color:#8E8E93;">  140.8 GB</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">  29.1 GB  </span><span style="color:#E5E5EA;">Ollama models       </span><span style="color:#8E8E93;">~/.ollama/models</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">  18.2 GB  </span><span style="color:#E5E5EA;">Hugging Face model  </span><span style="color:#8E8E93;">~/.cache/huggingface/hub</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">  16.0 GB  </span><span style="color:#E5E5EA;">Derived Data        </span><span style="color:#8E8E93;">~/Library/Developer/Xcode/DerivedData</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">   9.8 GB  </span><span style="color:#E5E5EA;">node_modules        </span><span style="color:#8E8E93;">~/code/storefront · untouched 5 months</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">   7.4 GB  </span><span style="color:#E5E5EA;">target              </span><span style="color:#8E8E93;">~/code/engine · untouched 4 months</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">                 … and 61 more</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">Worth a look</span><span style="color:#8E8E93;">  7.2 GB</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.83 0.12 80);">●</span><span style="color:#E5E5EA;">   7.2 GB  </span><span style="color:#E5E5EA;">LM Studio model     </span><span style="color:#8E8E93;">~/.lmstudio/models</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">Your data (never cleaned)</span><span style="color:#8E8E93;">  31.2 GB</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.75 0.1 250);">●</span><span style="color:#E5E5EA;">  31.2 GB  </span><span style="color:#E5E5EA;">Docker disk image   </span><span style="color:#8E8E93;">~/Library/Containers/com.docker.docker</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="1.0" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">140.8 GB can be cleared safely</span><span style="color:#8E8E93;"> in 2,184 folders, 4.2s.</span></div>
+      <div data-x="tl" data-kind="cmd" data-text="leftover clean --idle 90" data-pause="0.6" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">$ </span><span data-x="tcmd" style="color:#F5F5F7;">leftover clean --idle 90</span><span data-x="tcar" style="display:inline-block;width:.6em;height:1.15em;vertical-align:-.22em;background:#E5E5EA;opacity:0;"></span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">Move 23 item(s), 61.3 GB, to the vault:</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">   9.8 GB  node_modules        ~/code/storefront</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">  </span><span style="color:oklch(0.8 0.12 158);">●</span><span style="color:#E5E5EA;">   7.4 GB  target              ~/code/engine</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">                 … and 21 more</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">Everything can be restored for 14 days with &#x27;leftover vault restore&#x27;.</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.3" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;">Move them now? [y/N] </span><span style="color:#E5E5EA;">y</span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.05" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#E5E5EA;"> </span></div>
+      <div data-x="tl" data-kind="out" data-text="" data-pause="0.3" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:oklch(0.8 0.12 158);">Moved 61.3 GB to the vault.</span></div>
+      <div data-x="tl" data-kind="cmd" data-text="" data-pause="0" style="white-space:pre;min-height:1.65em;opacity:0;"><span style="color:#8E8E93;">$ </span><span data-x="tcmd" style="color:#F5F5F7;"></span><span data-x="tcar" style="display:inline-block;width:.6em;height:1.15em;vertical-align:-.22em;background:#E5E5EA;opacity:0;"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="download" style="background:var(--bg);padding:clamp(120px,20vh,210px) 24px;text-align:center;position:relative;overflow:hidden;">
+  <canvas data-x="lbg" data-cy=".5" data-rx=".3" data-ry=".3" data-bar="0" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
+  <div data-reveal="0" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:30px;">
+    <h2 style="margin:0;font-size:clamp(52px,9vw,128px);line-height:1;letter-spacing:-0.045em;font-weight:600;text-wrap:balance;">Reclaim what’s yours.</h2>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;">
+      <a class="h-o88" data-dl href="#all-downloads" style="background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:500;padding:14px 28px;border-radius:980px;text-decoration:none;">Download<span data-dl-os></span></a>
+      <a href="https://github.com/MaiSamayTha/leftover" style="font-size:17px;color:var(--accent-ink);padding:14px 10px;">View on GitHub ›</a>
+    </div>
+    <div style="font-size:14px;color:var(--ink2);">Free. Local. Open source. For macOS, Windows and Linux.</div>
+    <div id="all-downloads" class="downloads"><a class="dl" data-os="mac" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-arm64.tar.gz"><b>macOS</b><small>Apple silicon</small></a><a class="dl" data-os="mac-intel" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-amd64.tar.gz"><b>macOS</b><small>Intel</small></a><a class="dl" data-os="windows" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-amd64.zip"><b>Windows</b><small>x86-64</small></a><a class="dl" data-os="windows-arm" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-arm64.zip"><b>Windows</b><small>ARM64</small></a><a class="dl" data-os="linux" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.tar.gz"><b>Linux</b><small>x86-64</small></a><a class="dl" data-os="linux-arm" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-arm64.tar.gz"><b>Linux</b><small>ARM64</small></a></div>
+    <div class="install">
+      <div class="cmdrow"><span class="cmdlab">macOS and Linux</span><code>curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh</code><button class="copy" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh">Copy</button></div><div class="cmdrow"><span class="cmdlab">Windows (PowerShell)</span><code>irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex</code><button class="copy" type="button" data-copy="irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex">Copy</button></div><div class="cmdrow"><span class="cmdlab">Homebrew</span><code>brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover</code><button class="copy" type="button" data-copy="brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover">Copy</button></div><div class="cmdrow"><span class="cmdlab">Scoop</span><code>scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover</code><button class="copy" type="button" data-copy="scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover">Copy</button></div>
+      <p>Every install method checks downloads against the release’s published SHA-256 checksums. The binaries aren’t signed yet, so a browser download may need one extra click to open; <a href="https://github.com/MaiSamayTha/leftover#cant-be-opened-or-windows-protected-your-pc">here’s how</a>.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer style="background:var(--bg2);color:var(--ink2);font-size:12px;line-height:1.5;">
+  <div style="max-width:980px;margin:0 auto;padding:18px 22px 24px;">
+    <p style="margin:0 0 12px;padding-bottom:14px;border-bottom:1px solid var(--hair);text-wrap:pretty;">Leftover is an independent open-source project and isn’t affiliated with the tools it recognizes. Tool names are trademarks of their respective owners. Sizes shown are illustrative. This site sets no cookies, runs no analytics and loads nothing from anyone else.</p>
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px;">
+      <span>Copyright © 2026 Samay. Released under the <a href="https://github.com/MaiSamayTha/leftover/blob/main/LICENSE" style="color:var(--ink2);">MIT License</a>.</span>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;">
+        <a href="#features" style="color:var(--ink2);">Features</a>
+        <a href="privacy.html" style="color:var(--ink2);">Privacy</a>
+        <a href="https://github.com/MaiSamayTha/leftover#use-it" style="color:var(--ink2);">Docs</a>
+        <a href="https://github.com/MaiSamayTha/leftover" style="color:var(--ink2);">GitHub</a>
+        <a href="https://github.com/MaiSamayTha/leftover/blob/main/CHANGELOG.md" style="color:var(--ink2);">Changelog</a>
+        <a href="https://github.com/MaiSamayTha/leftover/issues" style="color:var(--ink2);">Report an issue</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</div>
 </body>
 </html>
