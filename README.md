@@ -1,3 +1,5 @@
+[![OpenRepos](https://img.shields.io/endpoint?url=https://openrepos.org/status/leftover.openrepos.org.json&style=flat-square)](https://leftover.openrepos.org/)
+
 <p align="center">
   <img src="assets/leftover-256.png" width="96" alt="">
 </p>
