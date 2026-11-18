@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -60,3 +61,62 @@ jobs:
           if grep -q '^require' go.mod; then
             echo "go.mod has dependencies; Leftover promises standard library only" && exit 1
           fi
+
+  # Installs the latest published release with the real install scripts and
+  # uses it the way a person would, on every OS. Windows uses Windows
+  # PowerShell 5.1, which is what "irm ... | iex" runs in by default.
+  install:
+    name: install (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - name: install the release and use it
+        if: runner.os != 'Windows'
+        run: sh scripts/smoke.sh
+      - name: install the release and use it
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          # A throwaway profile outside the real %TEMP%.
+          $h = Join-Path $env:RUNNER_TEMP "home"
+          $env:USERPROFILE = $h
+          $env:LOCALAPPDATA = Join-Path $h "AppData\Local"
+          $env:APPDATA = Join-Path $h "AppData\Roaming"
+          $env:TEMP = Join-Path $env:LOCALAPPDATA "Temp"; $env:TMP = $env:TEMP
+          $env:NO_COLOR = "1"
+          $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+          New-Item -ItemType Directory -Force $env:LOCALAPPDATA, $env:APPDATA, $env:TEMP, $startMenu | Out-Null
+
+          Get-Content -Raw scripts/install.ps1 | Invoke-Expression
+          $lnk = Join-Path ([Environment]::GetFolderPath("Programs")) "Leftover.lnk"
+          if (-not (Test-Path $lnk)) { throw "no Start menu shortcut at $lnk" }
+
+          $bin = Join-Path $env:LOCALAPPDATA "Programs\Leftover\leftover.exe"
+          function L { $out = & $bin @args | Out-String; if ($LASTEXITCODE) { throw "leftover $args failed: $out" }; $out }
+          $v = L --version; Write-Host $v
+          if ($v -notmatch "^leftover \d") { throw "--version didn't print a version" }
+
+          $web = Join-Path $h "code\web"
+          New-Item -ItemType Directory -Force (Join-Path $web "node_modules\react") | Out-Null
+          Set-Content (Join-Path $web "package.json") "{}"
+          [IO.File]::WriteAllBytes((Join-Path $web "node_modules\react\index.js"), (New-Object byte[] 3000000))
+
+          $scan = L scan -q; Write-Host $scan
+          if ($scan -notmatch "node_modules") { throw "scan didn't find node_modules" }
+          if ((L why (Join-Path $web "node_modules")) -notmatch "Downloads again") { throw "why gave the wrong verdict" }
+
+          L clean --yes | Write-Host
+          if (Test-Path (Join-Path $web "node_modules")) { throw "node_modules still there after clean" }
+          $id = (L vault --json | ConvertFrom-Json)[0].id
+          L vault restore $id | Write-Host
+          if (-not (Test-Path (Join-Path $web "node_modules\react\index.js"))) { throw "restore didn't bring node_modules back" }
+
+          L clean --yes | Out-Null
+          L vault empty --yes | Out-Null
+          if ((L vault --json) -replace "\s", "" -ne "[]") { throw "vault not empty after emptying" }
+          Write-Host "smoke: installed and used $v on Windows"

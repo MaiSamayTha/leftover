@@ -49,9 +49,10 @@ if [ "$os" = macos ] && [ "$arch" = amd64 ] && [ "$(sysctl -n sysctl.proc_transl
 fi
 
 if command -v curl >/dev/null 2>&1; then
-  fetch() { curl -fsSL --proto '=https' --tlsv1.2 -o "$2" "$1"; }
+  # Retry and time out, so a stalled connection fails instead of hanging.
+  fetch() { curl -fsSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 300 -o "$2" "$1"; }
 elif command -v wget >/dev/null 2>&1; then
-  fetch() { wget -q --https-only -O "$2" "$1"; }
+  fetch() { wget -q --https-only --tries=3 --timeout=30 -O "$2" "$1"; }
 else
   die "needs curl or wget"
 fi
@@ -74,7 +75,7 @@ asset="leftover-$os-$arch.tar.gz"
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT INT TERM
 
-say "Downloading $asset…"
+say "Downloading ${asset}..."
 fetch "$base/$asset" "$tmp/$asset" || die "couldn't download $base/$asset"
 fetch "$base/checksums.txt" "$tmp/checksums.txt" || die "couldn't download checksums.txt"
 
