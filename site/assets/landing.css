@@ -1,0 +1,54 @@
+/* Leftover landing page. System fonts only: this site loads nothing from
+   anyone else. */
+:root{--bg:#FBFBFD;--bg2:#F5F5F7;--ink:#1D1D1F;--ink2:#6E6E73;--ink3:#86868B;--hair:rgba(0,0,0,.09);--win:#FFFFFF;--winside:#F6F6F8;--winbar:#F0F0F2;--chip:#EBEBEF;--nav:rgba(251,251,253,.74);--dk:#1D1D1F;--pv:#000;--seg0:#C7C7CC;--shadow:0 40px 90px -30px rgba(0,0,0,.22),0 10px 30px -12px rgba(0,0,0,.08);--accent:oklch(0.58 0.12 158);--accent-ink:oklch(0.47 0.1 158);--accent-dk:oklch(0.8 0.12 158);--on-accent:#fff;--warn:oklch(0.72 0.15 70);--warn-ink:oklch(0.52 0.12 60);--g2:oklch(0.55 0.12 205);--g3:oklch(0.52 0.15 290);--orb:.42;--dot:rgba(0,0,0,.07);color-scheme:light}
+:root[data-accent=blue]{--accent:oklch(0.56 0.15 252);--accent-ink:oklch(0.48 0.14 252);--accent-dk:oklch(0.78 0.11 252)}
+:root[data-theme=dark]{--bg:#111113;--bg2:#0A0A0B;--ink:#F5F5F7;--ink2:#A1A1A6;--ink3:#86868B;--hair:rgba(255,255,255,.11);--win:#1C1C1E;--winside:#232326;--winbar:#29292C;--chip:#2E2E32;--nav:rgba(17,17,19,.72);--dk:#000;--seg0:#48484A;--shadow:0 40px 90px -30px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.05);--accent:oklch(0.72 0.13 158);--accent-ink:oklch(0.8 0.12 158);--on-accent:#08130D;--warn-ink:oklch(0.82 0.12 78);--g2:oklch(0.78 0.11 205);--g3:oklch(0.74 0.13 290);--orb:.55;--dot:rgba(255,255,255,.08);color-scheme:dark}
+:root[data-theme=dark][data-accent=blue]{--accent:oklch(0.7 0.13 252);--accent-ink:oklch(0.8 0.1 252);--on-accent:#070D18}
+/* Before the script runs, follow the OS theme. */
+@media (prefers-color-scheme: dark){:root.no-js{--bg:#111113;--bg2:#0A0A0B;--ink:#F5F5F7;--ink2:#A1A1A6;--hair:rgba(255,255,255,.11);--win:#1C1C1E;--winside:#232326;--winbar:#29292C;--chip:#2E2E32;--nav:rgba(17,17,19,.72);--dk:#000;--accent-ink:oklch(0.8 0.12 158);color-scheme:dark}}
+html,body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Inter","Segoe UI","Helvetica Neue",sans-serif}
+*{box-sizing:border-box}
+a{color:var(--accent-ink);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+
+/* Hover states from the design (inline styles can't have them). */
+.h-ink:hover{color:var(--ink)!important}
+.h-dim:hover{opacity:.86}
+.h-o88:hover{opacity:.88}
+.h-bd:hover{border-color:color-mix(in oklch, var(--accent) 55%, transparent)!important}
+[data-dl]:hover{text-decoration:none}
+
+/* Without the script nothing animates in, so show everything as it ends. */
+.no-js [data-x="swin"],.no-js [data-x="srow"],.no-js [data-x="qtray"],.no-js [data-x="pstage"],.no-js [data-x="pring"],.no-js [data-x="tl"],.no-js [data-x="hlab"],.no-js [data-x="hB"],.no-js [data-x="hsegs"]{opacity:1!important}
+.no-js [data-x="hA"],.no-js [data-x="hfill"],.no-js [data-x="qempty"],.no-js [data-x="hseg"]:first-child,.no-js [data-x="hlab"]:first-child{display:none!important}
+.no-js [data-x="srow"]{position:relative!important}
+.no-js canvas{display:none}
+
+/* Downloads */
+.downloads{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;width:100%;max-width:760px;margin-top:10px}
+.dl{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 12px;border-radius:16px;background:var(--win);border:1px solid var(--hair);color:var(--ink);transition:border-color .2s ease,transform .2s ease}
+.dl:hover{text-decoration:none;border-color:color-mix(in oklch, var(--accent) 55%, transparent);transform:translateY(-1px)}
+.dl b{font-size:15px;font-weight:600}
+.dl small{font-size:12px;color:var(--ink2)}
+.dl.mine{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent)}
+.install{width:100%;max-width:760px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.install p{margin:8px 4px 0;font-size:13px;line-height:1.5;color:var(--ink2);text-align:center;text-wrap:pretty}
+.cmdrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:12px;background:var(--win);border:1px solid var(--hair)}
+.cmdlab{font-size:12px;font-weight:600;color:var(--ink2)}
+.cmdrow code{font:12px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:var(--ink);overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+.copy{font:500 12px inherit;font-family:inherit;padding:5px 11px;border-radius:980px;border:1px solid var(--hair);background:var(--bg2);color:var(--ink);cursor:pointer}
+.copy:hover{border-color:color-mix(in oklch, var(--accent) 55%, transparent)}
+@media (max-width:620px){.cmdrow{grid-template-columns:minmax(0,1fr) auto}.cmdlab{grid-column:1/-1}}
+
+/* Phones: let the disk legend wrap into a grid, and leave the verdict to the
+   explanation card below the highlighted row. */
+@media (max-width:620px){
+  [data-x="hlabs"]{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));row-gap:12px;width:100%!important}
+  [data-x="ef"]>span:nth-of-type(2),[data-x="eg"]>div>span:nth-of-type(3){display:none}
+  [data-x="ef"],[data-x="eg"]>div{grid-template-columns:32px minmax(0,1fr) auto!important}
+  [data-x="ef"] div div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}

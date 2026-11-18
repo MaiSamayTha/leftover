@@ -1,0 +1,48 @@
+name: New rule or wrong verdict
+description: Ask Leftover to recognise a tool's folder, or report a verdict that looks wrong.
+title: "rule: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Leftover only offers something for cleaning when the tool's own documentation says it comes back. See [docs/RULES.md](https://github.com/MaiSamayTha/leftover/blob/main/docs/RULES.md). If you can, open a pull request with the rule instead: no Go code is needed.
+  - type: input
+    id: tool
+    attributes:
+      label: Tool
+      placeholder: e.g. Bazel, Zig, Unity
+    validations:
+      required: true
+  - type: textarea
+    id: paths
+    attributes:
+      label: Where it keeps the folder
+      description: The path on each OS you know of, and any environment variable that moves it.
+      placeholder: |
+        macOS: ~/Library/Caches/...
+        Linux: ~/.cache/...  (or $XDG_CACHE_HOME/...)
+        Windows: %LOCALAPPDATA%\...
+    validations:
+      required: true
+  - type: textarea
+    id: comeback
+    attributes:
+      label: What it is and how it comes back
+      description: Does the tool rebuild it or download it again on its own? Is there a cleanup command?
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Documentation link
+      description: The tool's own docs describing this folder. Without one the rule can only be "worth a look", never cleaned.
+    validations:
+      required: true
+  - type: textarea
+    id: why-output
+    attributes:
+      label: For a wrong verdict, the output of `leftover why <path>`
+      render: shell
+    validations:
+      required: false

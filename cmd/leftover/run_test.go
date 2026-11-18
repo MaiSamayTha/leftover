@@ -20,15 +20,27 @@ func captureRunStdout(t *testing.T, fn func() error) (string, error) {
 	os.Stdout = w
 	defer func() { os.Stdout = old }()
 
+	// Read while fn runs: a pipe only buffers a few KB (less on Windows),
+	// so a command with more output than that would block forever.
+	type result struct {
+		b   []byte
+		err error
+	}
+	done := make(chan result, 1)
+	go func() {
+		b, err := io.ReadAll(r)
+		done <- result{b, err}
+	}()
+
 	runErr := fn()
 	if err := w.Close(); err != nil {
 		t.Fatal(err)
 	}
-	b, err := io.ReadAll(r)
-	if err != nil {
-		t.Fatal(err)
+	res := <-done
+	if res.err != nil {
+		t.Fatal(res.err)
 	}
-	return string(b), runErr
+	return string(res.b), runErr
 }
 
 func TestRunHelp(t *testing.T) {

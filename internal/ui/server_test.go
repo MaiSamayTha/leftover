@@ -1,8 +1,10 @@
 package ui
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -96,5 +98,44 @@ func TestSettingsValidated(t *testing.T) {
 	}
 	if srv.App.Vault.KeepDays != 30 {
 		t.Error("vault should pick up the new window")
+	}
+}
+
+func TestWhyExplainsAnyFolder(t *testing.T) {
+	srv := testServer(t)
+	home := srv.App.Scanner.Host.Home
+	web := filepath.Join(home, "code", "web")
+	if err := os.MkdirAll(filepath.Join(web, "node_modules"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(web, "package.json"), []byte("{}"), 0o644)
+
+	w := call(srv, "POST", "/api/why", `{"path":"~/code/web/node_modules"}`, nil)
+	var got struct {
+		Path  string `json:"path"`
+		Known bool   `json:"known"`
+		Rule  struct {
+			ID string `json:"id"`
+		} `json:"rule"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil || w.Code != 200 {
+		t.Fatalf("%d %s", w.Code, w.Body)
+	}
+	if !got.Known || got.Rule.ID != "node-modules" || got.Path != filepath.Join(web, "node_modules") {
+		t.Fatalf("~/code/web/node_modules should be explained as node_modules, got %+v", got)
+	}
+
+	w = call(srv, "POST", "/api/why", `{"path":"`+filepath.ToSlash(filepath.Join(home, "notes"))+`"}`, nil)
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `"known":false`) {
+		t.Fatalf("an unknown folder should be reported as unknown: %d %s", w.Code, w.Body)
+	}
+
+	for _, body := range []string{`{}`, `{"path":"  "}`, `{"path":"relative/dir"}`} {
+		if w := call(srv, "POST", "/api/why", body, nil); w.Code != http.StatusBadRequest {
+			t.Errorf("%s: want 400, got %d", body, w.Code)
+		}
+	}
+	if w := call(srv, "POST", "/api/why", `{"path":"~/.cache/pip"}`, func(r *http.Request) { r.Header.Del("X-Leftover-Token") }); w.Code != http.StatusForbidden {
+		t.Errorf("why must need the token, got %d", w.Code)
 	}
 }

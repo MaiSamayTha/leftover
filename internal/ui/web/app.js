@@ -74,7 +74,7 @@ const state = {
   rules: {},
 };
 
-const TITLES = { overview: "Overview", safe: "Safe to clear", review: "Worth a look", keep: "Your data", vault: "Vault", history: "History", settings: "Settings" };
+const TITLES = { overview: "Overview", safe: "Safe to clear", review: "Worth a look", keep: "Your data", vault: "Vault", why: "What's this folder?", history: "History", settings: "Settings" };
 
 async function refresh() {
   const s = await api("state");
@@ -125,7 +125,7 @@ function render() {
   if (state.status.running) return renderScanning();
   if (!state.scan && ["overview", "safe", "review", "keep"].includes(state.view)) return renderEmpty();
 
-  const views = { overview: renderOverview, safe: renderList, review: renderList, keep: renderList, vault: renderVault, history: renderHistory, settings: renderSettings };
+  const views = { overview: renderOverview, safe: renderList, review: renderList, keep: renderList, vault: renderVault, why: renderWhy, history: renderHistory, settings: renderSettings };
   (views[state.view] || renderOverview)();
   renderInspector();
   renderActionBar();
@@ -444,6 +444,65 @@ function renderInspector() {
     </div>`;
 }
 
+// ---------- what's this folder? ----------
+
+// The browser can't hand over a folder's real path, so the path is typed or
+// pasted. The answer comes from the same rules as 'leftover why'.
+const why = { path: "", result: null, error: "" };
+
+function renderWhy() {
+  $("#inspector").hidden = true;
+  const r = why.result;
+  let out = "";
+  if (why.error) {
+    out = `<div class="note">${esc(why.error)}</div>`;
+  } else if (r && !r.known) {
+    out = `
+      <div class="why-card">
+        <div class="pill pill-keep">Not recognised</div>
+        <h2>${esc(tilde(r.path))}</h2>
+        <p>Leftover doesn't know what this is, so it treats it as yours and never offers to clean it.</p>
+        <p class="muted small">If it belongs to a dev tool, a rule for it would be a welcome contribution.</p>
+      </div>`;
+  } else if (r) {
+    const rule = r.rule;
+    const v = VERDICTS[rule.verdict] || VERDICTS.keep;
+    const safe = rule.verdict === "rebuild" || rule.verdict === "redownload";
+    out = `
+      <div class="why-card">
+        <div class="pill pill-${v.cls}">${v.label}</div>
+        <h2>${esc(rule.name)}</h2>
+        <div class="muted">${esc(rule.tool)} · ${esc(rule.kind)}</div>
+        ${r.matched ? `<code class="cmd">${esc(tilde(r.matched))}</code>` : ""}
+        <h4>What it is</h4><p>${esc(rule.what || "")}</p>
+        ${rule.comeback ? `<h4>${safe ? "How it comes back" : "Before you remove it"}</h4><p>${esc(rule.comeback)}</p>` : ""}
+        ${safe ? "" : `<p class="muted small">Leftover shows this but never cleans it.</p>`}
+        ${rule.command ? `<h4>The tool's own command</h4><code class="cmd">${esc(rule.command)}</code>` : ""}
+        ${rule.source ? `<h4>Source</h4><p><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, ""))}</a></p>` : ""}
+      </div>`;
+  }
+  $("#view").innerHTML = `
+    <div class="why">
+      <p class="intro">Paste the path of any folder to see what it is, which tool made it, and whether it's safe to clear. Nothing is read or changed.</p>
+      <form id="why-form" class="why-form">
+        <input id="why-path" class="search why-input" type="text" placeholder="~/code/app/node_modules" autocomplete="off" spellcheck="false" value="${esc(why.path)}">
+        <button class="btn btn-primary" type="submit">Explain</button>
+      </form>
+      ${out}
+    </div>`;
+}
+
+async function explain(path) {
+  why.path = path;
+  why.error = "";
+  why.result = null;
+  if (path.trim()) {
+    try { why.result = await api("why", { path }); }
+    catch (err) { why.error = err.message; }
+  }
+  if (state.view === "why") { render(); $("#why-path")?.focus(); }
+}
+
 // ---------- settings ----------
 
 function renderSettings() {
@@ -593,6 +652,12 @@ document.addEventListener("change", (e) => {
     list.forEach((it) => (e.target.checked ? state.selected.add(it.id) : state.selected.delete(it.id)));
     render();
   }
+});
+
+document.addEventListener("submit", (e) => {
+  if (e.target.id !== "why-form") return;
+  e.preventDefault();
+  explain($("#why-path").value);
 });
 
 $("#scan-btn").addEventListener("click", scan);

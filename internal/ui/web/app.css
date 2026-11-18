@@ -99,6 +99,7 @@ nav { display: flex; flex-direction: column; gap: 1px; }
 .ico-vault { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6'%3E%3Crect x='1.8' y='7.5' width='12.4' height='6.5' rx='1.6'/%3E%3Cpath d='M6 10.6h4M8 1.5v5M5.6 4.4 8 6.8l2.4-2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .ico-history { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6'%3E%3Ccircle cx='8' cy='8' r='6.2'/%3E%3Cpath d='M8 4.5V8l2.4 1.6' stroke-linecap='round'/%3E%3C/svg%3E"); }
 .ico-settings { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7' stroke-linecap='round'/%3E%3Ccircle cx='10.5' cy='4.5' r='1.6'/%3E%3Ccircle cx='5.5' cy='11.5' r='1.6'/%3E%3C/svg%3E"); }
+.ico-why { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6'%3E%3Ccircle cx='8' cy='8' r='6.2'/%3E%3Cpath d='M6.3 6.2a1.8 1.8 0 1 1 2.5 1.7c-.5.2-.8.6-.8 1.1v.4' stroke-linecap='round'/%3E%3Ccircle cx='8' cy='11.6' r='.5' fill='black'/%3E%3C/svg%3E"); }
 .ico-lock { --m: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.6'%3E%3Crect x='3' y='7' width='10' height='7' rx='1.8'/%3E%3Cpath d='M5.5 7V5a2.5 2.5 0 0 1 5 0v2'/%3E%3C/svg%3E"); width: 13px; height: 13px; }
 
 /* Main */
@@ -288,3 +289,13 @@ select { padding: 4px 8px; border-radius: 7px; border: 1px solid var(--line-stro
 .switch input:checked + span { background: var(--safe); }
 .switch input:checked + span::after { transform: translateX(16px); }
 .switch input:focus-visible + span { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
+
+/* What's this folder? */
+.why { max-width: 640px; }
+.why-form { display: flex; gap: 8px; margin-bottom: 20px; }
+.why-input { flex: 1; width: auto; font-family: var(--mono); }
+.why-card { background: var(--bg-sunk); border-radius: var(--radius); padding: 18px 20px; }
+.why-card h2 { font-size: 18px; margin: 10px 0 2px; overflow-wrap: anywhere; }
+.why-card h4 { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; margin: 18px 0 6px; }
+.why-card p { margin: 0 0 6px; }
+.why-card .cmd { margin-top: 10px; }
