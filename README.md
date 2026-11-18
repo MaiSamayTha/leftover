@@ -67,6 +67,31 @@ irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.
 
 Both scripts download the latest release, check it against the release's published SHA-256 checksums before installing anything, need no admin rights, and add a launcher to your Applications folder, app menu or Start menu. Prefer to do it by hand? Grab an archive from [Releases](https://github.com/MaiSamayTha/leftover/releases) and verify it against `checksums.txt`.
 
+**Homebrew** (macOS and Linux)
+
+```sh
+brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover
+brew install maisamaytha/leftover/leftover
+```
+
+**Scoop** (Windows)
+
+```powershell
+scoop bucket add leftover https://github.com/MaiSamayTha/leftover
+scoop install leftover/leftover
+```
+
+The formula and manifest live in this repository and are updated by the release workflow, with the same checksums.
+
+### "Can't be opened" or "Windows protected your PC"
+
+Leftover's binaries aren't signed with an Apple or Microsoft certificate yet, so your OS may warn about them. The install scripts, Homebrew and Scoop don't trigger this; downloading an archive in a browser does.
+
+- **macOS:** if it says Leftover "can't be opened because Apple cannot check it", right-click it and choose **Open**, or run `xattr -d com.apple.quarantine ./leftover` once in the folder you unpacked.
+- **Windows:** on the SmartScreen prompt choose **More info**, then **Run anyway**.
+
+Either way, check the archive against `checksums.txt` first. Every change is listed in the [changelog](CHANGELOG.md).
+
 ### Build it yourself
 
 You need Go 1.24 or newer.
