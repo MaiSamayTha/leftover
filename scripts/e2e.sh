@@ -9,12 +9,18 @@ work=$(mktemp -d)
 trap 'chmod -R u+w "$work" 2>/dev/null; rm -rf "$work"' EXIT
 
 bin="$work/leftover"
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*) bin="$bin.exe" ;;
+esac
 (cd "$root" && go build -o "$bin" ./cmd/leftover)
 
 export HOME="$work/home"
+export USERPROFILE="$work/home"
+export LOCALAPPDATA="$work/home/AppData/Local"
+export APPDATA="$work/home/AppData/Roaming"
 export XDG_CACHE_HOME="" XDG_DATA_HOME="" PLAYWRIGHT_BROWSERS_PATH="" HF_HOME="" HF_HUB_CACHE=""
 export NO_COLOR=1
-mkdir -p "$HOME"
+mkdir -p "$HOME" "$LOCALAPPDATA" "$APPDATA"
 
 mkfile() { mkdir -p "$(dirname "$1")"; head -c "$2" /dev/zero > "$1"; }
 
