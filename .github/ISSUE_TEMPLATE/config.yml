@@ -1,1 +1,5 @@
 blank_issues_enabled: true
+contact_links:
+  - name: Report a safety or security problem privately
+    url: https://github.com/MaiSamayTha/leftover/security/advisories/new
+    about: Anything that could lose data or make Leftover act outside what it promises. See SECURITY.md.
