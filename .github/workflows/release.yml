@@ -51,6 +51,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          sh scripts/release-notes.sh "${{ github.ref_name }}" > notes.md
           gh release create "${{ github.ref_name }}" dist/* \
             --title "Leftover ${{ github.ref_name }}" \
-            --notes "Verify downloads against checksums.txt, or use the install scripts, which do it for you."
+            --notes-file notes.md
+      # Point the Homebrew formula and Scoop manifest at the new release. Both
+      # live in this repo (Formula/ and bucket/), so the tap and bucket are
+      # this repository itself.
+      - name: update homebrew and scoop
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -eu
+          git fetch origin main
+          git checkout -B main origin/main
+          sh scripts/packages.sh "$VERSION" dist/checksums.txt .
+          git add Formula/leftover.rb bucket/leftover.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "packages: point Homebrew and Scoop at $VERSION"
+          git push origin main
