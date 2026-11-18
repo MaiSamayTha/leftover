@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/MaiSamayTha/leftover/internal/config"
@@ -25,6 +26,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/ignore", s.ignore)
 	mux.HandleFunc("POST /api/settings", s.settings)
 	mux.HandleFunc("GET /api/history", s.history)
+	mux.HandleFunc("POST /api/why", s.why)
 	mux.HandleFunc("POST /api/ping", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) })
 }
 
@@ -248,4 +250,39 @@ func (s *Server) history(w http.ResponseWriter, r *http.Request) {
 		events = []vault.Event{}
 	}
 	writeJSON(w, events)
+}
+
+// why explains any folder, like 'leftover why': what it is, the verdict and
+// how it comes back. It only matches the path against the rules and reads
+// nothing inside the folder.
+func (s *Server) why(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Path string `json:"path"`
+	}
+	if err := readJSON(r, &req); err != nil || strings.TrimSpace(req.Path) == "" {
+		fail(w, http.StatusBadRequest, errors.New("which folder?"))
+		return
+	}
+	p := expandHome(strings.TrimSpace(req.Path), s.App.Scanner.Host.Home)
+	if !filepath.IsAbs(p) {
+		fail(w, http.StatusBadRequest, errors.New("use a full path, like ~/code/app/node_modules"))
+		return
+	}
+	p = filepath.Clean(p)
+	rule, matched := s.App.Explain(p)
+	writeJSON(w, map[string]any{"path": p, "known": rule != nil, "matched": matched, "rule": rule})
+}
+
+// expandHome turns a leading ~ into the home folder.
+func expandHome(p, home string) string {
+	if home == "" {
+		return p
+	}
+	if p == "~" {
+		return home
+	}
+	if strings.HasPrefix(p, "~/") || strings.HasPrefix(p, `~\`) {
+		return filepath.Join(home, p[2:])
+	}
+	return p
 }

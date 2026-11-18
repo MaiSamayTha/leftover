@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -96,5 +97,39 @@ func TestSettingsValidated(t *testing.T) {
 	}
 	if srv.App.Vault.KeepDays != 30 {
 		t.Error("vault should pick up the new window")
+	}
+}
+
+func TestWhyExplainsAnyFolder(t *testing.T) {
+	srv := testServer(t)
+	home := srv.App.Scanner.Host.Home
+
+	w := call(srv, "POST", "/api/why", `{"path":"~/.cache/pip"}`, nil)
+	var got struct {
+		Path  string `json:"path"`
+		Known bool   `json:"known"`
+		Rule  struct {
+			ID string `json:"id"`
+		} `json:"rule"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil || w.Code != 200 {
+		t.Fatalf("%d %s", w.Code, w.Body)
+	}
+	if !got.Known || got.Rule.ID != "pip-cache" || got.Path != filepath.Join(home, ".cache", "pip") {
+		t.Fatalf("~/.cache/pip should be explained as the pip cache, got %+v", got)
+	}
+
+	w = call(srv, "POST", "/api/why", `{"path":"`+filepath.ToSlash(filepath.Join(home, "notes"))+`"}`, nil)
+	if w.Code != 200 || !strings.Contains(w.Body.String(), `"known":false`) {
+		t.Fatalf("an unknown folder should be reported as unknown: %d %s", w.Code, w.Body)
+	}
+
+	for _, body := range []string{`{}`, `{"path":"  "}`, `{"path":"relative/dir"}`} {
+		if w := call(srv, "POST", "/api/why", body, nil); w.Code != http.StatusBadRequest {
+			t.Errorf("%s: want 400, got %d", body, w.Code)
+		}
+	}
+	if w := call(srv, "POST", "/api/why", `{"path":"~/.cache/pip"}`, func(r *http.Request) { r.Header.Del("X-Leftover-Token") }); w.Code != http.StatusForbidden {
+		t.Errorf("why must need the token, got %d", w.Code)
 	}
 }
