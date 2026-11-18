@@ -18,7 +18,10 @@ $ProgressPreference = "SilentlyContinue"
 
 $Repo = "MaiSamayTha/leftover"
 $Dir = Join-Path $env:LOCALAPPDATA "Programs\Leftover"
-$Shortcut = Join-Path ([Environment]::GetFolderPath("Programs")) "Leftover.lnk"
+# The Start menu folder can be missing (unusual profiles); then there's simply
+# no shortcut, rather than a failed install.
+$StartMenu = [Environment]::GetFolderPath("Programs")
+$Shortcut = if ($StartMenu) { Join-Path $StartMenu "Leftover.lnk" } else { $null }
 
 function Remove-FromPath([string]$folder) {
     $path = [Environment]::GetEnvironmentVariable("Path", "User")
@@ -30,7 +33,7 @@ function Remove-FromPath([string]$folder) {
 
 if ($Uninstall) {
     Remove-Item -Recurse -Force $Dir -ErrorAction SilentlyContinue
-    Remove-Item -Force $Shortcut -ErrorAction SilentlyContinue
+    if ($Shortcut) { Remove-Item -Force $Shortcut -ErrorAction SilentlyContinue }
     Remove-FromPath $Dir
     Write-Host "Leftover is uninstalled. Its data folder (settings, history and any vault) is in $env:LOCALAPPDATA\Leftover."
     return
@@ -71,19 +74,22 @@ try {
         $env:Path = "$env:Path;$Dir"
     }
 
-    $shell = New-Object -ComObject WScript.Shell
-    $lnk = $shell.CreateShortcut($Shortcut)
-    $lnk.TargetPath = Join-Path $Dir "leftover.exe"
-    $lnk.Arguments = "app"
-    $lnk.WorkingDirectory = $Dir
-    $lnk.Description = "See what your dev tools left behind and clear it safely"
-    if (Test-Path (Join-Path $Dir "leftover.ico")) { $lnk.IconLocation = Join-Path $Dir "leftover.ico" }
-    $lnk.WindowStyle = 7
-    $lnk.Save()
+    if ($Shortcut) {
+        $shell = New-Object -ComObject WScript.Shell
+        $lnk = $shell.CreateShortcut($Shortcut)
+        $lnk.TargetPath = Join-Path $Dir "leftover.exe"
+        $lnk.Arguments = "app"
+        $lnk.WorkingDirectory = $Dir
+        $lnk.Description = "See what your dev tools left behind and clear it safely"
+        if (Test-Path (Join-Path $Dir "leftover.ico")) { $lnk.IconLocation = Join-Path $Dir "leftover.ico" }
+        $lnk.WindowStyle = 7
+        $lnk.Save()
+    }
 
     Write-Host ""
     Write-Host ("Installed " + (& (Join-Path $Dir "leftover.exe") version))
-    Write-Host "Open Leftover from the Start menu, or run 'leftover scan' in a new terminal."
+    if ($Shortcut) { Write-Host "Open Leftover from the Start menu, or run 'leftover scan' in a new terminal." }
+    else { Write-Host "Run 'leftover' in a new terminal to open it, or 'leftover scan' to scan." }
 }
 finally {
     Remove-Item -Recurse -Force $tmp -ErrorAction SilentlyContinue

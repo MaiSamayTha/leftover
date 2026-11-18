@@ -89,9 +89,12 @@ jobs:
           $env:APPDATA = Join-Path $h "AppData\Roaming"
           $env:TEMP = Join-Path $env:LOCALAPPDATA "Temp"; $env:TMP = $env:TEMP
           $env:NO_COLOR = "1"
-          New-Item -ItemType Directory -Force $env:LOCALAPPDATA, $env:APPDATA, $env:TEMP | Out-Null
+          $startMenu = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
+          New-Item -ItemType Directory -Force $env:LOCALAPPDATA, $env:APPDATA, $env:TEMP, $startMenu | Out-Null
 
           Get-Content -Raw scripts/install.ps1 | Invoke-Expression
+          $lnk = Join-Path ([Environment]::GetFolderPath("Programs")) "Leftover.lnk"
+          if (-not (Test-Path $lnk)) { throw "no Start menu shortcut at $lnk" }
 
           $bin = Join-Path $env:LOCALAPPDATA "Programs\Leftover\leftover.exe"
           function L { $out = & $bin @args | Out-String; if ($LASTEXITCODE) { throw "leftover $args failed: $out" }; $out }
