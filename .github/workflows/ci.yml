@@ -180,7 +180,7 @@ jobs:
           timeout 5 leftover app --no-open | tee app.txt || true
           grep -q "http://127.0.0.1:" app.txt
           sudo apt-get remove -y -qq leftover
-          if command -v leftover; then echo "leftover still installed after removing the package"; exit 1; fi
+          if [ -e /usr/bin/leftover ] || [ -e /usr/share/applications/leftover.desktop ]; then echo "files left behind after removing the package"; exit 1; fi
 
       - name: Leftover-Setup.exe
         if: runner.os == 'Windows'
