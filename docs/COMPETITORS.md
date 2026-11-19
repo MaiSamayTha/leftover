@@ -78,9 +78,10 @@ Checked in this repo, not taken from marketing copy.
   `internal/config/config.go`). Restore is exact. **Space only comes back when
   the vault is emptied or the items expire.** This is the same trade-off as the
   Trash, and the page should never imply otherwise.
-- **Privacy:** no HTTP client anywhere. The only `net/http` use is the local UI
-  server, bound to `127.0.0.1` with a token (`internal/ui/server.go`). No
-  telemetry and no update checks.
+- **Privacy:** no telemetry. The only internet access is `internal/update`,
+  run only when someone clicks Check for updates or runs `leftover update`;
+  updates are verified with an Ed25519-signed checksums file. The UI server
+  is bound to `127.0.0.1` with a token (`internal/ui/server.go`).
 - **CLI:** `scan`, `clean`, `why`, `vault`, `history`, `ignore`, `rules`,
   `where`, `app`, `version`; `--json` on scan, clean, why, vault, history and
   rules.
@@ -318,8 +319,8 @@ cache-vent. Several are new in 2026. The space is getting crowded.
    and links to the owning tool's docs, and the tests enforce it. DevCleaner
    has rebuild hints and npkill has descriptions, but neither links a source.
    `leftover why <path>` has no direct equivalent.
-3. **Local-only by construction.** It has no network code at all: no licence
-   checks, no counters, no update pings. DevCleaner and CleanMyMac both
+3. **Local-first.** It only goes online when you ask it to check for updates: no licence
+   checks, no counters, no background update pings. DevCleaner and CleanMyMac both
    phone home in some form.
 4. **Free, open source, GUI plus CLI, and all three OSes.**
    - DevCleaner has no Windows version and no CLI.
@@ -387,7 +388,7 @@ Still open:
 - Sourced, test-enforced explanations ("every safe item says how it comes back,
   with a link to the tool's docs").
 - Undo as the default, honestly framed: space is freed when the vault empties.
-- Zero network code, verifiable in the source.
+- No background network access at all, verifiable in the source; signed, click-only updates.
 - One tool for the GUI, the CLI and `--json` on all three OSes.
 
 ## Leftover claims on the landing page that the code doesn't fully back
@@ -401,5 +402,5 @@ Still open:
 - **"Reversible by design. A 14-day vault":** accurate. But nowhere on the page
   does it say that vaulted items still use disk space until the vault is
   emptied.
-- **"Works offline" and "no update checks":** verified. The binary has no HTTP
-  client.
+- **"Works offline":** verified. Since November 2026 the binary has an HTTP
+  client, but only `internal/update` uses it, and only when asked.

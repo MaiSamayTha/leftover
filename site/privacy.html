@@ -23,11 +23,15 @@
 
   <main class="prose narrow">
     <h1 class="headline headline-md">Privacy, in plain English.</h1>
-    <p class="lede">Leftover looks through your disk, so you should know exactly what it does there. The short version: it runs on your computer, it never sends anything anywhere, and it only changes what you tell it to.</p>
+    <p class="lede">Leftover looks through your disk, so you should know exactly what it does there. The short version: it runs on your computer, it never sends anything about you or your files anywhere, and it only changes what you tell it to.</p>
 
     <h2>The app</h2>
     <h3>What it collects</h3>
-    <p>Nothing. Leftover has no account, no analytics, no crash reporting and no update checks. It contains no networking code that talks to the internet, and it works the same with the network unplugged.</p>
+    <p>Nothing. Leftover has no account, no analytics and no crash reporting, and it works the same with the network unplugged.</p>
+
+    <h3>When it goes online</h3>
+    <p>Only when you ask it to update. Clicking <b>Check for updates</b> in Settings, or running <code>leftover update</code>, sends one request to GitHub's public releases page for Leftover to see the latest version. It sends nothing but the version you have, in the form <code>Leftover/0.1.1</code>; GitHub sees your IP address, as with any website. Leftover never checks on its own, in the background or on a schedule.</p>
+    <p>If you then choose <b>Update now</b>, it downloads the new version from the same GitHub release. Before replacing anything, it checks that the release's list of checksums is signed with Leftover's release key, and that the download matches its checksum. If either check fails, nothing is installed.</p>
 
     <h3>What it reads</h3>
     <p>To find caches, Leftover reads folder listings and file sizes in your home folder and in the places tools are documented to keep their data. It does not open or read the contents of your files, with three small exceptions it needs to explain what it found: a Python environment's <code>pyvenv.cfg</code> (to see if its Python still exists), Ollama's model manifests (to list your models), and the names of files next to a folder (to tell a Node.js <code>node_modules</code> from any other folder of that name).</p>
@@ -41,7 +45,7 @@
     <p>The app's window is a page served by Leftover itself to your computer only, on a private address (127.0.0.1) with a random key that changes every launch. Other websites can't reach it. When it opens in Chrome, Edge or Brave, it uses a separate profile with syncing, update checks and other background requests switched off.</p>
 
     <h3>Checking for yourself</h3>
-    <p>Leftover is open source under the MIT license and uses nothing beyond Go's standard library, so the whole program is short enough to read. The code is on <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>, and every release lists checksums so you can verify what you downloaded.</p>
+    <p>Leftover is open source under the MIT license and uses nothing beyond Go's standard library, so the whole program is short enough to read. The code is on <a href="https://github.com/MaiSamayTha/leftover">GitHub</a>, and every release lists signed checksums so you, and the updater, can verify what was downloaded.</p>
 
     <h2>This website</h2>
     <p>This site is a few static files. It sets no cookies, runs no analytics, embeds nothing from other companies and loads no fonts, scripts or images from anywhere else. The only script animates the page.</p>

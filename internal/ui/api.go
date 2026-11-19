@@ -11,6 +11,7 @@ import (
 	"github.com/MaiSamayTha/leftover/internal/config"
 	"github.com/MaiSamayTha/leftover/internal/rules"
 	"github.com/MaiSamayTha/leftover/internal/scan"
+	"github.com/MaiSamayTha/leftover/internal/update"
 	"github.com/MaiSamayTha/leftover/internal/vault"
 )
 
@@ -29,6 +30,9 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/why", s.why)
 	mux.HandleFunc("POST /api/docker/prune", s.dockerPrune)
 	mux.HandleFunc("POST /api/explore", s.explore)
+	mux.HandleFunc("POST /api/update/check", s.updateCheck)
+	mux.HandleFunc("POST /api/update/apply", s.updateApply)
+	mux.HandleFunc("POST /api/update/restart", s.updateRestart)
 	mux.HandleFunc("POST /api/ping", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) })
 }
 
@@ -333,4 +337,63 @@ func (s *Server) explore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, v)
+}
+
+// updateCheck asks GitHub whether there's a newer Leftover. This and
+// updateApply are the only requests Leftover makes to the internet, and
+// only because someone clicked the button.
+func (s *Server) updateCheck(w http.ResponseWriter, r *http.Request) {
+	info, err := update.Check(r.Context(), s.Version)
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	writeJSON(w, info)
+}
+
+// updateApply downloads, verifies and installs the latest version. The
+// window then offers to restart into it.
+func (s *Server) updateApply(w http.ResponseWriter, r *http.Request) {
+	info, err := update.Check(r.Context(), s.Version)
+	if err != nil {
+		fail(w, http.StatusBadGateway, err)
+		return
+	}
+	applied, err := update.Apply(r.Context(), info)
+	if err != nil {
+		fail(w, http.StatusConflict, err)
+		return
+	}
+	s.mu.Lock()
+	s.pending = applied
+	s.mu.Unlock()
+	writeJSON(w, applied)
+}
+
+// updateRestart opens the new version and stops this one.
+func (s *Server) updateRestart(w http.ResponseWriter, r *http.Request) {
+	s.mu.Lock()
+	applied := s.pending
+	s.pending = nil
+	s.mu.Unlock()
+	if applied == nil {
+		fail(w, http.StatusConflict, errors.New("there's no installed update to restart into"))
+		return
+	}
+	if s.App.Status().Running {
+		s.mu.Lock()
+		s.pending = applied
+		s.mu.Unlock()
+		fail(w, http.StatusConflict, errors.New("a scan is running; restart when it's done"))
+		return
+	}
+	if err := applied.Restart(); err != nil {
+		fail(w, http.StatusInternalServerError, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		close(s.quit)
+	}()
 }

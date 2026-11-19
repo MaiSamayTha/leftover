@@ -8,6 +8,7 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 - **Explore:** `leftover explore [path]` and a new Explore view in the app show what any folder holds, biggest first, with what Leftover recognises in each folder and how much of it is safe to clear. A whole home folder is measured in seconds.
 - **Docker:** OrbStack, Colima and Docker Engine on Linux are recognised alongside Docker Desktop. `leftover docker` shows what Docker is holding, and `leftover docker prune` (or the button in the app) asks Docker to remove its build cache and dangling images, plus unused images with `--images`. Containers and volumes are never touched, and every prune is in the history.
+- **Updates:** Settings has a **Check for updates** button, and the terminal has `leftover update`. If a newer version is out, **Update now** downloads it, checks it against the release's signature and checksum, puts it in place and restarts. Homebrew, Scoop and `.deb` installs are told the command to run instead. Leftover only goes online when you click the button; it never checks by itself.
 - **New project types:** Unity's `Library`, Elixir's `_build` and `deps`, Haskell's `.stack-work` and `dist-newstyle`, Zig's `.zig-cache` and `zig-out`, sbt's `target`, Clojure's `.cpcache`, Angular's `.angular`, `.docusaurus`, `storybook-static` and test coverage reports. Unreal's `Intermediate` and `DerivedDataCache` and Godot's `.godot` are shown as worth a look.
 
 ### Changed

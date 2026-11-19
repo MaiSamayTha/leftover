@@ -319,4 +319,6 @@ select { padding: 4px 8px; border-radius: 7px; border: 1px solid var(--line-stro
 .xbar i { display: block; height: 100%; border-radius: 4px; background: var(--accent, #0a84ff); opacity: 0.75; }
 .tag-safe { color: var(--safe); margin-left: 0; }
 .tr-explore .pill { display: inline-block; margin: 0; font-size: 11px; }
-
+.update-actions { flex: none; }
+.update-actions .btn { white-space: nowrap; }
+#update-status code { font: 11px var(--mono); }

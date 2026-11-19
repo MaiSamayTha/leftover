@@ -52,10 +52,18 @@ Name: "{userdesktop}\Leftover"; Filename: "{app}\leftoverw.exe"; IconFilename: "
 
 [Run]
 Filename: "{app}\leftoverw.exe"; Description: "Open Leftover now"; Flags: nowait postinstall skipifsilent
+; Leftover's own Update now runs this installer silently with /LAUNCH=1, so
+; it opens again once the new version is in place.
+Filename: "{app}\leftoverw.exe"; Flags: nowait; Check: LaunchAfterUpdate
 
 [Code]
 const
   EnvKey = 'Environment';
+
+function LaunchAfterUpdate: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:LAUNCH|0}') = '1');
+end;
 
 function PathHas(Path, Dir: string): Boolean;
 begin

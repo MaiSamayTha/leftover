@@ -652,16 +652,81 @@ function renderSettings() {
           : `<div class="setting"><span class="muted">None. Use “Ignore this folder” on any item to keep Leftover out of it.</span></div>`}
       </div>
 
+      <h3>Updates</h3>
+      <div class="group">
+        <div class="setting">
+          <div><b>Leftover ${esc(state.meta.version || "")}</b><small id="update-status">${updateStatus()}</small></div>
+          <div class="update-actions">${updateButtons()}</div>
+        </div>
+      </div>
+
       <h3>Privacy</h3>
       <div class="group">
         <div class="setting setting-text">
-          <p>Leftover runs entirely on this computer. It has no account, no analytics and no update checks, and it never sends anything over the network. This window is served only to this machine, on a private address with a key that changes every launch.</p>
+          <p>Leftover runs entirely on this computer. It has no account and no analytics, and it never sends anything about you or your files anywhere. The only time it goes online is when you click Check for updates: it asks GitHub for the latest version, and downloads it if you choose Update now. Each update is checked against the release's signature before anything is replaced. This window is served only to this machine, on a private address with a key that changes every launch.</p>
           <p>Scanning only reads. Leftover writes to one folder of its own, for settings, the last scan, history and the vault: <code>${esc(tilde(state.meta.data_dir || ""))}</code>. Outside it, the only changes are the ones you choose, and every move, restore and deletion is listed under History.</p>
         </div>
       </div>
     </div>`;
   $("#keep-days").onchange = (e) => saveSettings({ keep_days: Number(e.target.value) });
   $("#auto-empty").onchange = (e) => saveSettings({ auto_empty: e.target.checked });
+}
+
+// ---------- updates ----------
+
+// Nothing is checked until the button is pressed: Leftover only goes
+// online when asked to.
+const upd = { busy: "", info: null, applied: null, error: "" };
+
+function updateStatus() {
+  if (upd.error) return esc(upd.error);
+  if (upd.busy === "check") return "Asking GitHub…";
+  if (upd.busy === "apply") return "Downloading and checking the signature…";
+  if (upd.applied) return esc(upd.applied.message) + (upd.applied.method === "installer" ? "" : " Restart Leftover to use it.");
+  const i = upd.info;
+  if (!i) return "Checks only when you ask. Nothing about you is sent.";
+  if (i.method === "dev") return `This is a development build. The latest release is ${esc(i.latest)}.`;
+  if (!i.newer) return "You're up to date.";
+  let s = `Version ${esc(i.latest)} is available. <a href="${esc(i.page)}" target="_blank" rel="noopener noreferrer">What's new</a>`;
+  if (i.command) s += `<br>Update it with <code>${esc(i.command)}</code>`;
+  else if (!i.can_apply) s += `<br>Download it from the release page.`;
+  return s;
+}
+
+function updateButtons() {
+  if (upd.busy) return `<button class="btn btn-small" disabled>Working…</button>`;
+  if (upd.applied) return `<button class="btn btn-small btn-primary" data-act="update-restart">${upd.applied.method === "installer" ? "Install and restart" : "Restart now"}</button>`;
+  const i = upd.info;
+  if (i && i.newer && i.can_apply) return `<button class="btn btn-small btn-primary" data-act="update-apply">Update now</button>`;
+  if (i && i.newer && !i.command && i.download) return `<a class="btn btn-small" href="${esc(i.download)}" target="_blank" rel="noopener noreferrer">Download</a>`;
+  return `<button class="btn btn-small" data-act="update-check">Check for updates</button>`;
+}
+
+function rerenderUpdate() {
+  if (state.view !== "settings") return;
+  const st = $("#update-status"), act = document.querySelector(".update-actions");
+  if (st) st.innerHTML = updateStatus();
+  if (act) act.innerHTML = updateButtons();
+}
+
+async function checkUpdate() {
+  upd.busy = "check"; upd.error = ""; rerenderUpdate();
+  try { upd.info = await api("update/check", {}); } catch (e) { upd.error = e.message; }
+  upd.busy = ""; rerenderUpdate();
+}
+
+async function applyUpdate() {
+  upd.busy = "apply"; upd.error = ""; rerenderUpdate();
+  try { upd.applied = await api("update/apply", {}); } catch (e) { upd.error = e.message; }
+  upd.busy = ""; rerenderUpdate();
+}
+
+async function restartUpdate() {
+  try {
+    await api("update/restart", {});
+    $("#view").innerHTML = `<div class="empty"><div class="spinner"></div><h2>Restarting…</h2><p>The new version opens in its own window. You can close this one.</p></div>`;
+    setTimeout(() => window.close(), 1500);
+  } catch (e) { upd.error = e.message; rerenderUpdate(); }
 }
 
 async function saveSettings(patch) {
@@ -736,6 +801,9 @@ document.addEventListener("click", async (e) => {
     if (a === "empty-all") return emptyVault(false);
     if (a === "docker-prune") return dockerPrune();
     if (a === "explore-refresh") return explore(ex.path, true);
+    if (a === "update-check") return checkUpdate();
+    if (a === "update-apply") return applyUpdate();
+    if (a === "update-restart") return restartUpdate();
   }
   const un = e.target.closest("[data-unignore]");
   if (un) {

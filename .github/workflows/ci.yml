@@ -153,6 +153,10 @@ jobs:
           lipo -archs "$app/Contents/MacOS/Leftover" | grep -q arm64
           codesign --verify --strict "$app"
           plutil -lint "$app/Contents/Info.plist"
+          # The updater's zip must unpack to the same, still-signed app.
+          upd=$(mktemp -d)
+          ditto -x -k dist/Leftover-macos.zip "$upd"
+          codesign --verify --strict "$upd/Leftover.app"
           "$app/Contents/MacOS/Leftover" --version
           # Open it the way a double-click does and wait for the window's server.
           open "$app"

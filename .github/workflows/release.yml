@@ -94,7 +94,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: macos-app
-          path: dist/Leftover.dmg
+          path: |
+            dist/Leftover.dmg
+            dist/Leftover-macos.zip
 
   windows-installer:
     runs-on: windows-latest
@@ -125,6 +127,21 @@ jobs:
           merge-multiple: true
       - name: checksums
         run: (cd dist && sha256sum * > checksums.txt && cat checksums.txt)
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      # Sign the checksums so Leftover's Update now can tell a real release
+      # from a tampered one. Without the key the release still publishes,
+      # but the app won't install it by itself.
+      - name: sign checksums
+        env:
+          LEFTOVER_UPDATE_KEY: ${{ secrets.LEFTOVER_UPDATE_KEY }}
+        run: |
+          if [ -n "$LEFTOVER_UPDATE_KEY" ]; then
+            go run ./tools/sign sign dist/checksums.txt
+          else
+            echo "::warning::LEFTOVER_UPDATE_KEY isn't set; this release can't be installed by Update now"
+          fi
       - name: publish
         env:
           GH_TOKEN: ${{ github.token }}

@@ -10,7 +10,7 @@ Thanks for helping. A few things keep Leftover trustworthy, so please read this 
 4. **Standard library only.** Ask in an issue before adding a dependency. CI fails if `go.mod` gains a `require`.
 5. **Tests use temporary folders.** Never the real home folder. Use `t.TempDir()` and a fake `rules.Host`.
 6. **`--json` output is a contract.** Add fields; don't rename or remove them.
-7. **No network.** The app must keep working with the network unplugged.
+7. **No network.** The app must keep working with the network unplugged. The one exception is `internal/update`, which runs only when someone asks to check for updates.
 
 ## Getting started
 

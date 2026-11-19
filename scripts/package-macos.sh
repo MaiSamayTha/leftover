@@ -38,6 +38,10 @@ else
 fi
 codesign --verify --strict "$app"
 
+# The same app, zipped, for Leftover's built-in updater. ditto keeps the
+# code signature and permissions intact.
+ditto -c -k --keepParent "$app" "$out/Leftover-macos.zip"
+
 ln -s /Applications "$work/dmg/Applications"
 dmg="$out/Leftover.dmg"
 rm -f "$dmg"
@@ -50,4 +54,5 @@ if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
     xcrun stapler staple "$dmg"
   fi
 fi
+echo "package-macos: wrote $out/Leftover-macos.zip"
 echo "package-macos: wrote $dmg ($(lipo -archs "$app/Contents/MacOS/Leftover"))"

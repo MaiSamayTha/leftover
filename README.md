@@ -37,7 +37,7 @@ Leftover finds it, tells you what each item is and how it comes back, and clears
 - **It knows when not to touch.** Extensions installed in VS Code-style editors, folders that hold files committed to git, and caches whose tool is running right now (a Gradle daemon, Xcode, Ollama, an emulator) are shown but never moved.
 - **It breaks big things down.** See each model inside Ollama's folder (and which ones share layers), each Hugging Face model, each old Xcode device-support version, and what Docker says is inside Docker Desktop, OrbStack, Colima or Docker Engine, with a guided prune that never touches containers or volumes.
 - **It maps the rest of the disk too.** Explore any folder by size, and see right there what Leftover recognises in it and how much is safe to clear.
-- **It's private by construction.** One binary, no account, no analytics, no update checks, no network code. The desktop window is served only to your machine on `127.0.0.1` with a per-launch key.
+- **It's private by construction.** One binary, no account, no analytics. It only goes online when you click **Check for updates**, and updates are verified against a signing key before they're installed. The desktop window is served only to your machine on `127.0.0.1` with a per-launch key.
 - **It's small and auditable.** Pure Go standard library, no third-party dependencies. CI fails if one is ever added.
 
 ## What it finds
@@ -140,6 +140,7 @@ leftover rules                   everything Leftover recognises
 leftover docker                  what Docker is holding, and what's reclaimable
 leftover docker prune            ask Docker to drop its build cache and dangling images
 leftover where                   where Leftover keeps its own files
+leftover update                  check for a newer version and install it
 ```
 
 Add `--json` to `scan`, `why`, `explore`, `docker`, `vault`, `history` or `rules` for machine-readable output. `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
@@ -160,7 +161,7 @@ These are enforced in code and covered by tests:
 
 ## Privacy
 
-Leftover runs entirely on your computer. It has no account, collects nothing and makes no network requests. The only changes outside its own data folder are the moves (and Docker prunes) you confirm. The full statement is on the [privacy page](site/privacy.html).
+Leftover runs entirely on your computer. It has no account and collects nothing. The only network request it ever makes is the update check you start yourself (Settings → Check for updates, or `leftover update`), which asks GitHub for the latest release. The only changes outside its own data folder are the moves (and Docker prunes) you confirm. The full statement is on the [privacy page](site/privacy.html).
 
 ## Project layout
 

@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/MaiSamayTha/leftover/internal/app"
+	"github.com/MaiSamayTha/leftover/internal/update"
 )
 
 //go:embed web
@@ -38,6 +39,10 @@ type Server struct {
 
 	mu       sync.Mutex
 	lastSeen time.Time
+	// pending is an installed update waiting to be restarted into.
+	pending *update.Applied
+	// quit ends Serve, after a restart into a new version.
+	quit chan struct{}
 }
 
 // New prepares a server bound to a free port on 127.0.0.1.
@@ -51,7 +56,7 @@ func New(a *app.App, version string) (*Server, error) {
 		ln.Close()
 		return nil, err
 	}
-	return &Server{App: a, Version: version, token: hex.EncodeToString(b), addr: ln.Addr().String(), ln: ln, lastSeen: time.Now()}, nil
+	return &Server{App: a, Version: version, token: hex.EncodeToString(b), addr: ln.Addr().String(), ln: ln, lastSeen: time.Now(), quit: make(chan struct{})}, nil
 }
 
 // URL is the address the window opens. The token travels in the fragment,
@@ -64,16 +69,23 @@ func (s *Server) Serve(idle time.Duration) error {
 	srv := &http.Server{Handler: s.Handler(), ReadHeaderTimeout: 10 * time.Second}
 	errc := make(chan error, 1)
 	go func() { errc <- srv.Serve(s.ln) }()
+	tick := 5 * time.Second
 	if idle <= 0 {
-		return <-errc
+		tick = time.Hour
 	}
-	t := time.NewTicker(5 * time.Second)
+	t := time.NewTicker(tick)
 	defer t.Stop()
 	for {
 		select {
 		case err := <-errc:
 			return err
+		case <-s.quit:
+			srv.Close()
+			return nil
 		case <-t.C:
+			if idle <= 0 {
+				continue
+			}
 			s.mu.Lock()
 			gone := time.Since(s.lastSeen) > idle
 			s.mu.Unlock()
