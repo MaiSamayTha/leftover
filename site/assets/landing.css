@@ -64,3 +64,65 @@ html{scroll-behavior:smooth}
   [data-x="ef"],[data-x="eg"]>div{grid-template-columns:32px minmax(0,1fr) auto!important}
   [data-x="ef"] div div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 }
+
+/* How it compares. One table; on phones a picker shows Leftover beside one
+   other tool at a time. Without the script the table just scrolls sideways. */
+.sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.cmp-sec{background:var(--bg2);padding:150px 24px 160px}
+.cmp-head{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.cmp-eyebrow{font-size:17px;font-weight:600;color:var(--accent-ink)}
+.cmp-head h2{margin:0;max-width:980px;font-size:clamp(36px,5.6vw,76px);line-height:1.04;letter-spacing:-0.038em;font-weight:600;text-wrap:balance}
+.cmp-head p{margin:0;max-width:620px;font-size:clamp(17px,1.4vw,21px);line-height:1.45;color:var(--ink2);text-wrap:pretty}
+.cmp-kinds{max-width:1120px;margin:72px auto 0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+/* Narrower: two by two, with Leftover across the bottom. */
+@media (max-width:1060px){.cmp-kinds{grid-template-columns:1fr 1fr}.cmp-kind.me{grid-column:1/-1}}
+.cmp-kind{border-radius:22px;background:var(--win);border:1px solid var(--hair);padding:26px;display:flex;flex-direction:column;gap:8px}
+.cmp-kind h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-0.02em}
+.cmp-ex{font-size:12px;line-height:1.4;font-weight:500;color:var(--ink3)}
+.cmp-kind p{margin:6px 0 0;font-size:14px;line-height:1.5;color:var(--ink2);text-wrap:pretty}
+.cmp-kind.me{border-color:color-mix(in oklch, var(--accent) 55%, transparent);box-shadow:0 0 0 3px color-mix(in oklch, var(--accent) 14%, transparent)}
+.cmp-kind.me .cmp-ex{color:var(--accent-ink)}
+.cmp-card{max-width:1120px;margin:20px auto 0;border-radius:22px;background:var(--win);border:1px solid var(--hair);box-shadow:var(--shadow);overflow:hidden}
+.cmp-scroll{position:relative;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+.cmp-scroll:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.cmp{width:100%;min-width:1060px;border-collapse:separate;border-spacing:0;font-size:14px;table-layout:fixed}
+.cmp th,.cmp td{padding:14px 10px;border-bottom:1px solid var(--hair);vertical-align:top;text-align:center}
+.cmp tbody tr:last-child>*{border-bottom:0}
+.cmp th:first-child{width:210px;padding-left:22px;text-align:left;position:sticky;left:0;z-index:1;background:var(--win)}
+.cmp thead th{padding-top:20px;padding-bottom:16px;font-size:14px;font-weight:600;letter-spacing:-0.01em;color:var(--ink)}
+.cmp thead th:first-child{font-size:12px;font-weight:500;color:var(--ink3)}
+.cmp thead small{display:block;margin-top:3px;font-size:11px;font-weight:500;color:var(--ink3)}
+.cmp tbody th{font-weight:600;font-size:14px;letter-spacing:-0.01em}
+.cmp tbody th small{display:block;margin-top:3px;font-size:12px;line-height:1.35;font-weight:400;color:var(--ink3)}
+.cmp td small{display:block;margin-top:7px;font-size:11.5px;line-height:1.35;color:var(--ink2)}
+.cmp .me{background:color-mix(in oklch, var(--accent) 7%, var(--win))}
+.cmp thead .me{color:var(--accent-ink)}
+.cmp-i{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-1px;box-sizing:border-box}
+.cmp-i.y{background:var(--accent)}
+.cmp-i.p{border:1.5px solid var(--accent);background:linear-gradient(90deg,var(--accent) 50%,transparent 50%)}
+.cmp-i.n{border:1.5px solid color-mix(in oklch, var(--ink3) 55%, transparent)}
+.cmp-foot{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;justify-content:space-between;padding:16px 22px;border-top:1px solid var(--hair);background:var(--winside)}
+.cmp-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--ink2)}
+.cmp-legend>span{display:inline-flex;align-items:center;gap:7px}
+.cmp-foot p{margin:0;max-width:520px;font-size:12px;line-height:1.5;color:var(--ink3);text-wrap:pretty}
+.cmp-note{max-width:640px;margin:40px auto 0;text-align:center;font-size:15px;line-height:1.55;color:var(--ink2);text-wrap:pretty}
+.cmp-pick{display:none}
+.cmp-pick button{font:500 13px/1 inherit;font-family:inherit;padding:8px 13px;border-radius:999px;border:1px solid var(--hair);background:var(--win);color:var(--ink2);cursor:pointer;white-space:nowrap;transition:border-color .2s ease,color .2s ease,background .2s ease}
+.cmp-pick button:hover{color:var(--ink)}
+.cmp-pick button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+@media (max-width:760px){
+  .cmp-sec{padding:110px 16px 120px}
+  .cmp-kinds{margin-top:48px;grid-template-columns:1fr 1fr;gap:10px}
+  .cmp-kind{padding:20px}
+  .cmp-kind.me{grid-column:1/-1}
+  /* With the script: Leftover and one other tool, no sideways scrolling. */
+  .cmp-pick:not([hidden]){display:flex;gap:6px;overflow-x:auto;padding:14px 14px 12px;border-bottom:1px solid var(--hair);scrollbar-width:none;align-items:center}
+  .cmp-pick::-webkit-scrollbar{display:none}
+  .cmp-pick span{flex:none;font-size:12px;font-weight:500;color:var(--ink3);margin-right:4px}
+  .cmp.picked{min-width:0}
+  .cmp.picked .off{display:none}
+  .cmp.picked th:first-child{width:38%;padding-left:16px;position:static}
+  .cmp-foot{padding:14px 16px}
+}
+@media (max-width:460px){.cmp-kinds{grid-template-columns:1fr}}
+.cmp .nw{white-space:nowrap}

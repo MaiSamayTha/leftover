@@ -515,6 +515,25 @@
     setTimeout(() => (b.textContent = "Copy"), 1600);
   });
 
+  // Comparison table: on phones, show Leftover beside one other tool at a
+  // time. Wider screens ignore this and show every column.
+  const cmp = root.querySelector(".cmp"), pick = root.querySelector(".cmp-pick");
+  if (cmp && pick) {
+    const show = (key) => {
+      cmp.querySelectorAll("[data-col]").forEach((c) => c.classList.toggle("off", c.dataset.col !== "leftover" && c.dataset.col !== key));
+      pick.querySelectorAll("[data-pick]").forEach((b) => {
+        const on = b.dataset.pick === key;
+        b.setAttribute("aria-pressed", String(on));
+        // Keep the chosen chip in view without scrolling the page.
+        if (on && (b.offsetLeft < pick.scrollLeft || b.offsetLeft + b.offsetWidth > pick.scrollLeft + pick.clientWidth)) pick.scrollLeft = b.offsetLeft - 60;
+      });
+    };
+    pick.hidden = false;
+    cmp.classList.add("picked");
+    show(pick.querySelector('[aria-pressed="true"]')?.dataset.pick || "devcleaner");
+    pick.addEventListener("click", (e) => { const b = e.target.closest("[data-pick]"); if (b) show(b.dataset.pick); });
+  }
+
   const loop = (now) => {
     requestAnimationFrame(loop);
     try { frame(now); } catch (err) { if (!S.err) { S.err = 1; console.error(err); } }
