@@ -1,8 +1,10 @@
 name: release
 
-# Push a tag like v0.1.0 to build every platform, write checksums and
-# publish a GitHub release. The install scripts and the website download
-# from the latest release.
+# Push a tag like v0.1.1 to build every platform, write checksums and publish
+# a GitHub release. Besides the plain archives (used by the install scripts,
+# Homebrew and Scoop), each release has a proper app for people who don't use
+# a terminal: Leftover.dmg for macOS, Leftover-Setup.exe for Windows and .deb
+# packages for Linux. The website's Download button links to those.
 on:
   push:
     tags: ["v*"]
@@ -11,7 +13,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  archives:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -20,7 +22,7 @@ jobs:
           go-version-file: go.mod
       - name: test
         run: go test ./... && sh scripts/e2e.sh
-      - name: build
+      - name: build archives
         env:
           VERSION: ${{ github.ref_name }}
         run: |
@@ -46,7 +48,83 @@ jobs:
               tar -C "$stage" -czf "dist/leftover-$name-$goarch.tar.gz" .
             fi
           done
-          (cd dist && sha256sum * > checksums.txt && cat checksums.txt)
+      - name: build .deb packages
+        run: sh scripts/package-deb.sh "${{ github.ref_name }}" dist amd64 arm64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archives
+          path: dist/*
+
+  macos-app:
+    runs-on: macos-latest
+    env:
+      CAN_SIGN: ${{ secrets.MACOS_CERT_P12 != '' && secrets.MACOS_SIGN_IDENTITY != '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      # Only when the Apple secrets exist: sign with a Developer ID and
+      # notarize, so the app opens without a Gatekeeper warning. Without
+      # them the app is ad-hoc signed and people approve it once.
+      - name: import the signing certificate
+        if: env.CAN_SIGN == 'true'
+        env:
+          MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+          MACOS_CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+        run: |
+          set -eu
+          kc="$RUNNER_TEMP/signing.keychain-db"
+          pw=$(openssl rand -hex 16)
+          echo "$MACOS_CERT_P12" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$pw" "$kc"
+          security set-keychain-settings -lut 3600 "$kc"
+          security unlock-keychain -p "$pw" "$kc"
+          security import "$RUNNER_TEMP/cert.p12" -k "$kc" -P "$MACOS_CERT_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$pw" "$kc" >/dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          rm "$RUNNER_TEMP/cert.p12"
+      - name: build Leftover.dmg
+        env:
+          MACOS_SIGN_IDENTITY: ${{ env.CAN_SIGN == 'true' && secrets.MACOS_SIGN_IDENTITY || '' }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: sh scripts/package-macos.sh "${{ github.ref_name }}" dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-app
+          path: dist/Leftover.dmg
+
+  windows-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: install Inno Setup if missing
+        shell: powershell
+        run: if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+      - name: build Leftover-Setup.exe
+        shell: powershell
+        run: scripts/package-windows.ps1 -Version "${{ github.ref_name }}" -Out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: dist/Leftover-Setup.exe
+
+  publish:
+    needs: [archives, macos-app, windows-installer]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: checksums
+        run: (cd dist && sha256sum * > checksums.txt && cat checksums.txt)
       - name: publish
         env:
           GH_TOKEN: ${{ github.token }}
