@@ -53,6 +53,20 @@ Every rule lives in [`internal/rules/catalog`](internal/rules/catalog) as readab
 
 ## Install
 
+### Download the app
+
+No terminal needed. Get it from the [website](https://maisamaytha.github.io/leftover/#download), or straight from the latest release:
+
+| | Download | Then |
+|---|---|---|
+| **macOS** (Apple silicon and Intel) | [Leftover.dmg](https://github.com/MaiSamayTha/leftover/releases/latest/download/Leftover.dmg) | Open it and drag Leftover onto Applications |
+| **Windows** (64-bit and ARM) | [Leftover-Setup.exe](https://github.com/MaiSamayTha/leftover/releases/latest/download/Leftover-Setup.exe) | Run it; Leftover appears in the Start menu. No admin rights needed |
+| **Linux** (Debian, Ubuntu…) | [x86-64 .deb](https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.deb) · [ARM64 .deb](https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-arm64.deb) | Double-click to install, then open Leftover from your app menu |
+
+The first time you open it, macOS and Windows ask you to confirm, because Leftover isn't signed with a paid certificate yet; [here's what to click](#cant-be-opened-or-windows-protected-your-pc). The Windows installer and the `.deb` also add the `leftover` command to your terminal.
+
+### From the terminal
+
 **macOS and Linux**
 
 ```sh
@@ -85,10 +99,10 @@ The formula and manifest live in this repository and are updated by the release 
 
 ### "Can't be opened" or "Windows protected your PC"
 
-Leftover's binaries aren't signed with an Apple or Microsoft certificate yet, so your OS may warn about them. The install scripts, Homebrew and Scoop don't trigger this; downloading an archive in a browser does.
+Leftover isn't signed with an Apple or Microsoft certificate yet, so the first time you open a downloaded copy your OS asks you to confirm. You only do this once. The install scripts, Homebrew and Scoop don't trigger it.
 
-- **macOS:** if it says Leftover "can't be opened because Apple cannot check it", right-click it and choose **Open**, or run `xattr -d com.apple.quarantine ./leftover` once in the folder you unpacked.
-- **Windows:** on the SmartScreen prompt choose **More info**, then **Run anyway**.
+- **macOS:** when it says Apple could not verify Leftover, click **Done**. Then open **System Settings → Privacy & Security**, scroll down and click **Open Anyway** next to the message about Leftover. (On macOS 14 and earlier, right-clicking the app and choosing **Open** also works.)
+- **Windows:** on the "Windows protected your PC" prompt, click **More info**, then **Run anyway**.
 
 Either way, check the archive against `checksums.txt` first. Every change is listed in the [changelog](CHANGELOG.md).
 

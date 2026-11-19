@@ -29,13 +29,25 @@ html{scroll-behavior:smooth}
 .no-js canvas{display:none}
 
 /* Downloads */
-.downloads{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;width:100%;max-width:760px;margin-top:10px}
+.downloads{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;width:100%;max-width:760px;margin-top:10px}
 .dl{display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 12px;border-radius:16px;background:var(--win);border:1px solid var(--hair);color:var(--ink);transition:border-color .2s ease,transform .2s ease}
 .dl:hover{text-decoration:none;border-color:color-mix(in oklch, var(--accent) 55%, transparent);transform:translateY(-1px)}
 .dl b{font-size:15px;font-weight:600}
 .dl small{font-size:12px;color:var(--ink2)}
 .dl.mine{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in oklch, var(--accent) 18%, transparent)}
 .install{width:100%;max-width:760px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.install summary{cursor:pointer;font-size:14px;font-weight:500;color:var(--accent-ink);text-align:center;list-style:none;padding:6px}
+.install summary::-webkit-details-marker{display:none}
+.install summary::after{content:"›";display:inline-block;margin-left:6px;transition:transform .2s ease}
+.install[open] summary::after{transform:rotate(90deg)}
+.install[open]{gap:8px}
+/* What to do after downloading. Without the script all platforms show. */
+.steps{width:100%;max-width:760px;text-align:left;padding:20px 24px;border-radius:18px;background:var(--win);border:1px solid var(--hair)}
+.steps h3{margin:0 0 10px;font-size:16px;font-weight:600;letter-spacing:-0.01em}
+.steps ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.5;color:var(--ink)}
+.steps [data-steps]+[data-steps]{margin-top:18px}
+.steps [hidden]+[data-steps]{margin-top:0}
+.steps .fine{margin:16px 0 0;font-size:12px;line-height:1.5;color:var(--ink2)}
 .install p{margin:8px 4px 0;font-size:13px;line-height:1.5;color:var(--ink2);text-align:center;text-wrap:pretty}
 .cmdrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-radius:12px;background:var(--win);border:1px solid var(--hair)}
 .cmdlab{font-size:12px;font-weight:600;color:var(--ink2)}
