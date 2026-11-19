@@ -40,7 +40,8 @@
       "paths": {
         "all": ["~/.ollama/models"],
         "linux": ["/usr/share/ollama/.ollama/models"]
-      }
+      },
+      "busy": [{"name": "Ollama", "process": ["ollama", "Ollama", "ollama app"], "stop": "Quit Ollama from its menu bar or tray icon."}]
     },
     {
       "id": "lmstudio-models",
@@ -52,7 +53,8 @@
       "comeback": "Models downloaded inside LM Studio can be downloaded again from its Discover tab.",
       "source": "https://lmstudio.ai/docs/app/advanced/import-model",
       "each": true,
-      "paths": { "all": ["~/.lmstudio/models", "~/.cache/lm-studio/models"] }
+      "paths": { "all": ["~/.lmstudio/models", "~/.cache/lm-studio/models"] },
+      "busy": [{"name": "LM Studio", "process": ["LM Studio", "lms"], "stop": "Quit LM Studio."}]
     },
     {
       "id": "torch-hub",

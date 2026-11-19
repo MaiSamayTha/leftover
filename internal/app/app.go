@@ -213,6 +213,7 @@ type Outcome struct {
 // folders must still exist and not have turned into links.
 func (a *App) Clean(ids []string) []Outcome {
 	var out []Outcome
+	bc := &busyChecker{ctx: context.Background()}
 	for _, id := range ids {
 		it, ok := a.Find(id)
 		if !ok {
@@ -223,6 +224,11 @@ func (a *App) Clean(ids []string) []Outcome {
 		r, ok := a.Scanner.Catalog.Get(it.Rule)
 		if !ok || !r.Verdict.Cleanable() || !it.Cleanable() {
 			o.Error = vault.ErrNotCleanable.Error()
+			out = append(out, o)
+			continue
+		}
+		if bz, busy := bc.check(r); busy {
+			o.Error = BusyMessage(bz)
 			out = append(out, o)
 			continue
 		}
@@ -239,6 +245,21 @@ func (a *App) Clean(ids []string) []Outcome {
 		out = append(out, o)
 	}
 	a.saveLast()
+	return out
+}
+
+// Busy reports, for each item, a message when a program that uses its
+// files is running right now, so it can be left out before anyone is asked.
+func (a *App) Busy(items []scan.Item) map[string]string {
+	bc := &busyChecker{ctx: context.Background()}
+	out := map[string]string{}
+	for _, it := range items {
+		if r, ok := a.Scanner.Catalog.Get(it.Rule); ok {
+			if bz, busy := bc.check(r); busy {
+				out[it.ID] = BusyMessage(bz)
+			}
+		}
+	}
 	return out
 }
 

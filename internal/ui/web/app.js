@@ -599,7 +599,7 @@ function toast(msg) {
   t.textContent = msg;
   t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), 3200);
+  toastTimer = setTimeout(() => (t.hidden = true), Math.max(3200, msg.length * 55));
 }
 
 document.addEventListener("click", async (e) => {

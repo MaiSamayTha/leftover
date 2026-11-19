@@ -11,7 +11,8 @@
       "comeback": "Xcode rebuilds it the next time you build or open a project. The first build afterwards is slower.",
       "source": "https://developer.apple.com/forums/thread/812408",
       "each": true,
-      "paths": { "darwin": ["~/Library/Developer/Xcode/DerivedData"] }
+      "paths": { "darwin": ["~/Library/Developer/Xcode/DerivedData"] },
+      "busy": [{"name": "Xcode", "process": ["Xcode"], "stop": "Quit Xcode."}]
     },
     {
       "id": "xcode-device-support",
@@ -30,7 +31,8 @@
           "~/Library/Developer/Xcode/tvOS DeviceSupport",
           "~/Library/Developer/Xcode/visionOS DeviceSupport"
         ]
-      }
+      },
+      "busy": [{"name": "Xcode", "process": ["Xcode"], "stop": "Quit Xcode."}]
     },
     {
       "id": "simulator-caches",
@@ -41,7 +43,8 @@
       "what": "Caches the iOS Simulator builds for faster launches.",
       "comeback": "Rebuilt the next time a simulator starts.",
       "source": "https://developer.apple.com/forums/thread/812408",
-      "paths": { "darwin": ["~/Library/Developer/CoreSimulator/Caches"] }
+      "paths": { "darwin": ["~/Library/Developer/CoreSimulator/Caches"] },
+      "busy": [{"name": "The iOS Simulator", "process": ["Simulator"], "stop": "Quit Simulator."}]
     },
     {
       "id": "simulator-devices",
@@ -108,7 +111,8 @@
       "source": "https://docs.brew.sh/FAQ#how-do-i-uninstall-old-versions-of-a-formula",
       "command": "brew cleanup --prune=all",
       "env": [{ "var": "HOMEBREW_CACHE" }],
-      "paths": { "darwin": ["{cache}/Homebrew"], "linux": ["{cache}/Homebrew"] }
+      "paths": { "darwin": ["{cache}/Homebrew"], "linux": ["{cache}/Homebrew"] },
+      "busy": [{"name": "Homebrew", "args": ["Library/Homebrew/brew.rb"], "stop": "Wait for brew to finish."}]
     },
     {
       "id": "android-system-images",
@@ -125,7 +129,8 @@
         "darwin": ["~/Library/Android/sdk/system-images"],
         "linux": ["~/Android/Sdk/system-images"],
         "windows": ["{localappdata}/Android/Sdk/system-images"]
-      }
+      },
+      "busy": [{"name": "An Android emulator", "process": ["qemu-system-x86_64", "qemu-system-aarch64", "qemu-system-x86_64-headless", "qemu-system-aarch64-headless"], "stop": "Close the emulator window."}]
     },
     {
       "id": "android-avd",

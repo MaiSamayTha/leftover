@@ -103,6 +103,20 @@ func (p *Project) MatchesBeside(siblings map[string]bool) bool {
 	return false
 }
 
+// Busy describes a running program that is using a rule's files.
+type Busy struct {
+	// Name is what to call it, like "A Gradle daemon".
+	Name string `json:"name"`
+	// Process lists executable names, matched without their folder or
+	// .exe and ignoring case, like "Xcode" or "idea64".
+	Process []string `json:"process,omitempty"`
+	// Args lists text that appears in the full command line, for
+	// programs that run inside another, like a Gradle daemon inside java.
+	Args []string `json:"args,omitempty"`
+	// Stop says how to stop it.
+	Stop string `json:"stop,omitempty"`
+}
+
 // Rule is one kind of thing Leftover can find.
 type Rule struct {
 	ID      string  `json:"id"`
@@ -132,6 +146,10 @@ type Rule struct {
 	MinAgeDays int `json:"min_age_days,omitempty"`
 
 	Project *Project `json:"project,omitempty"`
+
+	// Busy lists programs that use these files while they run. Leftover
+	// won't move an item while one of them is running.
+	Busy []Busy `json:"busy,omitempty"`
 
 	// Group is the file the rule was loaded from, used for display.
 	Group string `json:"-"`
@@ -259,6 +277,11 @@ func (r *Rule) check() error {
 		}
 		if r.Comeback == "" {
 			return fmt.Errorf("verdict %q needs a comeback explanation", r.Verdict)
+		}
+	}
+	for _, b := range r.Busy {
+		if b.Name == "" || len(b.Process)+len(b.Args) == 0 {
+			return fmt.Errorf("busy entries need a name and a process or args")
 		}
 	}
 	hasPaths := len(r.Paths) > 0 || len(r.Env) > 0

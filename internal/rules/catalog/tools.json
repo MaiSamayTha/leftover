@@ -92,7 +92,8 @@
         "darwin": ["{cache}/JetBrains"],
         "linux": ["{cache}/JetBrains"],
         "windows": ["{localappdata}/JetBrains"]
-      }
+      },
+      "busy": [{"name": "A JetBrains IDE", "process": ["idea", "idea64", "pycharm", "pycharm64", "webstorm", "webstorm64", "goland", "goland64", "clion", "clion64", "rider", "rider64", "phpstorm", "phpstorm64", "rubymine", "rubymine64", "datagrip", "datagrip64", "rustrover", "rustrover64"], "stop": "Quit the IDE."}]
     },
     {
       "id": "vscode-caches",

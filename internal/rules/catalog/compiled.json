@@ -65,7 +65,8 @@
       "comeback": "Gradle downloads and rebuilds what it needs on the next build.",
       "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
       "env": [{ "var": "GRADLE_USER_HOME", "join": "caches" }],
-      "paths": { "all": ["~/.gradle/caches"] }
+      "paths": { "all": ["~/.gradle/caches"] },
+      "busy": [{"name": "A Gradle daemon", "args": ["GradleDaemon"], "stop": "Run gradle --stop (or ./gradlew --stop in a project)."}, {"name": "Android Studio", "process": ["studio", "studio64"], "stop": "Quit Android Studio."}]
     },
     {
       "id": "gradle-wrapper",
@@ -78,7 +79,8 @@
       "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
       "each": true,
       "env": [{ "var": "GRADLE_USER_HOME", "join": "wrapper/dists" }],
-      "paths": { "all": ["~/.gradle/wrapper/dists"] }
+      "paths": { "all": ["~/.gradle/wrapper/dists"] },
+      "busy": [{"name": "A Gradle daemon", "args": ["GradleDaemon"], "stop": "Run gradle --stop (or ./gradlew --stop in a project)."}]
     },
     {
       "id": "gradle-project",
@@ -89,7 +91,8 @@
       "what": "This project's Gradle build output and its local cache.",
       "comeback": "Gradle builds it again on the next build.",
       "source": "https://docs.gradle.org/current/userguide/directory_layout.html",
-      "project": { "dirs": ["build", ".gradle"], "beside": ["build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"], "group": true }
+      "project": { "dirs": ["build", ".gradle"], "beside": ["build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts"], "group": true },
+      "busy": [{"name": "A Gradle daemon", "args": ["GradleDaemon"], "stop": "Run gradle --stop (or ./gradlew --stop in a project)."}]
     },
     {
       "id": "maven-repo",

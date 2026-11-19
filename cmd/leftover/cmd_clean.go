@@ -83,6 +83,31 @@ func cmdClean(args []string) error {
 		return nil
 	}
 
+	// Leave out anything a running program is using, and say so up front.
+	if busy := a.Busy(picked); len(busy) > 0 {
+		var free []scan.Item
+		for _, it := range picked {
+			if msg, ok := busy[it.ID]; ok {
+				if !*asJSON {
+					fmt.Fprintf(os.Stderr, "%s %s: %s\n", dim("Skipping"), it.Name, msg)
+				}
+				continue
+			}
+			free = append(free, it)
+		}
+		if !*asJSON {
+			fmt.Fprintln(os.Stderr)
+		}
+		picked = free
+		if len(picked) == 0 {
+			if *asJSON {
+				return printJSON([]app.Outcome{})
+			}
+			fmt.Println("Nothing else to clear right now.")
+			return nil
+		}
+	}
+
 	var total int64
 	for _, it := range picked {
 		total += it.Bytes
