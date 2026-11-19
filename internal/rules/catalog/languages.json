@@ -1,0 +1,140 @@
+{
+  "group": "More languages",
+  "rules": [
+    {
+      "id": "elixir-build",
+      "tool": "Elixir (Mix)",
+      "kind": "Build output",
+      "name": "_build",
+      "verdict": "rebuild",
+      "what": "Compiled code for this Mix project and its dependencies.",
+      "comeback": "Mix compiles it again the next time you run mix compile, mix test or iex -S mix.",
+      "source": "https://hexdocs.pm/mix/Mix.Tasks.Clean.html",
+      "command": "mix clean",
+      "project": {
+        "dirs": [
+          "_build"
+        ],
+        "beside": [
+          "mix.exs"
+        ]
+      }
+    },
+    {
+      "id": "elixir-deps",
+      "tool": "Elixir (Mix)",
+      "kind": "Dependencies",
+      "name": "deps",
+      "verdict": "redownload",
+      "what": "Source code of this project's Hex and Git dependencies, as pinned in mix.lock.",
+      "comeback": "mix deps.get downloads them again at the versions in mix.lock.",
+      "source": "https://hexdocs.pm/mix/Mix.Tasks.Deps.Get.html",
+      "project": {
+        "dirs": [
+          "deps"
+        ],
+        "beside": [
+          "mix.exs"
+        ]
+      }
+    },
+    {
+      "id": "stack-work",
+      "tool": "Haskell Stack",
+      "kind": "Build output",
+      "name": ".stack-work",
+      "verdict": "rebuild",
+      "what": "Stack's work folder for this project: build artefacts and project-local installs.",
+      "comeback": "stack build creates it again. stack clean --full is Stack's own way to remove it.",
+      "source": "https://docs.haskellstack.org/en/stable/commands/clean_command/",
+      "command": "stack clean --full",
+      "project": {
+        "dirs": [
+          ".stack-work"
+        ],
+        "beside": [
+          "stack.yaml",
+          "package.yaml",
+          "*.cabal"
+        ]
+      }
+    },
+    {
+      "id": "cabal-dist",
+      "tool": "Cabal",
+      "kind": "Build output",
+      "name": "dist-newstyle",
+      "verdict": "rebuild",
+      "what": "Cabal's build folder for this project: compiled modules, binaries and caches.",
+      "comeback": "cabal build creates it again. cabal clean removes it the same way.",
+      "source": "https://cabal.readthedocs.io/en/stable/cabal-commands.html",
+      "command": "cabal clean",
+      "project": {
+        "dirs": [
+          "dist-newstyle"
+        ],
+        "beside": [
+          "*.cabal",
+          "cabal.project"
+        ]
+      }
+    },
+    {
+      "id": "zig-cache",
+      "tool": "Zig",
+      "kind": "Build cache and output",
+      "name": ".zig-cache and zig-out",
+      "verdict": "rebuild",
+      "what": "Zig's build cache and the installed build output for this project.",
+      "comeback": "zig build creates both again. The first build afterwards is just slower.",
+      "source": "https://ziglang.org/learn/build-system/",
+      "project": {
+        "dirs": [
+          ".zig-cache",
+          "zig-cache",
+          "zig-out"
+        ],
+        "beside": [
+          "build.zig"
+        ]
+      }
+    },
+    {
+      "id": "sbt-target",
+      "tool": "sbt (Scala)",
+      "kind": "Build output",
+      "name": "target",
+      "verdict": "rebuild",
+      "what": "sbt's generated files for this project: compiled classes, packaged jars, caches and docs.",
+      "comeback": "sbt compiles everything again on the next build.",
+      "source": "https://www.scala-sbt.org/1.x/docs/Directories.html",
+      "command": "sbt clean",
+      "project": {
+        "dirs": [
+          "target"
+        ],
+        "beside": [
+          "build.sbt"
+        ]
+      }
+    },
+    {
+      "id": "clojure-cpcache",
+      "tool": "Clojure CLI",
+      "kind": "Classpath cache",
+      "name": ".cpcache",
+      "verdict": "rebuild",
+      "what": "The Clojure CLI's cache of computed classpaths, to start faster.",
+      "comeback": "Computed again the next time you run clj or clojure in this project.",
+      "source": "https://clojure.org/reference/clojure_cli",
+      "project": {
+        "dirs": [
+          ".cpcache"
+        ],
+        "beside": [
+          "deps.edn"
+        ]
+      }
+    }
+  ]
+}

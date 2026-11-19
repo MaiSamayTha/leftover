@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -395,5 +396,53 @@ func TestCommittedFoldersAreNotCleanable(t *testing.T) {
 	}
 	if nm := got["node-modules"]; len(nm) != 1 || !nm[0].Cleanable() {
 		t.Fatalf("untracked node_modules should stay cleanable, got %+v", nm)
+	}
+}
+
+func TestMoreProjectTypes(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Linux host layout")
+	}
+	home := t.TempDir()
+	// Unity: Library next to ProjectSettings, with Unity's own databases inside.
+	write(t, filepath.Join(home, "games/ship/ProjectSettings/ProjectVersion.txt"), 10)
+	write(t, filepath.Join(home, "games/ship/Library/ArtifactDB"), 9_000)
+	// A folder called Library that isn't Unity's.
+	write(t, filepath.Join(home, "books/ProjectSettings/x"), 10)
+	write(t, filepath.Join(home, "books/Library/novel.epub"), 9_000)
+	// Elixir.
+	write(t, filepath.Join(home, "code/ex/mix.exs"), 10)
+	write(t, filepath.Join(home, "code/ex/_build/dev/lib/app.beam"), 4_000)
+	write(t, filepath.Join(home, "code/ex/deps/plug/mix.exs"), 4_000)
+	// Zig.
+	write(t, filepath.Join(home, "code/zg/build.zig"), 10)
+	write(t, filepath.Join(home, "code/zg/.zig-cache/o/x"), 4_000)
+	write(t, filepath.Join(home, "code/zg/zig-out/bin/app"), 4_000)
+	// Test coverage, and a coverage folder that's just someone's notes.
+	write(t, filepath.Join(home, "code/web/package.json"), 10)
+	write(t, filepath.Join(home, "code/web/coverage/lcov.info"), 4_000)
+	write(t, filepath.Join(home, "code/notes/package.json"), 10)
+	write(t, filepath.Join(home, "code/notes/coverage/insurance.pdf"), 4_000)
+	// Godot is shown but never offered: it can hold export credentials.
+	write(t, filepath.Join(home, "games/plat/project.godot"), 10)
+	write(t, filepath.Join(home, "games/plat/.godot/imported/a.ctex"), 4_000)
+
+	res, err := scanner(home).Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := byRule(res)
+	for rule, n := range map[string]int{"unity-library": 1, "elixir-build": 1, "elixir-deps": 1, "zig-cache": 2, "coverage-report": 1, "godot-cache": 1} {
+		if len(got[rule]) != n {
+			t.Errorf("%s: found %d, want %d", rule, len(got[rule]), n)
+		}
+	}
+	if g := got["godot-cache"]; len(g) == 1 && g[0].Cleanable() {
+		t.Error(".godot must not be cleanable")
+	}
+	for _, it := range res.Items {
+		if strings.Contains(it.Paths[0], "books") || strings.Contains(it.Paths[0], "notes") {
+			t.Errorf("matched something that isn't generated: %s (%s)", it.Paths[0], it.Rule)
+		}
 	}
 }

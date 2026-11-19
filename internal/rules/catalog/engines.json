@@ -1,0 +1,74 @@
+{
+  "group": "Game engines",
+  "rules": [
+    {
+      "id": "unity-library",
+      "tool": "Unity",
+      "kind": "Asset cache",
+      "name": "Library",
+      "verdict": "rebuild",
+      "what": "Unity's imported, game-ready copies of everything in Assets, plus other editor caches. Your source assets and settings live in Assets and ProjectSettings, not here.",
+      "comeback": "Unity reimports every asset the next time you open the project. On a big project that first open can take a long time.",
+      "source": "https://docs.unity3d.com/2019.4/Documentation/Manual/AssetWorkflow.html",
+      "project": {
+        "dirs": [
+          "Library"
+        ],
+        "beside": [
+          "ProjectSettings"
+        ],
+        "inside": [
+          "ArtifactDB",
+          "SourceAssetDB"
+        ]
+      },
+      "busy": [
+        {
+          "name": "The Unity editor",
+          "args": [
+            "Unity.app/Contents/MacOS/Unity",
+            "\\Editor\\Unity.exe",
+            "/Editor/Unity"
+          ],
+          "stop": "Close the project in Unity."
+        }
+      ]
+    },
+    {
+      "id": "unreal-intermediate",
+      "tool": "Unreal Engine",
+      "kind": "Build and cache folders",
+      "name": "Intermediate and DerivedDataCache",
+      "verdict": "review",
+      "what": "Temporary build files and the project's derived data cache (compiled shaders and cooked asset data) that Unreal creates next to a .uproject.",
+      "comeback": "Unreal regenerates these when you open or build the project, recompiling shaders on the way. Epic doesn't document this as safe to delete, so Leftover leaves it to you. Never remove Content, Config or Source.",
+      "project": {
+        "dirs": [
+          "Intermediate",
+          "DerivedDataCache"
+        ],
+        "beside": [
+          "*.uproject"
+        ]
+      }
+    },
+    {
+      "id": "godot-cache",
+      "tool": "Godot",
+      "kind": "Import cache",
+      "name": ".godot",
+      "verdict": "review",
+      "what": "Godot 4's project cache: imported copies of your assets in .godot/imported, plus editor state. It can also hold export_credentials.cfg with your export passwords.",
+      "comeback": "Godot reimports assets automatically when files in .godot/imported are missing. Back up export_credentials.cfg first if you use it; that file doesn't come back.",
+      "source": "https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/import_process.html",
+      "project": {
+        "dirs": [
+          ".godot"
+        ],
+        "beside": [
+          "project.godot"
+        ]
+      }
+    }
+  ]
+}

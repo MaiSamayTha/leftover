@@ -160,6 +160,91 @@
         "linux": ["{cache}/node-gyp"],
         "windows": ["{localappdata}/node-gyp/Cache"]
       }
+    },
+    {
+      "id": "angular-cache",
+      "tool": "Angular CLI",
+      "kind": "Build cache",
+      "name": ".angular",
+      "verdict": "rebuild",
+      "what": "The Angular CLI's persistent build cache.",
+      "comeback": "Filled again by the next ng build or ng serve, which is slower once.",
+      "source": "https://angular.dev/cli/cache",
+      "command": "ng cache clean",
+      "project": {
+        "dirs": [
+          ".angular"
+        ],
+        "beside": [
+          "angular.json"
+        ]
+      }
+    },
+    {
+      "id": "docusaurus-cache",
+      "tool": "Docusaurus",
+      "kind": "Generated files",
+      "name": ".docusaurus",
+      "verdict": "rebuild",
+      "what": "Files Docusaurus generates while building or serving the site.",
+      "comeback": "Created again by the next docusaurus start or build. docusaurus clear removes it the same way.",
+      "source": "https://docusaurus.io/docs/cli",
+      "command": "npx docusaurus clear",
+      "project": {
+        "dirs": [
+          ".docusaurus"
+        ],
+        "beside": [
+          "docusaurus.config.js",
+          "docusaurus.config.ts",
+          "docusaurus.config.mjs"
+        ]
+      }
+    },
+    {
+      "id": "storybook-static",
+      "tool": "Storybook",
+      "kind": "Build output",
+      "name": "storybook-static",
+      "verdict": "rebuild",
+      "what": "A static build of your Storybook, made for publishing.",
+      "comeback": "Built again with npm run build-storybook.",
+      "source": "https://storybook.js.org/docs/sharing/publish-storybook",
+      "project": {
+        "dirs": [
+          "storybook-static"
+        ],
+        "beside": [
+          "package.json"
+        ],
+        "inside": [
+          "iframe.html"
+        ]
+      }
+    },
+    {
+      "id": "coverage-report",
+      "tool": "Test coverage",
+      "kind": "Report",
+      "name": "coverage",
+      "verdict": "rebuild",
+      "what": "A test coverage report written by Jest, Vitest, nyc or c8.",
+      "comeback": "Written again the next time you run your tests with coverage.",
+      "source": "https://jestjs.io/docs/configuration#coveragedirectory-string",
+      "project": {
+        "dirs": [
+          "coverage"
+        ],
+        "beside": [
+          "package.json"
+        ],
+        "inside": [
+          "lcov.info",
+          "coverage-final.json",
+          "clover.xml",
+          "lcov-report"
+        ]
+      }
     }
   ]
 }

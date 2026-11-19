@@ -299,6 +299,8 @@ var projectMarkers = []string{
 	".git", "package.json", "pyproject.toml", "setup.py", "requirements.txt", "Pipfile",
 	"Cargo.toml", "go.mod", "pom.xml", "build.gradle", "build.gradle.kts", "settings.gradle",
 	"settings.gradle.kts", "Package.swift", "Podfile", "Gemfile", "composer.json", "deno.json",
+	"mix.exs", "stack.yaml", "cabal.project", "build.zig", "build.sbt", "deps.edn", "angular.json",
+	"project.godot", "ProjectSettings",
 }
 
 // generated names are ignored when judging when a project was last worked on.
@@ -307,7 +309,10 @@ var generated = map[string]bool{
 	".turbo": true, ".parcel-cache": true, "target": true, "build": true, ".gradle": true,
 	".build": true, ".venv": true, "venv": true, "env": true, "__pycache__": true,
 	".pytest_cache": true, ".mypy_cache": true, ".ruff_cache": true, ".tox": true, ".nox": true,
-	"dist": true, ".DS_Store": true,
+	"dist": true, ".DS_Store": true, "_build": true, "deps": true, ".stack-work": true,
+	"dist-newstyle": true, ".zig-cache": true, "zig-cache": true, "zig-out": true, ".cpcache": true,
+	".angular": true, ".docusaurus": true, "storybook-static": true, "coverage": true,
+	"Library": true, "Temp": true, "Intermediate": true, "DerivedDataCache": true, ".godot": true,
 }
 
 // projectActivity estimates when a project was last worked on: the newest of
