@@ -446,3 +446,38 @@ func TestMoreProjectTypes(t *testing.T) {
 		}
 	}
 }
+
+func TestTree(t *testing.T) {
+	root := t.TempDir()
+	write(t, filepath.Join(root, "big/a.bin"), 3<<20)
+	write(t, filepath.Join(root, "big/inner/b.bin"), 2<<20)
+	write(t, filepath.Join(root, "small/c.txt"), 100)
+	write(t, filepath.Join(root, "movie.mp4"), 4<<20)
+	n, err := NewSizer(0).Tree(context.Background(), root, TreeOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(n.Children) != 2 || n.Children[0].Name != "big" || n.Children[1].Name != "movie.mp4" {
+		var names []string
+		for _, c := range n.Children {
+			names = append(names, c.Name)
+		}
+		t.Fatalf("children = %v, want big then movie.mp4 (small folded into rest)", names)
+	}
+	if n.Rest <= 0 || n.Files != 4 {
+		t.Fatalf("rest = %d, files = %d", n.Rest, n.Files)
+	}
+	if n.Bytes < 9<<20 {
+		t.Fatalf("total %d is too small", n.Bytes)
+	}
+	inner := n.Find(filepath.Join(root, "big", "inner"))
+	if inner == nil || inner.Bytes < 2<<20 {
+		t.Fatalf("Find(big/inner) = %+v", inner)
+	}
+	if n.Find(filepath.Join(root, "small")) != nil {
+		t.Fatal("a folder below the threshold shouldn't be kept")
+	}
+	if n.Find(filepath.Dir(root)) != nil {
+		t.Fatal("Find must not return anything outside the tree")
+	}
+}

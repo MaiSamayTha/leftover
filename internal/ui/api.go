@@ -28,6 +28,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/history", s.history)
 	mux.HandleFunc("POST /api/why", s.why)
 	mux.HandleFunc("POST /api/docker/prune", s.dockerPrune)
+	mux.HandleFunc("POST /api/explore", s.explore)
 	mux.HandleFunc("POST /api/ping", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) })
 }
 
@@ -162,7 +163,7 @@ func (s *Server) reveal(w http.ResponseWriter, r *http.Request) {
 		fail(w, http.StatusBadRequest, err)
 		return
 	}
-	if !s.known(req.Path) {
+	if !s.known(req.Path) && !s.App.Explored(req.Path) {
 		fail(w, http.StatusNotFound, errors.New("not something Leftover found"))
 		return
 	}
@@ -304,4 +305,32 @@ func (s *Server) dockerPrune(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, steps)
+}
+
+// explore measures a folder and lists what's inside, biggest first. It
+// only reads. Leaving out the path explores the home folder.
+func (s *Server) explore(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Path    string `json:"path"`
+		Refresh bool   `json:"refresh"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	p := strings.TrimSpace(req.Path)
+	if p == "" {
+		p = s.App.Scanner.Host.Home
+	}
+	p = expandHome(p, s.App.Scanner.Host.Home)
+	if !filepath.IsAbs(p) {
+		fail(w, http.StatusBadRequest, errors.New("use a full path, like ~/code"))
+		return
+	}
+	v, err := s.App.Explore(r.Context(), filepath.Clean(p), req.Refresh, nil)
+	if err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, v)
 }

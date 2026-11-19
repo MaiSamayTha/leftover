@@ -28,6 +28,9 @@ type App struct {
 
 	mu       sync.Mutex
 	last     *scan.Result
+	tree     *scan.Node // the last disk map Explore measured
+	treeAt   time.Time
+	treeTook time.Duration
 	running  bool
 	progress scan.Progress
 	cancel   context.CancelFunc

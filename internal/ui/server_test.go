@@ -139,3 +139,28 @@ func TestWhyExplainsAnyFolder(t *testing.T) {
 		t.Errorf("why must need the token, got %d", w.Code)
 	}
 }
+
+func TestExploreAndReveal(t *testing.T) {
+	srv := testServer(t)
+	home := srv.App.Scanner.Host.Home
+	big := filepath.Join(home, "Videos", "trip.mov")
+	os.MkdirAll(filepath.Dir(big), 0o755)
+	if err := os.WriteFile(big, make([]byte, 3<<20), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// Before anything is explored, the window can't reveal arbitrary paths.
+	reveal := `{"path":"` + filepath.ToSlash(filepath.Join(home, "Videos")) + `"}`
+	if w := call(srv, "POST", "/api/reveal", reveal, nil); w.Code != http.StatusNotFound {
+		t.Fatalf("reveal before explore: %d", w.Code)
+	}
+	w := call(srv, "POST", "/api/explore", `{}`, nil)
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"name":"Videos"`) {
+		t.Fatalf("explore home: %d %s", w.Code, w.Body.String())
+	}
+	if w := call(srv, "POST", "/api/explore", `{"path":"relative/dir"}`, nil); w.Code != http.StatusBadRequest {
+		t.Fatalf("relative path should be refused, got %d", w.Code)
+	}
+	if !srv.App.Explored(filepath.Join(home, "Videos")) {
+		t.Fatal("explored folders should become revealable")
+	}
+}

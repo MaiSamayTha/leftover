@@ -74,7 +74,7 @@ const state = {
   rules: {},
 };
 
-const TITLES = { overview: "Overview", safe: "Safe to clear", review: "Worth a look", keep: "Your data", vault: "Vault", why: "What's this folder?", history: "History", settings: "Settings" };
+const TITLES = { overview: "Overview", safe: "Safe to clear", review: "Worth a look", keep: "Your data", vault: "Vault", explore: "Explore", why: "What's this folder?", history: "History", settings: "Settings" };
 
 async function refresh() {
   const s = await api("state");
@@ -125,7 +125,7 @@ function render() {
   if (state.status.running) return renderScanning();
   if (!state.scan && ["overview", "safe", "review", "keep"].includes(state.view)) return renderEmpty();
 
-  const views = { overview: renderOverview, safe: renderList, review: renderList, keep: renderList, vault: renderVault, why: renderWhy, history: renderHistory, settings: renderSettings };
+  const views = { overview: renderOverview, safe: renderList, review: renderList, keep: renderList, vault: renderVault, explore: renderExplore, why: renderWhy, history: renderHistory, settings: renderSettings };
   (views[state.view] || renderOverview)();
   renderInspector();
   renderActionBar();
@@ -391,6 +391,7 @@ function renderOverview() {
 function applyStyles(root) {
   root.querySelectorAll("[data-flex]").forEach((el) => { el.style.flex = el.dataset.flex; });
   root.querySelectorAll("[data-color]").forEach((el) => { el.style.background = el.dataset.color; });
+  root.querySelectorAll("[data-width]").forEach((el) => { el.style.width = el.dataset.width; });
 }
 
 function rowMini(it) {
@@ -470,6 +471,98 @@ function renderInspector() {
     <div class="inspector-actions">
       <button class="btn btn-small" data-ignore="${esc(it.project || it.paths[0])}">Ignore this folder</button>
     </div>`;
+}
+
+// ---------- explore ----------
+
+// A disk map of any folder, biggest first. The first look measures the
+// folder; opening anything inside it reuses that measurement.
+const ex = { path: "", view: null, loading: false, error: "" };
+
+async function explore(path, refresh) {
+  ex.loading = true;
+  ex.error = "";
+  if (state.view === "explore") render();
+  try {
+    ex.view = await api("explore", { path: path || "", refresh: !!refresh });
+    ex.path = ex.view.path;
+  } catch (e) {
+    ex.error = e.message;
+  }
+  ex.loading = false;
+  if (state.view === "explore") render();
+}
+
+function crumbs(path) {
+  const sep = path.includes("\\") ? "\\" : "/";
+  const home = state.home;
+  let base = "", parts = path.split(sep).filter(Boolean), out = [];
+  if (home && (path === home || path.startsWith(home + sep))) {
+    out.push(`<button class="crumb" data-explore="${esc(home)}">~</button>`);
+    base = home;
+    parts = path.slice(home.length).split(sep).filter(Boolean);
+  } else if (sep === "/") {
+    out.push(`<button class="crumb" data-explore="/">/</button>`);
+  }
+  for (const p of parts) {
+    base = base ? (base.endsWith(sep) ? base + p : base + sep + p) : p + sep;
+    out.push(`<button class="crumb" data-explore="${esc(base)}">${esc(p)}</button>`);
+  }
+  return out.join(`<span class="crumb-sep">${sep === "/" ? "/" : "\\"}</span>`);
+}
+
+function renderExplore() {
+  $("#inspector").hidden = true;
+  if (!ex.view && !ex.loading && !ex.error) { explore(""); return; }
+  const v = ex.view;
+  const head = `
+    <form id="explore-form" class="why-form">
+      <input id="explore-path" class="search why-input" type="text" placeholder="~/code" autocomplete="off" spellcheck="false" value="${esc(v ? tilde(v.path) : "")}">
+      <button class="btn" type="submit">Open</button>
+      ${v ? `<button class="btn" type="button" data-act="explore-refresh">Measure again</button>` : ""}
+    </form>`;
+  if (ex.loading) {
+    $("#view").innerHTML = `<div class="explore">${head}<div class="empty"><div class="spinner"></div><p>Measuring${v ? "" : " your home folder"}… the first look takes a few seconds.</p></div></div>`;
+    return;
+  }
+  if (ex.error) {
+    $("#view").innerHTML = `<div class="explore">${head}<div class="note">${esc(ex.error)}</div></div>`;
+    return;
+  }
+  const max = Math.max(1, ...v.entries.map((e) => e.bytes));
+  const note = (e) => {
+    if (e.rule && e.rule.at === e.path) {
+      const vd = VERDICTS[e.rule.verdict] || VERDICTS.keep;
+      return `<span class="pill pill-${vd.cls}">${esc(e.rule.name)} · ${vd.label}</span>`;
+    }
+    if (e.rule) return `<span class="muted small">inside ${esc(e.rule.name)}</span>`;
+    if (e.clearable) return `<span class="tag tag-safe">${bytes(e.clearable)} safe to clear</span>`;
+    return "";
+  };
+  $("#view").innerHTML = `
+    <div class="explore">
+      ${head}
+      <div class="crumbs">${crumbs(v.path)}</div>
+      <div class="explore-sum">
+        <span class="size-big">${bytes(v.bytes)}</span>
+        <span class="muted small">${v.files.toLocaleString()} files${v.clearable ? ` · <b class="safe-text">${bytes(v.clearable)} safe to clear</b> from your last scan` : ""}</span>
+      </div>
+      ${v.rule ? `<div class="note">Leftover knows this as ${esc(v.rule.name)} (${esc(v.rule.tool)}): ${(VERDICTS[v.rule.verdict] || VERDICTS.keep).label}.</div>` : ""}
+      <div class="table">
+        ${v.entries.map((e) => `
+          <div class="tr tr-explore" ${e.dir ? `data-explore="${esc(e.path)}" tabindex="0" role="button"` : ""}>
+            <span class="xbar"><i data-width="${Math.max(2, (e.bytes / max) * 100).toFixed(1)}%"></i></span>
+            <span class="name">${esc(e.name)}${e.dir ? "/" : ""}</span>
+            <span class="where">${note(e)}</span>
+            <span class="r size">${bytes(e.bytes)}</span>
+            <button class="btn-link" data-reveal="${esc(e.path)}">Show</button>
+          </div>`).join("")}
+        ${v.rest ? `<div class="tr tr-explore muted"><span></span><span class="name">Smaller items</span><span></span><span class="r size">${bytes(v.rest)}</span><span></span></div>` : ""}
+      </div>
+      ${v.unread ? `<p class="muted small">${v.unread.toLocaleString()} folder${v.unread === 1 ? "" : "s"} couldn't be read, so the real total may be higher.</p>` : ""}
+      <p class="muted small">Measured ${new Date(v.measured).toLocaleTimeString([], { timeStyle: "short" })}. Leftover only reads here; to clear something, use Safe to clear.</p>
+    </div>`;
+  applyStyles($("#view"));
 }
 
 // ---------- what's this folder? ----------
@@ -642,6 +735,7 @@ document.addEventListener("click", async (e) => {
     if (a === "empty-expired") return emptyVault(true);
     if (a === "empty-all") return emptyVault(false);
     if (a === "docker-prune") return dockerPrune();
+    if (a === "explore-refresh") return explore(ex.path, true);
   }
   const un = e.target.closest("[data-unignore]");
   if (un) {
@@ -654,6 +748,8 @@ document.addEventListener("click", async (e) => {
   if (rs) return restore(rs.dataset.restore);
   if (e.target.closest("input[type=checkbox], label.check")) return;
   const rev = e.target.closest("[data-reveal]");
+  const xp = !rev && e.target.closest("[data-explore]");
+  if (xp) return explore(xp.dataset.explore);
   if (rev) { api("reveal", { path: rev.dataset.reveal }).catch((err) => toast(err.message)); return; }
   const ign = e.target.closest("[data-ignore]");
   if (ign) {
@@ -684,6 +780,7 @@ document.addEventListener("change", (e) => {
 });
 
 document.addEventListener("submit", (e) => {
+  if (e.target.id === "explore-form") { e.preventDefault(); return explore($("#explore-path").value); }
   if (e.target.id !== "why-form") return;
   e.preventDefault();
   explain($("#why-path").value);
@@ -704,6 +801,7 @@ document.addEventListener("keydown", (e) => {
     if (!$("#search").hidden) { e.preventDefault(); $("#search").focus(); }
     return;
   }
+  if (e.key === "Enter" && e.target.matches(".tr-explore[data-explore]")) { explore(e.target.dataset.explore); return; }
   if (e.key === "Escape" && $("#sheet").hidden) {
     if (typing) { e.target.blur(); return; }
     if (state.focused) { state.focused = null; render(); }
