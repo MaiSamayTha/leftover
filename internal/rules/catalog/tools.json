@@ -121,6 +121,25 @@
       }
     },
     {
+      "id": "editor-extensions",
+      "tool": "VS Code and editors built on it",
+      "kind": "Extensions",
+      "name": "Editor extensions",
+      "verdict": "keep",
+      "what": "Extensions you installed in VS Code, Cursor, Windsurf, Qoder, Kiro and other editors built on VS Code. Each one ships with its own node_modules, which belong to the extension, not to a project. Removing them breaks the extension.",
+      "comeback": "Uninstall extensions you don't use from the editor's Extensions view; it removes their files properly.",
+      "source": "https://code.visualstudio.com/docs/configure/extensions/extension-marketplace#_where-are-extensions-installed",
+      "paths": {
+        "all": [
+          "~/.vscode/extensions", "~/.vscode-insiders/extensions", "~/.vscode-oss/extensions",
+          "~/.vscode-server/extensions", "~/.cursor/extensions", "~/.cursor-server/extensions",
+          "~/.windsurf/extensions", "~/.windsurf-next/extensions", "~/.qoder/extensions",
+          "~/.kiro/extensions", "~/.trae/extensions", "~/.antigravity/extensions",
+          "~/.positron/extensions", "~/.void/extensions"
+        ]
+      }
+    },
+    {
       "id": "ai-agent-history",
       "tool": "Claude Code, Codex CLI",
       "kind": "Session history",

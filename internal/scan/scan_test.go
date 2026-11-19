@@ -323,3 +323,35 @@ func TestVaultsOnOtherDrivesAreNotRescanned(t *testing.T) {
 		t.Fatalf("items inside a vault were reported again: %d", n)
 	}
 }
+
+// Editors built on VS Code ship each extension with its own node_modules.
+// Removing them breaks the extension and npm install doesn't bring them
+// back, so they must never show up as a project's leftovers.
+func TestEditorExtensionsAreNotProjects(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Linux host layout")
+	}
+	home := t.TempDir()
+	ext := func(base string) {
+		write(t, filepath.Join(home, base, "package.json"), 10)
+		write(t, filepath.Join(home, base, "node_modules/dep/index.js"), 5_000)
+	}
+	ext(".qoder/extensions/acme.tool-1.0.0")        // a known editor folder
+	ext(".neweditor/extensions/acme.tool-1.0.0")    // an editor we've never heard of
+	ext("tools/portable-editor/data/acme.tool-1.0") // anywhere, marked by its manifest
+	write(t, filepath.Join(home, "tools/portable-editor/data/acme.tool-1.0/.vsixmanifest"), 10)
+	ext("code/app") // a real project, for contrast
+
+	res, err := scanner(home).Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, it := range byRule(res)["node-modules"] {
+		got = append(got, it.Paths[0])
+	}
+	want := filepath.Join(home, "code/app/node_modules")
+	if len(got) != 1 || got[0] != want {
+		t.Fatalf("node_modules found = %v, want only %s", got, want)
+	}
+}

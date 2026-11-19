@@ -324,6 +324,11 @@ func (a *App) Explain(path string) (*rules.Rule, string) {
 			}
 		}
 	}
+	if scan.InEditorExtension(abs) {
+		if r, ok := cat.Get("editor-extensions"); ok {
+			return r, ""
+		}
+	}
 	// Walk up looking for a project folder name that matches a rule.
 	for p := abs; ; {
 		name := filepath.Base(p)

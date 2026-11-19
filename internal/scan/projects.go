@@ -42,7 +42,16 @@ var skipNames = map[string]bool{
 	"$RECYCLE.BIN": true, "System Volume Information": true, ".cache": true,
 	".npm": true, ".cargo": true, ".rustup": true, ".m2": true, ".ollama": true,
 	".docker": true, ".lmstudio": true, ".bun": true, ".nvm": true, ".pyenv": true,
-	".local": true, ".vscode": true, ".cursor": true, ".android": true,
+	".local": true, ".android": true, ".rvm": true, ".rbenv": true, ".asdf": true,
+	".deno": true, ".volta": true, ".fossil": true, ".Spotlight-V100": true, ".fseventsd": true,
+	// Editors keep installed extensions here, each with its own
+	// node_modules. Those belong to the editor, not to a project, and
+	// npm install won't bring them back.
+	".vscode": true, ".vscode-insiders": true, ".vscode-oss": true, ".vscode-server": true,
+	".vscode-server-insiders": true, ".cursor": true, ".cursor-server": true,
+	".windsurf": true, ".windsurf-next": true, ".windsurf-server": true, ".codeium": true,
+	".qoder": true, ".kiro": true, ".trae": true, ".trae-cn": true, ".antigravity": true,
+	".positron": true, ".void": true, ".zed": true, ".vs": true, ".idea": true,
 	// Leftover's own vault on other drives. Things in it were already
 	// cleaned and must never show up again as if they were new.
 	".leftover-vault": true,
@@ -99,6 +108,12 @@ func (pf *projectFinder) walk(ctx context.Context, dir string, depth int, projec
 	for _, e := range entries {
 		names[e.Name()] = true
 	}
+	// An installed editor extension, wherever the editor keeps them. Its
+	// dependencies ship with the extension, so nothing in here is a
+	// project's leftovers.
+	if names[".vsixmanifest"] || names["extension.vsixmanifest"] {
+		return
+	}
 	// Is this folder itself a project root? Grouped items attach to the
 	// nearest one.
 	for _, m := range projectMarkers {
@@ -123,6 +138,10 @@ func (pf *projectFinder) walk(ctx context.Context, dir string, depth int, projec
 			continue // never look inside a match
 		}
 		if skipNames[name] || (atHome && homeSkips[pf.host.OS][name]) {
+			continue
+		}
+		// ~/.some-editor/extensions and the like: app data, not projects.
+		if name == "extensions" && strings.HasPrefix(filepath.Base(dir), ".") {
 			continue
 		}
 		if pf.skip.has(child) {
@@ -208,4 +227,26 @@ func (pf *projectFinder) result() []candidate {
 		out = append(out, *g)
 	}
 	return out
+}
+
+// InEditorExtension reports whether path is inside an extension installed in
+// a VS Code-style editor: a folder holding a .vsixmanifest, or anything
+// under an "extensions" folder of a dot-folder like ~/.some-editor. Things
+// in there belong to the editor and are never a project's leftovers.
+func InEditorExtension(path string) bool {
+	for p := filepath.Clean(path); ; {
+		parent := filepath.Dir(p)
+		if parent == p {
+			return false
+		}
+		if filepath.Base(p) == "extensions" && strings.HasPrefix(filepath.Base(parent), ".") {
+			return true
+		}
+		for _, m := range []string{".vsixmanifest", "extension.vsixmanifest"} {
+			if _, err := os.Lstat(filepath.Join(p, m)); err == nil {
+				return true
+			}
+		}
+		p = parent
+	}
 }

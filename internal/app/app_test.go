@@ -129,6 +129,18 @@ func TestExplain(t *testing.T) {
 	}
 }
 
+func TestExplainEditorExtensions(t *testing.T) {
+	a, home := testApp(t)
+	for _, base := range []string{".qoder/extensions/acme.tool-1.0.0", ".neweditor/extensions/acme.tool-1.0.0"} {
+		put(t, filepath.Join(home, base, "package.json"), 2)
+		put(t, filepath.Join(home, base, "node_modules/dep/index.js"), 2)
+		r, _ := a.Explain(filepath.Join(home, base, "node_modules"))
+		if r == nil || r.ID != "editor-extensions" || r.Verdict.Cleanable() {
+			t.Fatalf("%s: got %v, want the editor-extensions rule, never cleanable", base, r)
+		}
+	}
+}
+
 func TestOnlyOneScanAtATime(t *testing.T) {
 	a, _ := testApp(t)
 	a.mu.Lock()
