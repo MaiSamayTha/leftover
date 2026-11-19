@@ -192,14 +192,14 @@ func cmdScan(args []string) error {
 	return nil
 }
 
-func hiddenByMin(res *scan.Result, f filter) (folders int, bytes int64) {
-	if f.all || f.minSize <= 0 {
+func hiddenByAll(res *scan.Result, f filter) (folders int, bytes int64) {
+	if f.all {
 		return 0, 0
 	}
-	withoutMin := f
-	withoutMin.minSize = 0
+	withAll := f
+	withAll.all = true
 	for _, it := range res.Items {
-		if it.Bytes >= f.minSize || !withoutMin.keep(it) {
+		if f.keep(it) || !withAll.keep(it) {
 			continue
 		}
 		n := len(it.Paths)
@@ -273,7 +273,7 @@ func printScan(res *scan.Result, f filter) {
 			}
 		}
 	}
-	hiddenFolders, hiddenBytes := hiddenByMin(res, f)
+	hiddenFolders, hiddenBytes := hiddenByAll(res, f)
 	if shown == 0 {
 		if hiddenFolders > 0 {
 			word := "folders"

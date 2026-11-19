@@ -25,30 +25,26 @@ func TestFilterAllIncludesItemsBelowMin(t *testing.T) {
 	}
 }
 
-func TestHiddenByMinCountsFoldersAndBytes(t *testing.T) {
+func TestHiddenByAllCountsFoldersAndBytes(t *testing.T) {
 	res := &scan.Result{Items: []scan.Item{
 		{Verdict: rules.Rebuild, Paths: []string{"a", "b"}, Size: scan.Size{Bytes: 500}},
 		{Verdict: rules.Rebuild, Paths: []string{"c"}, Size: scan.Size{Bytes: 1_500_000}},
 	}}
-
-	folders, bytes := hiddenByMin(res, filter{minSize: 1_000_000})
-	if folders != 2 || bytes != 500 {
-		t.Fatalf("got %d folders and %d bytes, want 2 and 500", folders, bytes)
-	}
-
-	folders, bytes = hiddenByMin(res, filter{all: true, minSize: 1_000_000})
-	if folders != 0 || bytes != 0 {
-		t.Fatalf("--all should not hide anything, got %d folders and %d bytes", folders, bytes)
-	}
 
 	res.Items = append(res.Items, scan.Item{
 		Verdict: rules.Review,
 		Paths:   []string{"d"},
 		Size:    scan.Size{Bytes: 5_000_000},
 	})
-	folders, bytes = hiddenByMin(res, filter{minSize: 10_000_000})
-	if folders != 3 || bytes != 1_500_500 {
-		t.Fatalf("only minimum-hidden items should count, got %d folders and %d bytes", folders, bytes)
+
+	folders, bytes := hiddenByAll(res, filter{minSize: 10_000_000})
+	if folders != 4 || bytes != 6_500_500 {
+		t.Fatalf("got %d folders and %d bytes, want 4 and 6,500,500", folders, bytes)
+	}
+
+	folders, bytes = hiddenByAll(res, filter{all: true, minSize: 10_000_000})
+	if folders != 0 || bytes != 0 {
+		t.Fatalf("--all should not hide anything, got %d folders and %d bytes", folders, bytes)
 	}
 }
 
@@ -59,6 +55,10 @@ func TestPrintScanReportsHiddenItems(t *testing.T) {
 			{Verdict: rules.Rebuild, Paths: []string{"a", "b", "c", "d", "e"}, Size: scan.Size{Bytes: 500}},
 		},
 	}
+
+	oldColor := useColor
+	useColor = false
+	t.Cleanup(func() { useColor = oldColor })
 
 	out := captureStdout(t, func() { printScan(res, filter{minSize: 1_000_000}) })
 
@@ -79,6 +79,8 @@ func captureStdout(t *testing.T, fn func()) string {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer r.Close()
+	defer w.Close()
 	old := os.Stdout
 	os.Stdout = w
 	defer func() { os.Stdout = old }()
