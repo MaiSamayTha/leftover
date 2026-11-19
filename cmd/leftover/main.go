@@ -41,6 +41,10 @@ func main() {
 }
 
 func run(args []string) error {
+	// Older macOS versions pass -psn_<id> to apps opened from Finder.
+	if len(args) > 0 && strings.HasPrefix(args[0], "-psn_") {
+		args = args[1:]
+	}
 	if len(args) == 0 {
 		return openApp(nil)
 	}

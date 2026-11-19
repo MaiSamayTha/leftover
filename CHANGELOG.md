@@ -4,6 +4,22 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-19
+
+Leftover is now a normal download for people who don't use a terminal.
+
+### Added
+
+- **macOS:** `Leftover.dmg` with Leftover.app, one universal app for Apple silicon and Intel. Open it, drag Leftover onto Applications.
+- **Windows:** `Leftover-Setup.exe`, a regular installer. It installs for your user without admin rights, adds a Start menu entry (plus an optional desktop shortcut) and the `leftover` command, and uninstalls from Settings → Apps. The Start menu entry opens Leftover without a console window.
+- **Linux:** `.deb` packages for x86-64 and ARM64 with an app-menu entry.
+- The website's Download button picks the right one for your computer and shows what to click the first time you open it.
+
+### Fixed
+
+- The macOS install script stopped with "unbound variable" before downloading anything.
+- The install scripts no longer hang on a stalled download, and the Windows one no longer fails when the Start menu folder can't be found.
+
 ## [0.1.0] - 2026-11-19
 
 The first release.
@@ -34,5 +50,6 @@ The first release.
 - Single binaries for macOS, Linux and Windows (x86-64 and ARM64), with SHA-256 checksums.
 - Install scripts that verify the checksums and add a launcher; Homebrew and Scoop installs from this repository.
 
-[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/MaiSamayTha/leftover/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MaiSamayTha/leftover/releases/tag/v0.1.0

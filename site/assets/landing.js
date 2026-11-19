@@ -462,11 +462,21 @@
     const p = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || "").toLowerCase();
     const ua = navigator.userAgent.toLowerCase();
     if (/iphone|ipad|android/.test(ua)) return null;
-    if (p.includes("mac")) return { key: "mac", name: "macOS" };
-    if (p.includes("win")) return { key: ua.includes("arm64") ? "windows-arm" : "windows", name: "Windows" };
+    if (p.includes("mac")) return { key: "mac", name: "Mac" };
+    if (p.includes("win")) return { key: "windows", name: "Windows" };
     if (p.includes("linux")) return { key: /aarch64|arm64/.test(p + ua) ? "linux-arm" : "linux", name: "Linux" };
     return null;
   }
+
+  // Show the install steps for one platform (both Linux builds share theirs).
+  function showSteps(key) {
+    const which = key.startsWith("linux") ? "linux" : key;
+    const box = document.getElementById("next-steps");
+    if (!box) return;
+    box.querySelectorAll("[data-steps]").forEach((d) => (d.hidden = d.dataset.steps !== which));
+    box.classList.add("shown");
+  }
+
   const os = detectOS();
   if (os) {
     const link = document.querySelector(`.dl[data-os="${os.key}"]`);
@@ -474,8 +484,24 @@
       link.classList.add("mine");
       document.querySelectorAll("[data-dl]").forEach((a) => (a.href = link.href));
       document.querySelectorAll("[data-dl-os]").forEach((s) => (s.textContent = " for " + os.name));
+      showSteps(os.key);
     }
   }
+
+  // Downloading starts as usual; the steps for that platform appear beside it.
+  document.addEventListener("click", (e) => {
+    const tile = e.target.closest(".dl");
+    if (tile) {
+      document.querySelectorAll(".dl.mine").forEach((d) => d.classList.remove("mine"));
+      tile.classList.add("mine");
+      showSteps(tile.dataset.os);
+      return;
+    }
+    if (e.target.closest("[data-dl]") && os) {
+      showSteps(os.key);
+      setTimeout(() => document.getElementById("next-steps")?.scrollIntoView({ behavior: rm.matches ? "auto" : "smooth", block: "center" }), 150);
+    }
+  });
 
   document.addEventListener("click", async (e) => {
     const b = e.target.closest(".copy");

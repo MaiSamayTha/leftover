@@ -120,3 +120,101 @@ jobs:
           L vault empty --yes | Out-Null
           if ((L vault --json) -replace "\s", "" -ne "[]") { throw "vault not empty after emptying" }
           Write-Host "smoke: installed and used $v on Windows"
+
+  # Builds the downloadable apps (Leftover.dmg, Leftover-Setup.exe, the .deb)
+  # and goes through what a person does with each: install it, open it from
+  # where the OS puts it, see the window's server come up, uninstall.
+  packages:
+    name: app package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Leftover.dmg
+        if: runner.os == 'macOS'
+        run: |
+          set -eu
+          sh scripts/package-macos.sh 0.0.0 dist
+          mnt=$(mktemp -d)
+          hdiutil attach -quiet -nobrowse -readonly -mountpoint "$mnt" dist/Leftover.dmg
+          [ -L "$mnt/Applications" ] || { echo "no Applications shortcut in the dmg"; exit 1; }
+          # Dragging Leftover onto Applications is a copy.
+          cp -R "$mnt/Leftover.app" "$RUNNER_TEMP/"
+          hdiutil detach -quiet "$mnt"
+          app="$RUNNER_TEMP/Leftover.app"
+          lipo -archs "$app/Contents/MacOS/Leftover" | grep -q x86_64
+          lipo -archs "$app/Contents/MacOS/Leftover" | grep -q arm64
+          codesign --verify --strict "$app"
+          plutil -lint "$app/Contents/Info.plist"
+          "$app/Contents/MacOS/Leftover" --version
+          # Open it the way a double-click does and wait for the window's server.
+          open "$app"
+          for i in $(seq 1 30); do
+            pid=$(pgrep -f "Leftover.app/Contents/MacOS/Leftover" || true)
+            [ -n "$pid" ] && lsof -nP -a -p "$pid" -iTCP@127.0.0.1 -sTCP:LISTEN >/dev/null 2>&1 && break
+            sleep 1
+          done
+          [ -n "$pid" ] || { echo "Leftover.app didn't start"; exit 1; }
+          lsof -nP -a -p "$pid" -iTCP@127.0.0.1 -sTCP:LISTEN
+          kill "$pid"
+
+      - name: leftover-linux-amd64.deb
+        if: runner.os == 'Linux'
+        run: |
+          set -eu
+          sh scripts/package-deb.sh 0.0.0 dist amd64
+          dpkg-deb --info dist/leftover-linux-amd64.deb
+          sudo apt-get install -y -qq ./dist/leftover-linux-amd64.deb
+          leftover --version
+          test -x /usr/bin/leftover
+          test -f /usr/share/applications/leftover.desktop
+          test -f /usr/share/icons/hicolor/scalable/apps/leftover.svg
+          # What the app-menu entry runs, without opening a browser.
+          timeout 5 leftover app --no-open | tee app.txt || true
+          grep -q "http://127.0.0.1:" app.txt
+          sudo apt-get remove -y -qq leftover
+          if [ -e /usr/bin/leftover ] || [ -e /usr/share/applications/leftover.desktop ]; then echo "files left behind after removing the package"; exit 1; fi
+
+      - name: Leftover-Setup.exe
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          scripts/package-windows.ps1 -Version 0.0.0 -Out dist
+
+          Start-Process dist\Leftover-Setup.exe -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART" -Wait
+          $dir = Join-Path $env:LOCALAPPDATA "Programs\Leftover"
+          & "$dir\leftover.exe" --version
+          if ($LASTEXITCODE) { throw "leftover.exe didn't run" }
+          if (-not (Test-Path "$dir\leftoverw.exe")) { throw "no leftoverw.exe" }
+          $lnk = Join-Path ([Environment]::GetFolderPath("Programs")) "Leftover.lnk"
+          if (-not (Test-Path $lnk)) { throw "no Start menu shortcut at $lnk" }
+          $userPath = (Get-ItemProperty HKCU:\Environment).Path
+          if ($userPath -notlike "*$dir*") { throw "the install folder isn't on the user PATH" }
+          if (-not (Get-ChildItem HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall | Where-Object { (Get-ItemProperty $_.PSPath).DisplayName -eq "Leftover" })) { throw "not listed in Settings > Apps" }
+
+          # Open it from the Start menu shortcut and wait for the window's server.
+          Start-Process $lnk
+          $up = $false
+          foreach ($i in 1..30) {
+            $p = Get-Process leftoverw -ErrorAction SilentlyContinue
+            if ($p -and (Get-NetTCPConnection -OwningProcess $p.Id -State Listen -ErrorAction SilentlyContinue | Where-Object LocalAddress -eq "127.0.0.1")) { $up = $true; break }
+            Start-Sleep 1
+          }
+          if (-not $up) { throw "Leftover didn't start from the Start menu" }
+          Stop-Process -Name leftoverw -Force
+
+          Start-Process "$dir\unins000.exe" -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES" -Wait
+          foreach ($i in 1..30) { if (-not (Test-Path "$dir\leftover.exe")) { break }; Start-Sleep 1 }
+          if (Test-Path "$dir\leftover.exe") { throw "uninstall left leftover.exe behind" }
+          if (Test-Path $lnk) { throw "uninstall left the Start menu shortcut" }
+          if ((Get-ItemProperty HKCU:\Environment).Path -like "*$dir*") { throw "uninstall left the folder on PATH" }
+          Write-Host "Leftover-Setup.exe installs, opens and uninstalls cleanly"

@@ -432,11 +432,38 @@
       <a href="https://github.com/MaiSamayTha/leftover" style="font-size:17px;color:var(--accent-ink);padding:14px 10px;">View on GitHub ›</a>
     </div>
     <div style="font-size:14px;color:var(--ink2);">Free. Local. Open source. For macOS, Windows and Linux.</div>
-    <div id="all-downloads" class="downloads"><a class="dl" data-os="mac" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-arm64.tar.gz"><b>macOS</b><small>Apple silicon</small></a><a class="dl" data-os="mac-intel" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-macos-amd64.tar.gz"><b>macOS</b><small>Intel</small></a><a class="dl" data-os="windows" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-amd64.zip"><b>Windows</b><small>x86-64</small></a><a class="dl" data-os="windows-arm" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-windows-arm64.zip"><b>Windows</b><small>ARM64</small></a><a class="dl" data-os="linux" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.tar.gz"><b>Linux</b><small>x86-64</small></a><a class="dl" data-os="linux-arm" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-arm64.tar.gz"><b>Linux</b><small>ARM64</small></a></div>
-    <div class="install">
-      <div class="cmdrow"><span class="cmdlab">macOS and Linux</span><code>curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh</code><button class="copy" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh">Copy</button></div><div class="cmdrow"><span class="cmdlab">Windows (PowerShell)</span><code>irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex</code><button class="copy" type="button" data-copy="irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex">Copy</button></div><div class="cmdrow"><span class="cmdlab">Homebrew</span><code>brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover</code><button class="copy" type="button" data-copy="brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover">Copy</button></div><div class="cmdrow"><span class="cmdlab">Scoop</span><code>scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover</code><button class="copy" type="button" data-copy="scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover">Copy</button></div>
-      <p>Every install method checks downloads against the release’s published SHA-256 checksums. The binaries aren’t signed yet, so a browser download may need one extra click to open; <a href="https://github.com/MaiSamayTha/leftover#cant-be-opened-or-windows-protected-your-pc">here’s how</a>.</p>
+    <div id="all-downloads" class="downloads"><a class="dl" data-os="mac" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/Leftover.dmg"><b>macOS</b><small>Apple silicon &amp; Intel · .dmg</small></a><a class="dl" data-os="windows" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/Leftover-Setup.exe"><b>Windows</b><small>Installer · 64-bit &amp; ARM</small></a><a class="dl" data-os="linux" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-amd64.deb"><b>Linux</b><small>.deb · x86-64</small></a><a class="dl" data-os="linux-arm" href="https://github.com/MaiSamayTha/leftover/releases/latest/download/leftover-linux-arm64.deb"><b>Linux</b><small>.deb · ARM64</small></a></div>
+    <div id="next-steps" class="steps" aria-live="polite">
+      <div data-steps="mac">
+        <h3>Installing on your Mac</h3>
+        <ol>
+          <li>Open <b>Leftover.dmg</b> from your Downloads and drag <b>Leftover</b> onto <b>Applications</b>.</li>
+          <li>Open Leftover from Applications, Launchpad or Spotlight.</li>
+          <li>The first time, macOS says it can’t verify Leftover. Click <b>Done</b>, open <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. You only do this once.</li>
+        </ol>
+      </div>
+      <div data-steps="windows">
+        <h3>Installing on Windows</h3>
+        <ol>
+          <li>Run <b>Leftover-Setup.exe</b> from your Downloads.</li>
+          <li>If Windows says it protected your PC, click <b>More info</b>, then <b>Run anyway</b>. You only do this once.</li>
+          <li>Click through the installer. Leftover opens when it’s done and stays in your Start menu. No admin rights needed.</li>
+        </ol>
+      </div>
+      <div data-steps="linux">
+        <h3>Installing on Linux</h3>
+        <ol>
+          <li>Double-click the <b>.deb</b> to open it in your software installer and click <b>Install</b>.</li>
+          <li>Open Leftover from your app menu.</li>
+        </ol>
+      </div>
+      <p class="fine">Leftover isn’t signed with a paid Apple or Microsoft certificate yet, which is why your computer asks once. It’s open source, and every download is listed with its SHA-256 checksum on the <a href="https://github.com/MaiSamayTha/leftover/releases/latest">release page</a>.</p>
     </div>
+    <details class="install">
+      <summary>Prefer the terminal?</summary>
+      <div class="cmdrow"><span class="cmdlab">macOS and Linux</span><code>curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh</code><button class="copy" type="button" data-copy="curl -fsSL https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.sh | sh">Copy</button></div><div class="cmdrow"><span class="cmdlab">Windows (PowerShell)</span><code>irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex</code><button class="copy" type="button" data-copy="irm https://raw.githubusercontent.com/MaiSamayTha/leftover/main/scripts/install.ps1 | iex">Copy</button></div><div class="cmdrow"><span class="cmdlab">Homebrew</span><code>brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover</code><button class="copy" type="button" data-copy="brew tap maisamaytha/leftover https://github.com/MaiSamayTha/leftover &amp;&amp; brew install maisamaytha/leftover/leftover">Copy</button></div><div class="cmdrow"><span class="cmdlab">Scoop</span><code>scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover</code><button class="copy" type="button" data-copy="scoop bucket add leftover https://github.com/MaiSamayTha/leftover; scoop install leftover/leftover">Copy</button></div>
+      <p>Every install method checks downloads against the release’s published SHA-256 checksums. <a href="https://github.com/MaiSamayTha/leftover/releases/latest">All downloads</a> · <a href="https://github.com/MaiSamayTha/leftover#build-it-yourself">Build it yourself</a></p>
+    </details>
   </div>
 </section>
 </main>
