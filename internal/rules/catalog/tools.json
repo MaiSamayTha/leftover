@@ -16,6 +16,37 @@
       }
     },
     {
+      "id": "docker-engine",
+      "tool": "Docker Engine",
+      "kind": "Images, containers and volumes",
+      "name": "Docker data",
+      "verdict": "keep",
+      "what": "Where Docker Engine keeps images, containers, volumes and build cache on Linux. Volumes can hold databases, so Leftover never moves this folder. Its size comes from Docker itself, since the folder belongs to root.",
+      "command": "docker system df",
+      "paths": { "linux": ["/var/lib/docker"] }
+    },
+    {
+      "id": "orbstack-data",
+      "tool": "OrbStack",
+      "kind": "Virtual disk",
+      "name": "OrbStack data",
+      "verdict": "keep",
+      "what": "OrbStack's disk image, holding your Docker images, containers, volumes and Linux machines. Leftover never moves it. Use Docker's own commands to reclaim space inside it.",
+      "source": "https://docs.orbstack.dev/faq",
+      "command": "docker system df",
+      "paths": { "darwin": ["~/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"] }
+    },
+    {
+      "id": "colima-disk",
+      "tool": "Colima",
+      "kind": "Virtual machines",
+      "name": "Colima VMs",
+      "verdict": "keep",
+      "what": "The virtual machines Colima runs Docker in, with their disks. Your images, containers and volumes live inside. Leftover never moves them.",
+      "command": "colima list",
+      "paths": { "unix": ["~/.colima/_lima"] }
+    },
+    {
       "id": "playwright-browsers",
       "tool": "Playwright",
       "kind": "Browser binaries",

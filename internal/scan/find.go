@@ -229,6 +229,20 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 					it.Newest = sz.Newest
 				}
 			}
+			if d := detailers[c.rule.ID]; d != nil {
+				it.Details = d(c.paths[0])
+			}
+			// Docker's data folder on Linux belongs to root, so the
+			// engine's own numbers are the better measure of it.
+			if DockerRules[c.rule.ID] {
+				var total int64
+				for _, d := range it.Details {
+					total += d.Bytes
+				}
+				if total > it.Bytes {
+					it.Bytes = total
+				}
+			}
 			if it.Bytes == 0 && it.Files == 0 {
 				return
 			}
@@ -247,9 +261,6 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 			}
 			if c.rule.Each {
 				it.Label = entryLabel(filepath.Base(c.paths[0]))
-			}
-			if d := detailers[c.rule.ID]; d != nil {
-				it.Details = d(c.paths[0])
 			}
 			it.ID = itemID(it.Rule, it.Paths)
 			items[i] = it

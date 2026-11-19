@@ -27,6 +27,7 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/settings", s.settings)
 	mux.HandleFunc("GET /api/history", s.history)
 	mux.HandleFunc("POST /api/why", s.why)
+	mux.HandleFunc("POST /api/docker/prune", s.dockerPrune)
 	mux.HandleFunc("POST /api/ping", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) })
 }
 
@@ -285,4 +286,22 @@ func expandHome(p, home string) string {
 		return filepath.Join(home, p[2:])
 	}
 	return p
+}
+
+// dockerPrune runs Docker's own cleanup for its build cache and unused
+// images. Containers and volumes are never touched.
+func (s *Server) dockerPrune(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Images bool `json:"images"`
+	}
+	if err := readJSON(r, &req); err != nil {
+		fail(w, http.StatusBadRequest, err)
+		return
+	}
+	steps, err := s.App.DockerPrune(r.Context(), req.Images)
+	if err != nil {
+		fail(w, http.StatusConflict, err)
+		return
+	}
+	writeJSON(w, steps)
 }

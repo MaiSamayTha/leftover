@@ -193,7 +193,7 @@ func cmdHistory(args []string) error {
 		fmt.Println("Leftover hasn't changed anything on this machine yet.")
 		return nil
 	}
-	verbs := map[string]string{"move": "Moved to vault", "restore": "Restored", "empty": "Deleted for good"}
+	verbs := map[string]string{"move": "Moved to vault", "restore": "Restored", "empty": "Deleted for good", "docker-prune": "Pruned by Docker"}
 	for _, ev := range events {
 		where := ""
 		if len(ev.Paths) > 0 {

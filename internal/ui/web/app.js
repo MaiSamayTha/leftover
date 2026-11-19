@@ -193,6 +193,33 @@ async function clean() {
   }
 }
 
+// ---------- docker ----------
+
+const DOCKER = new Set(["docker-disk", "docker-engine", "orbstack-data", "colima-disk"]);
+
+// Docker's own prune, for what Docker re-creates on demand. Leftover never
+// moves Docker's disk itself, and never prunes containers or volumes.
+async function dockerPrune() {
+  const okd = await sheet({
+    title: "Reclaim space inside Docker?",
+    body: `<p>Leftover will ask Docker to remove its build cache and dangling images. Docker rebuilds the cache and pulls images again when they're next needed.</p>
+      <p>This is Docker's own cleanup, so it can't be undone from the vault. Containers and volumes are never touched.</p>
+      <label class="sheet-check"><input type="checkbox" id="prune-images"> Also remove every image no container uses</label>`,
+    ok: "Reclaim",
+    danger: true,
+  });
+  if (!okd) return;
+  const images = !!$("#prune-images")?.checked;
+  try {
+    const steps = await api("docker/prune", { images });
+    const failed = steps.filter((s) => s.error);
+    const total = steps.reduce((n, s) => n + (s.reclaimed || 0), 0);
+    toast(failed.length ? `Docker reclaimed ${bytes(total)}. ${failed[0].command} failed: ${failed[0].error}` : `Docker reclaimed ${bytes(total)}. Scan again to see the new sizes.`);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
 // ---------- vault ----------
 
 function daysLeft(e) {
@@ -272,7 +299,7 @@ async function renderHistory() {
   $("#view").innerHTML = `<p class="muted">Loading…</p>`;
   const events = await api("history");
   if (state.view !== "history") return;
-  const verbs = { move: "Moved to vault", restore: "Put back", empty: "Deleted for good" };
+  const verbs = { move: "Moved to vault", restore: "Put back", empty: "Deleted for good", "docker-prune": "Pruned by Docker" };
   $("#view").innerHTML = events.length ? `
     <p class="intro">Everything Leftover has changed on this computer, newest first. Scans aren't listed because they only read.</p>
     <div class="table">
@@ -436,6 +463,7 @@ function renderInspector() {
     ${rule.command ? `<h4>The tool's own command</h4><code class="cmd">${esc(rule.command)}</code>` : ""}
     ${it.details && it.details.length ? `<h4>Inside</h4><div class="details">${it.details.map((d) => `
       <div class="detail"><span>${esc(d.name)}${d.shared ? ` <small>shares layers</small>` : ""}${d.reclaimable ? ` <small>${bytes(d.reclaimable)} reclaimable</small>` : ""}</span><span>${bytes(d.bytes)}</span></div>`).join("")}</div>` : ""}
+    ${DOCKER.has(it.rule) && it.details && it.details.length ? `<button class="btn btn-small" data-act="docker-prune">Reclaim Docker space…</button>` : ""}
     <h4>Location</h4>
     ${it.paths.map((p) => `<div class="path-row"><code>${esc(tilde(p))}</code><button class="btn-link" data-reveal="${esc(p)}">Show</button></div>`).join("")}
     ${rule.source ? `<h4>Source</h4><p><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, ""))}</a></p>` : ""}
@@ -613,6 +641,7 @@ document.addEventListener("click", async (e) => {
     if (a === "close-inspector") { state.focused = null; return render(); }
     if (a === "empty-expired") return emptyVault(true);
     if (a === "empty-all") return emptyVault(false);
+    if (a === "docker-prune") return dockerPrune();
   }
   const un = e.target.closest("[data-unignore]");
   if (un) {

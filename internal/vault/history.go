@@ -23,7 +23,15 @@ type Event struct {
 func (v *Vault) historyPath() string { return filepath.Join(v.Dir, "history.log") }
 
 func (v *Vault) log(action string, e Entry) {
-	ev := Event{At: v.now(), Action: action, Entry: e.ID, Name: e.Name, Bytes: e.Bytes, Paths: e.Paths}
+	v.Record(Event{Action: action, Entry: e.ID, Name: e.Name, Bytes: e.Bytes, Paths: e.Paths})
+}
+
+// Record adds an event to the history log, for changes made outside the
+// vault, like asking Docker to prune its build cache.
+func (v *Vault) Record(ev Event) {
+	if ev.At.IsZero() {
+		ev.At = v.now()
+	}
 	raw, err := json.Marshal(ev)
 	if err != nil {
 		return

@@ -172,6 +172,7 @@ nav { display: flex; flex-direction: column; gap: 1px; }
 .sheet h2 { font-size: 16px; margin: 0 0 8px; }
 .sheet p { color: var(--text-2); margin: 0 0 10px; }
 .sheet-buttons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+.sheet-check { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-top: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
