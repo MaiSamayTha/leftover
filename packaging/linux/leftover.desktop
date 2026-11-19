@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Leftover
+GenericName=Disk cleaner for developers
+Comment=See what your dev tools left behind and clear it safely
+Exec=leftover app
+Icon=leftover
+Terminal=false
+Categories=Utility;Development;
+Keywords=disk;space;cache;clean;node_modules;
