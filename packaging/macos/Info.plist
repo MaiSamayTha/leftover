@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Leftover</string>
+  <key>CFBundleDisplayName</key><string>Leftover</string>
+  <key>CFBundleIdentifier</key><string>io.github.maisamaytha.leftover</string>
+  <key>CFBundleExecutable</key><string>Leftover</string>
+  <key>CFBundleIconFile</key><string>Leftover</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>@VERSION@</string>
+  <key>CFBundleVersion</key><string>@VERSION@</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>LSMinimumSystemVersion</key><string>11.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+  <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Samay. MIT License.</string>
+  <!-- The window is a browser window, so the app itself stays out of the Dock
+       and quits on its own a little after that window is closed. -->
+  <key>LSUIElement</key><true/>
+</dict>
+</plist>
