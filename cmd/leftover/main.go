@@ -122,7 +122,7 @@ func (f filter) keep(it scan.Item) bool {
 	if !f.all && !it.Cleanable() && it.Bytes < 100e6 {
 		return false // small review/keep items are noise unless asked for
 	}
-	if it.Bytes < f.minSize {
+	if !f.all && it.Bytes < f.minSize {
 		return false
 	}
 	if f.idle > 0 && it.IdleDays < f.idle {
@@ -136,7 +136,7 @@ func (f filter) keep(it scan.Item) bool {
 
 func addFilterFlags(fs *flag.FlagSet, f *filter, minSize *string) {
 	fs.BoolVar(&f.all, "all", false, "show small items Leftover won't clean, too")
-	fs.StringVar(minSize, "min", "1MB", "hide items smaller than this (e.g. 500MB)")
+	fs.StringVar(minSize, "min", "1MB", "hide items smaller than this unless --all is set (e.g. 500MB)")
 	fs.IntVar(&f.idle, "idle", 0, "only items whose project hasn't changed in this many days")
 	fs.StringVar(&f.tool, "tool", "", "only items from a tool (npm, python, xcode, ...)")
 }
@@ -192,6 +192,26 @@ func cmdScan(args []string) error {
 	return nil
 }
 
+func hiddenByAll(res *scan.Result, f filter) (folders int, bytes int64) {
+	if f.all {
+		return 0, 0
+	}
+	withAll := f
+	withAll.all = true
+	for _, it := range res.Items {
+		if f.keep(it) || !withAll.keep(it) {
+			continue
+		}
+		n := len(it.Paths)
+		if n == 0 {
+			n = 1
+		}
+		folders += n
+		bytes += it.Bytes
+	}
+	return folders, bytes
+}
+
 func printScan(res *scan.Result, f filter) {
 	groups := []struct {
 		title    string
@@ -202,6 +222,7 @@ func printScan(res *scan.Result, f filter) {
 		{"Your data (never cleaned)", []rules.Verdict{rules.Keep}},
 	}
 	var safe int64
+	var shown int
 	for _, g := range groups {
 		var items []scan.Item
 		var total int64
@@ -223,6 +244,7 @@ func printScan(res *scan.Result, f filter) {
 			safe = total
 		}
 		fmt.Printf("\n%s  %s\n", bold(g.title), dim(human(total)))
+		shown += len(items)
 		for _, it := range items {
 			where := it.Paths[0]
 			if it.Project != "" {
@@ -251,7 +273,29 @@ func printScan(res *scan.Result, f filter) {
 			}
 		}
 	}
+	hiddenFolders, hiddenBytes := hiddenByAll(res, f)
+	if shown == 0 {
+		if hiddenFolders > 0 {
+			word := "folders"
+			if hiddenFolders == 1 {
+				word = "folder"
+			}
+			fmt.Printf("\n%s shown. %d smaller %s (%s) hidden; show them with %s.\n",
+				bold("No folders"), hiddenFolders, word, human(hiddenBytes), bold("--all"))
+		} else {
+			fmt.Printf("\n%s matched these filters.\n", bold("No folders"))
+		}
+		return
+	}
+
 	fmt.Printf("\n%s in %d folders, %.1fs.", bold(human(safe)+" can be cleared safely"), res.Folders, res.Took.Seconds())
+	if hiddenFolders > 0 {
+		word := "folders"
+		if hiddenFolders == 1 {
+			word = "folder"
+		}
+		fmt.Printf(" %d smaller %s (%s) hidden; show them with %s.", hiddenFolders, word, human(hiddenBytes), bold("--all"))
+	}
 	if safe > 0 {
 		fmt.Printf(" Run %s to review and clear it.\n", bold("leftover clean"))
 	} else {

@@ -70,7 +70,7 @@ func cmdClean(args []string) error {
 		}
 	} else {
 		for _, it := range last.Items {
-			if it.Cleanable() && f.keep(it) {
+			if it.Cleanable() && f.keep(it) && it.Bytes >= f.minSize {
 				picked = append(picked, it)
 			}
 		}
