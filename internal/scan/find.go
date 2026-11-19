@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -109,6 +110,8 @@ type candidate struct {
 	paths   []string
 	project string
 	notes   []string
+	// tracked counts files inside that are committed to git.
+	tracked int
 }
 
 // Scan finds and measures everything. It reads; it never writes.
@@ -187,6 +190,7 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 			pf.search(ctx, root)
 		}
 		cands = append(cands, pf.result()...)
+		markTracked(ctx, cands)
 	}
 
 	// 3. Measure everything in parallel.
@@ -206,6 +210,10 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 				Rule: c.rule.ID, Tool: c.rule.Tool, Kind: c.rule.Kind, Name: c.rule.Name,
 				Group: c.rule.Group, Verdict: c.rule.Verdict, Paths: c.paths, Project: c.project,
 				Notes: c.notes,
+			}
+			if c.tracked > 0 {
+				it.Verdict = rules.Review
+				it.Notes = append(it.Notes, trackedNote(c.tracked))
 			}
 			for _, p := range c.paths {
 				sz, err := sizer.Measure(ctx, p)
@@ -407,4 +415,11 @@ func entryLabel(name string) string {
 		return name[:i]
 	}
 	return name
+}
+
+func trackedNote(n int) string {
+	if n == 1 {
+		return "1 file in here is committed to git, so this isn't only generated output. Leftover won't move it."
+	}
+	return fmt.Sprintf("%d files in here are committed to git, so this isn't only generated output. Leftover won't move it.", n)
 }

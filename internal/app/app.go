@@ -221,7 +221,7 @@ func (a *App) Clean(ids []string) []Outcome {
 		}
 		o := Outcome{Item: id, Name: it.Name, Bytes: it.Bytes}
 		r, ok := a.Scanner.Catalog.Get(it.Rule)
-		if !ok || !r.Verdict.Cleanable() {
+		if !ok || !r.Verdict.Cleanable() || !it.Cleanable() {
 			o.Error = vault.ErrNotCleanable.Error()
 			out = append(out, o)
 			continue

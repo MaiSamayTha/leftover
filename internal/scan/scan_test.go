@@ -3,6 +3,7 @@ package scan
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -353,5 +354,46 @@ func TestEditorExtensionsAreNotProjects(t *testing.T) {
 	want := filepath.Join(home, "code/app/node_modules")
 	if len(got) != 1 || got[0] != want {
 		t.Fatalf("node_modules found = %v, want only %s", got, want)
+	}
+}
+
+// A folder that looks generated but holds committed files, like a vendor
+// folder someone checked in, is shown but never offered for cleaning.
+func TestCommittedFoldersAreNotCleanable(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Linux host layout")
+	}
+	git, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git isn't installed")
+	}
+	home := t.TempDir()
+	write(t, filepath.Join(home, "code/php/composer.json"), 10)
+	write(t, filepath.Join(home, "code/php/vendor/autoload.php"), 4_000)
+	write(t, filepath.Join(home, "code/web/package.json"), 10)
+	write(t, filepath.Join(home, "code/web/node_modules/a.js"), 4_000)
+	run := func(dir string, args ...string) {
+		cmd := exec.Command(git, args...)
+		cmd.Dir = dir
+		cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_SYSTEM=/dev/null")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %v\n%s", args, err, out)
+		}
+	}
+	repo := filepath.Join(home, "code")
+	run(repo, "init", "-q")
+	run(repo, "add", "php/composer.json", "php/vendor", "web/package.json")
+	run(repo, "-c", "user.name=t", "-c", "user.email=t@example.com", "commit", "-q", "-m", "x")
+
+	res, err := scanner(home).Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := byRule(res)
+	if v := got["composer-vendor"]; len(v) != 1 || v[0].Cleanable() || len(v[0].Notes) == 0 {
+		t.Fatalf("committed vendor should be shown as not cleanable with a note, got %+v", v)
+	}
+	if nm := got["node-modules"]; len(nm) != 1 || !nm[0].Cleanable() {
+		t.Fatalf("untracked node_modules should stay cleanable, got %+v", nm)
 	}
 }
