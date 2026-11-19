@@ -4,6 +4,10 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-20
+
+Explore any folder, Docker beyond Docker Desktop, and updates from inside the app.
+
 ### Added
 
 - **Explore:** `leftover explore [path]` and a new Explore view in the app show what any folder holds, biggest first, with what Leftover recognises in each folder and how much of it is safe to clear. A whole home folder is measured in seconds.
@@ -15,6 +19,7 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 - Nothing is moved while the tool that uses it is running. Gradle daemons, Android Studio, Xcode, the iOS Simulator, Android emulators, Ollama, JetBrains IDEs and Homebrew are checked first, and Leftover says how to stop them.
 - Project folders that hold files committed to git (a checked-in `vendor`, say) are shown as worth a look and never offered for cleaning.
+- New icon: a cookie with a bite taken out.
 
 ### Fixed
 
@@ -66,6 +71,7 @@ The first release.
 - Single binaries for macOS, Linux and Windows (x86-64 and ARM64), with SHA-256 checksums.
 - Install scripts that verify the checksums and add a launcher; Homebrew and Scoop installs from this repository.
 
-[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/MaiSamayTha/leftover/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MaiSamayTha/leftover/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MaiSamayTha/leftover/releases/tag/v0.1.0
