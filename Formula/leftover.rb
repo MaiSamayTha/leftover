@@ -4,28 +4,28 @@
 class Leftover < Formula
   desc "Explains the space your dev tools leave behind and clears it safely"
   homepage "https://maisamaytha.github.io/leftover/"
-  version "0.1.0"
+  version "0.1.1"
   license "MIT"
 
   on_macos do
     on_arm do
-      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.0/leftover-macos-arm64.tar.gz"
-      sha256 "b40377d97387ba19537d2495d742e40d927a75764dbbd57c11b142d626f78bee"
+      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.1/leftover-macos-arm64.tar.gz"
+      sha256 "007c40804bba955bbff39b791621e4a64b63c6a9c0e274521a4a632a86c03fdd"
     end
     on_intel do
-      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.0/leftover-macos-amd64.tar.gz"
-      sha256 "cae5786bc6fab0ba9e275968e33160cd4e6ea797686b120df4753643c28365ca"
+      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.1/leftover-macos-amd64.tar.gz"
+      sha256 "f5c56d07d2ed14e9f8d790923fb86db364437e945773fa0e86b9d806aaaa3164"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.0/leftover-linux-arm64.tar.gz"
-      sha256 "d0fc8ab8466074e44ea1bd9ac08fd55d43e786f9a94822325ff72fdf249c1bde"
+      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.1/leftover-linux-arm64.tar.gz"
+      sha256 "ca2cf665fb9f90b0d556b5a7c2cc3a695180418b286debbac357eabbb0a2d9e4"
     end
     on_intel do
-      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.0/leftover-linux-amd64.tar.gz"
-      sha256 "5aa4944372736bc72eafa2a2de56c2575cb74e520f19d33d9802816b2f724e43"
+      url "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.1/leftover-linux-amd64.tar.gz"
+      sha256 "e4f1703084cedc212ca7849626cb571c4fb840eb67c946e17d44fe2c6ebe676a"
     end
   end
 
