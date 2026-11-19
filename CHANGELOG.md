@@ -4,6 +4,21 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- **Explore:** `leftover explore [path]` and a new Explore view in the app show what any folder holds, biggest first, with what Leftover recognises in each folder and how much of it is safe to clear. A whole home folder is measured in seconds.
+- **Docker:** OrbStack, Colima and Docker Engine on Linux are recognised alongside Docker Desktop. `leftover docker` shows what Docker is holding, and `leftover docker prune` (or the button in the app) asks Docker to remove its build cache and dangling images, plus unused images with `--images`. Containers and volumes are never touched, and every prune is in the history.
+- **New project types:** Unity's `Library`, Elixir's `_build` and `deps`, Haskell's `.stack-work` and `dist-newstyle`, Zig's `.zig-cache` and `zig-out`, sbt's `target`, Clojure's `.cpcache`, Angular's `.angular`, `.docusaurus`, `storybook-static` and test coverage reports. Unreal's `Intermediate` and `DerivedDataCache` and Godot's `.godot` are shown as worth a look.
+
+### Changed
+
+- Nothing is moved while the tool that uses it is running. Gradle daemons, Android Studio, Xcode, the iOS Simulator, Android emulators, Ollama, JetBrains IDEs and Homebrew are checked first, and Leftover says how to stop them.
+- Project folders that hold files committed to git (a checked-in `vendor`, say) are shown as worth a look and never offered for cleaning.
+
+### Fixed
+
+- `node_modules` inside extensions installed in Qoder, Windsurf, Kiro, Trae and other VS Code-based editors were listed as safe to clear, and clearing them broke the extensions. Editor extensions are now never treated as projects; they're shown as your data.
+
 ## [0.1.1] - 2026-11-19
 
 Leftover is now a normal download for people who don't use a terminal.

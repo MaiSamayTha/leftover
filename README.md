@@ -34,7 +34,9 @@ Leftover finds it, tells you what each item is and how it comes back, and clears
 - **It explains, it doesn't guess.** Every item has a plain-language explanation, the tool that made it, how it comes back, and a link to the tool's own documentation. Anything without a documented source is shown as *worth a look* and is never offered for cleaning.
 - **Nothing is deleted until you're sure.** Cleaning is a rename into a vault on the same drive: instant, and exactly reversible for 14 days. If your tools already rebuilt something (say `npm install` ran again), restoring puts it beside the new copy instead of overwriting it.
 - **It knows your projects.** Dependencies and build output are tied to the project they belong to, with how long since you last worked on it, so `leftover clean --idle 90` clears only what you've stopped using.
-- **It breaks big things down.** See each model inside Ollama's folder (and which ones share layers), each Hugging Face model, each old Xcode device-support version, and what `docker system df` says is reclaimable inside Docker's disk image.
+- **It knows when not to touch.** Extensions installed in VS Code-style editors, folders that hold files committed to git, and caches whose tool is running right now (a Gradle daemon, Xcode, Ollama, an emulator) are shown but never moved.
+- **It breaks big things down.** See each model inside Ollama's folder (and which ones share layers), each Hugging Face model, each old Xcode device-support version, and what Docker says is inside Docker Desktop, OrbStack, Colima or Docker Engine, with a guided prune that never touches containers or volumes.
+- **It maps the rest of the disk too.** Explore any folder by size, and see right there what Leftover recognises in it and how much is safe to clear.
 - **It's private by construction.** One binary, no account, no analytics, no update checks, no network code. The desktop window is served only to your machine on `127.0.0.1` with a per-launch key.
 - **It's small and auditable.** Pure Go standard library, no third-party dependencies. CI fails if one is ever added.
 
@@ -42,12 +44,13 @@ Leftover finds it, tells you what each item is and how it comes back, and clears
 
 | | Rebuilds itself / downloads again (safe to clear) | Worth a look | Your data (never touched) |
 |---|---|---|---|
-| **JavaScript** | `node_modules`, `.next`, `.nuxt`, `.svelte-kit`, `.turbo`, `.parcel-cache`, npm / Yarn / Bun / Deno caches, node-gyp headers | pnpm store | |
+| **JavaScript** | `node_modules`, `.next`, `.nuxt`, `.svelte-kit`, `.turbo`, `.parcel-cache`, `.angular`, `.docusaurus`, `storybook-static`, coverage reports, npm / Yarn / Bun / Deno caches, node-gyp headers | pnpm store | |
 | **Python** | virtual environments with a requirements file, `__pycache__`, pytest / mypy / Ruff caches, `.tox`, pip / uv / Poetry caches | environments with no requirements file, Conda package cache | Conda environments |
 | **AI models** | Hugging Face models and datasets, Ollama models, PyTorch Hub, Whisper | LM Studio models | |
 | **Rust, Go, JVM** | Cargo `target` and registry, Go build and module caches, Gradle caches and wrappers, Maven repository and `target` | | |
 | **Apple and mobile** | Xcode Derived Data, device support files, simulator caches, CocoaPods, SwiftPM, Homebrew downloads, Android system images | | Simulators, Xcode archives, Android emulators |
-| **More** | NuGet, .NET `bin`/`obj`, Composer, Bundler, Dart/Flutter, Terraform providers, Playwright / Puppeteer / Cypress / Electron downloads, JetBrains caches | VS Code and Cursor caches | Docker's disk image, coding-agent history |
+| **Game engines, more languages** | Unity `Library`, Elixir `_build` and `deps`, Haskell `.stack-work` and `dist-newstyle`, Zig `.zig-cache` and `zig-out`, sbt `target`, Clojure `.cpcache` | Unreal `Intermediate` and `DerivedDataCache`, Godot `.godot` | |
+| **More** | NuGet, .NET `bin`/`obj`, Composer, Bundler, Dart/Flutter, Terraform providers, Playwright / Puppeteer / Cypress / Electron downloads, JetBrains caches | VS Code and Cursor caches | Docker Desktop, OrbStack, Colima and Docker Engine data, editor extensions, coding-agent history |
 
 Every rule lives in [`internal/rules/catalog`](internal/rules/catalog) as readable JSON. Adding a tool needs no Go code; see [docs/RULES.md](docs/RULES.md). Run `leftover rules` to list them all.
 
@@ -125,6 +128,7 @@ Run `leftover` with no arguments, or open it from your launcher, to get the app.
 leftover scan                    find and explain what's using space
 leftover scan --idle 90          only projects untouched for 90 days
 leftover why ~/code/app/target   explain any folder
+leftover explore ~/code          see what any folder holds, biggest first
 leftover clean                   review the plan, then move safe items to the vault
 leftover clean 3fa1c09e2b7d      clean specific items by id
 leftover vault                   see what's in the vault and how long it has left
@@ -133,10 +137,12 @@ leftover vault empty --expired   free the space from expired items now
 leftover history                 every move, restore and deletion Leftover has made
 leftover ignore add ~/work/big   never look inside a folder
 leftover rules                   everything Leftover recognises
+leftover docker                  what Docker is holding, and what's reclaimable
+leftover docker prune            ask Docker to drop its build cache and dangling images
 leftover where                   where Leftover keeps its own files
 ```
 
-Add `--json` to `scan`, `why`, `vault`, `history` or `rules` for machine-readable output. `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
+Add `--json` to `scan`, `why`, `explore`, `docker`, `vault`, `history` or `rules` for machine-readable output. `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
 
 A note on space: moving into the vault is a rename, so the space comes back when the vault is emptied, after 14 days (automatically, at the start of the next scan) or right away with **Empty Vault** / `leftover vault empty`.
 
@@ -146,14 +152,15 @@ These are enforced in code and covered by tests:
 
 1. Scanning only reads. Symlinks and junctions are never followed, and scans never cross onto another drive.
 2. Only items whose rule cites a documented source can be cleaned. *Worth a look* and *your data* are never moved.
-3. Cleaning never deletes. It renames into a vault on the same drive and never copies between drives.
+3. Cleaning never deletes. It renames into a vault on the same drive and never copies between drives. The one exception is `leftover docker prune` (and the matching button), which asks Docker to remove its own build cache and unused images; it says so before running, can't be undone from the vault, and never touches containers or volumes.
 4. A manifest is written before anything moves, so even an interrupted clean can be restored. Items with several folders move all-or-nothing.
 5. Your home folder, anything above it, drive roots, Leftover's own data and the vaults themselves can never be moved, whatever a rule says.
-6. Every change is logged.
+6. Nothing is moved while the tool that uses it is running, folders holding files committed to git are never offered, and editor extensions are never treated as a project's leftovers.
+7. Every change is logged.
 
 ## Privacy
 
-Leftover runs entirely on your computer. It has no account, collects nothing and makes no network requests. The only writes outside its own data folder are the moves you confirm. The full statement is on the [privacy page](site/privacy.html).
+Leftover runs entirely on your computer. It has no account, collects nothing and makes no network requests. The only changes outside its own data folder are the moves (and Docker prunes) you confirm. The full statement is on the [privacy page](site/privacy.html).
 
 ## Project layout
 

@@ -22,13 +22,13 @@ CMM = CleanMyMac, BB = BleachBit, WT = WizTree, CLI = ncdu / dust / gdu.
 
 | Capability | L | DC | Mo | np | CMM | BB | WT | CLI |
 |---|---|---|---|---|---|---|---|---|
-| General disk analysis | ○ | ○ | ● | ○ | ● | ○ | ● | ● |
+| General disk analysis | ● | ○ | ● | ○ | ● | ○ | ● | ● |
 | Developer artifact detection | ● | ● | ● | ● | ● | ◐ | ○ | ○ |
 | Project-level awareness | ● | ● | ● | ● | ● | ○ | ○ | ○ |
 | Contextual explanations | ● | ● | ◐ | ● | ◐ | ◐ | ○ | ○ |
 | Regeneration guidance | ● | ● | ○ | ◐ | ◐ | ○ | ○ | ○ |
 | AI model storage | ● | ● | ○ | ○ | ● | ◐ | ○ | ○ |
-| Docker storage | ◐ | ● | ◐ | ○ | ◐ | ◐ | ○ | ○ |
+| Docker storage | ● | ● | ◐ | ○ | ◐ | ◐ | ○ | ○ |
 | Reversible cleanup | ● | ◐ | ◐ | ○ | ○ | ○ | ○ | ○ |
 | Privacy and local-first | ● | ◐ | ● | ● | ◐ | ● | ● | ● |
 | Command line | ● | ○ | ● | ● | ● | ● | ◐ | ● |
@@ -43,8 +43,8 @@ readable.
 
 Checked in this repo, not taken from marketing copy.
 
-- **Rules:** 66 rules for 51 tools in `internal/rules/catalog/*.json`. 54 are
-  cleanable (`rebuild` or `redownload`). Every cleanable rule has a `comeback`
+- **Rules:** 81 rules for 65 tools in `internal/rules/catalog/*.json`. Every
+  cleanable one (`rebuild` or `redownload`) has its source checked. Every cleanable rule has a `comeback`
   text and a `source` link; `TestRejectsUnsourcedCleanableRule` enforces the
   source.
 - **Projects:** `internal/scan/projects.go` walks the scan roots (home folder by
@@ -56,12 +56,23 @@ Checked in this repo, not taken from marketing copy.
   `command`. `leftover why <path>` explains any folder (`cmd/leftover/cmd_why.go`).
 - **AI models:** Hugging Face hub and datasets, Ollama, LM Studio, PyTorch Hub
   and Whisper (`ai.json`). Hugging Face and LM Studio use `each`, so every model
-  is its own item. **Ollama is one item for the whole store, not per model.**
-- **Docker:** `docker-disk` is `keep`. Leftover never moves Docker's disk image.
-  It reads `docker system df` and shows each type's size, how much is
-  reclaimable, and the matching prune command (`internal/scan/docker.go`). Paths
-  cover Docker Desktop on macOS, Windows and Linux. Native Linux Docker
-  (`/var/lib/docker`), OrbStack and Colima aren't covered.
+  is its own item. Ollama is one item, broken down per model by reading its
+  manifests (`internal/scan/details.go`), with shared layers flagged.
+- **Docker:** Docker Desktop, OrbStack, Colima and Docker Engine on Linux are
+  all `keep`; Leftover never moves them. The `docker system df` breakdown is
+  attached to whichever one the docker context points at
+  (`internal/scan/docker.go`). `leftover docker prune` runs only
+  `docker builder prune -f` and `docker image prune -f` (plus `-a` with
+  `--images`), never container, volume or system prune, and logs the result
+  (`internal/app/docker.go`).
+- **Explore:** `leftover explore` and the Explore view measure any folder and
+  list it by size, annotated with matching rules and how much the last scan
+  found clearable inside (`internal/scan/explore.go`, `internal/app/explore.go`).
+  No treemap, and no MFT reading.
+- **Safety checks:** editor extension folders are never projects
+  (`skipNames`, `.vsixmanifest`, `InEditorExtension`); project folders with
+  files committed to git become `review` (`internal/scan/tracked.go`); rules can
+  list running programs that block cleaning (`busy`, `internal/app/busy.go`).
 - **Vault:** cleaning renames items into a vault on the same drive
   (`internal/vault/vault.go`), kept for 14 days by default (`DefaultKeepDays` in
   `internal/config/config.go`). Restore is exact. **Space only comes back when
@@ -76,9 +87,8 @@ Checked in this repo, not taken from marketing copy.
 - **Platforms:** macOS (universal), Windows (x64, ARM64), Linux (.deb amd64 and
   arm64, plus archives). Every OS is exercised in CI.
 - **Not present:**
-  - general disk browsing or a treemap;
+  - a treemap, or scanning drives outside the scan roots in one go;
   - user-defined rules;
-  - any check that the owning tool is running before moving its files;
   - hard-link folding on Windows (`stat_windows.go`).
 
 ## Competitors
@@ -144,7 +154,7 @@ v1.0.0, 2026-11-12, MIT.
   `npm install`").
 - Shows "workspace" last-modified age. `--older-than` filters by it.
 - Flags app-owned `node_modules` as sensitive (⚠) and hides them by default.
-  **Leftover currently doesn't; see the Qoder issue below.**
+  Leftover does the same for editor extensions since November 2026.
 - Deletion is permanent. It has `--dry-run`, `--json`, `--json-stream`, a Node
   API and `.npkillrc` for custom profiles.
 - Runs anywhere Node runs.
@@ -329,19 +339,14 @@ cache-vent. Several are new in 2026. The space is getting crowded.
    npkill covers project types Leftover doesn't: Unity, Unreal, Godot, Elixir,
    Haskell, Scala, Zig, CMake, coverage folders, `.angular`, `.nx`, `.vite`,
    Storybook and Docusaurus.
-2. **Safety signals.**
-   - npkill flags app-owned `node_modules`, and DevCleaner skips Git-tracked
-     files and running builds.
-   - Mole and DevCleaner check whether a tool is busy.
-   - **Leftover has none of these, and currently lists `node_modules` inside
-     editor extension folders such as `~/.qoder/extensions` as safe.** That is
-     a real bug: `skipNames` in `internal/scan/projects.go` only covers
-     `.vscode` and `.cursor`.
-3. **Docker.** DevCleaner and Mole actually reclaim Docker space through
-   Docker's own prune commands. Leftover only reports it.
-4. **Disk analysis.** WizTree, WinDirStat, DaisyDisk, Mole and CleanMyMac show
-   the whole disk. Leftover only shows what it recognises, and only under the
-   scan roots.
+2. **Safety signals.** Closed in November 2026: Leftover now skips editor
+   extensions, leaves committed folders alone and waits for running tools.
+   DevCleaner still has finer risk levels (four, against Leftover's verdicts).
+3. **Docker.** Leftover now prunes build cache and images through Docker.
+   DevCleaner also offers volumes (as Danger) and Compose hibernation.
+4. **Disk analysis.** Leftover's Explore lists any folder by size, but WizTree,
+   WinDirStat and DaisyDisk have treemaps or sunbursts, and WizTree's MFT
+   scanning is much faster on Windows.
 5. **Speed.** WizTree's MFT scanning is in a different class on Windows.
 6. **Freeing space now.** The vault means space isn't freed until it's emptied
    or expires. DevCleaner's by-risk policy frees cache space immediately.
@@ -350,24 +355,19 @@ cache-vent. Several are new in 2026. The space is getting crowded.
 
 In rough priority order:
 
-1. **Skip editor and app extension folders.** Treat any folder with a
-   `.vsixmanifest` or `package.json` inside an `extensions` directory as
-   app-owned. Add Qoder, Windsurf, Kiro, Trae, VS Code Insiders, VSCodium,
-   Positron and Zed to `skipNames`. This is a safety fix, so it comes first.
-2. **Busy-tool checks.** Skip or warn while the owning tool is running, for
-   example Gradle daemons, Xcode, Docker or Ollama.
-3. **Per-model Ollama breakdown** by reading the manifests. The landing page's
-   hero badge already implies this.
-4. **More project types**, matching npkill's profiles.
-5. **Docker:** cover native Linux Docker, OrbStack and Colima. Offer a guided
-   build-cache and dangling-image prune, never volumes.
-6. **A "free it now" option** for `rebuild` items, so the vault isn't the only
+Done in November 2026: skipping editor extensions, busy-tool checks, leaving
+committed folders alone, npkill-level project coverage (except Elm, CMake and
+Nx), Docker on OrbStack, Colima and Linux with a guided prune, and Explore.
+Ollama was already broken down per model.
+
+Still open:
+
+1. **A treemap** for Explore, and scanning other drives (issue #20).
+2. **A "free it now" option** for `rebuild` items, so the vault isn't the only
    path. Or at least show clearly how much space the vault is holding.
-7. **Whole-drive view and other drives** (issue #20), probably a simple
-   treemap.
-8. **Simulators via `xcrun simctl delete unavailable`.**
-9. **User-defined rules**, similar to `.npkillrc`.
-10. **Project hibernation** (DevCleaner Pro's idea): archive an idle project's
+3. **Simulators via `xcrun simctl delete unavailable`.**
+4. **User-defined rules**, similar to `.npkillrc`.
+5. **Project hibernation** (DevCleaner Pro's idea): archive an idle project's
     source and lockfiles and restore it later.
 
 ### What nobody handles well yet
@@ -392,9 +392,9 @@ In rough priority order:
 
 ## Leftover claims on the landing page that the code doesn't fully back
 
-- **Hero badge, "Breaks down Ollama and Hugging Face models":** Hugging Face
-  and LM Studio are broken down per model. Ollama is one item for the whole
-  store.
+- **Hero badge, "Breaks down Ollama and Hugging Face models":** verified.
+  Hugging Face models are separate items, and Ollama's folder is broken down
+  per model from its manifests (an earlier version of this file got this wrong).
 - **CLI demo (`#docs`):** "140.8 GB … in 2,184 folders, 4.2s", the 61.3 GB
   clean, and the scan window's sizes are illustrative, not measured. The
   `leftover clean --idle 90` command itself is real.
