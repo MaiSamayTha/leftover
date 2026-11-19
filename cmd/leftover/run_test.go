@@ -87,3 +87,17 @@ func TestRunWithoutArgsOpensApp(t *testing.T) {
 		t.Fatal("run with no args should open the app")
 	}
 }
+
+func TestRunFromFinderOpensApp(t *testing.T) {
+	old := openApp
+	t.Cleanup(func() { openApp = old })
+	called := false
+	openApp = func([]string) error { called = true; return nil }
+
+	if _, err := captureRunStdout(t, func() error { return run([]string{"-psn_0_12345"}) }); err != nil {
+		t.Fatal(err)
+	}
+	if !called {
+		t.Fatal("opening Leftover.app from Finder should open the window")
+	}
+}
