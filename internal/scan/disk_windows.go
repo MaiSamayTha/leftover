@@ -1,4 +1,4 @@
-package ui
+package scan
 
 import (
 	"syscall"
@@ -7,9 +7,9 @@ import (
 
 var getDiskFreeSpaceEx = syscall.NewLazyDLL("kernel32.dll").NewProc("GetDiskFreeSpaceExW")
 
-// diskSpace reports the size of the disk holding path and how much of it is
+// DiskSpace reports the size of the disk holding path and how much of it is
 // free for this user.
-func diskSpace(path string) (total, free int64, ok bool) {
+func DiskSpace(path string) (total, free int64, ok bool) {
 	p, err := syscall.UTF16PtrFromString(path)
 	if err != nil {
 		return 0, 0, false

@@ -181,6 +181,22 @@
       "paths": { "all": ["~/.claude/projects", "~/.codex/sessions"] }
     },
     {
+      "id": "claude-code-scratch",
+      "tool": "Claude Code",
+      "kind": "Agent scratch",
+      "name": "Session scratch folder",
+      "verdict": "review",
+      "what": "Scratch files Claude Code sessions wrote outside your project, such as screenshots, test files and build output. There is one folder per project.",
+      "comeback": "Leftover only lists these, because a task that is still running may be using them. When no Claude Code session is open for that project, you can delete the folder yourself. Many systems also clear /tmp when they restart.",
+      "each": true,
+      "paths": {
+        "unix": ["{tmp}/claude-{uid}"]
+      },
+      "busy": [
+        { "name": "Claude Code", "process": ["claude"], "stop": "Finish or close your Claude Code sessions first." }
+      ]
+    },
+    {
       "id": "user-temp",
       "tool": "Your system",
       "kind": "Temporary files",
@@ -192,6 +208,20 @@
       "each": true,
       "min_age_days": 7,
       "paths": { "windows": ["{temp}"] }
+    },
+    {
+      "id": "unix-temp",
+      "tool": "Your system",
+      "kind": "Temporary files",
+      "name": "Old temporary files",
+      "verdict": "review",
+      "what": "Files and folders in your temporary folder that haven't been touched for over a week. Apps and coding agents leave scratch files here.",
+      "comeback": "Leftover only lists these: on macOS and Linux a program can keep using a temporary file for a long time, so check what made it before deleting it. macOS and most Linux systems also clear old temporary files on their own.",
+      "each": true,
+      "min_age_days": 7,
+      "paths": {
+        "unix": ["{temp}", "{tmp}"]
+      }
     }
   ]
 }

@@ -1,12 +1,12 @@
 //go:build darwin || linux
 
-package ui
+package scan
 
 import "syscall"
 
-// diskSpace reports the size of the disk holding path and how much of it is
+// DiskSpace reports the size of the disk holding path and how much of it is
 // free for this user.
-func diskSpace(path string) (total, free int64, ok bool) {
+func DiskSpace(path string) (total, free int64, ok bool) {
 	var st syscall.Statfs_t
 	if err := syscall.Statfs(path, &st); err != nil {
 		return 0, 0, false

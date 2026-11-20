@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -32,10 +31,10 @@ func cmdClean(args []string) error {
 	}
 	var err error
 	if f.minSize, err = parseSize(minSize); err != nil {
-		return err
+		return usageError("--min: %v", err)
 	}
 	if *asJSON && !*yes {
-		return errors.New("--json needs --yes, since there's no one to ask")
+		return usageError("--json needs --yes, since there's no one to ask")
 	}
 
 	a, err := app.Open()
@@ -61,10 +60,10 @@ func cmdClean(args []string) error {
 		for _, id := range ids {
 			it, ok := a.Find(id)
 			if !ok {
-				return fmt.Errorf("%s isn't in the last scan; run leftover scan and use an id from it", id)
+				return usageError("%s isn't in the last scan; run leftover scan and use an id from it", id)
 			}
 			if !it.Cleanable() {
-				return fmt.Errorf("%s (%s) is marked %q, so Leftover won't move it", id, it.Name, it.Verdict.Label())
+				return usageError("%s (%s) is marked %q, so Leftover won't move it", id, it.Name, it.Verdict.Label())
 			}
 			picked = append(picked, it)
 		}
@@ -136,7 +135,15 @@ func cmdClean(args []string) error {
 	}
 	outcomes := a.Clean(ids)
 	if *asJSON {
-		return printJSON(outcomes)
+		if err := printJSON(outcomes); err != nil {
+			return err
+		}
+		for _, o := range outcomes {
+			if o.Error != "" {
+				return partialError("some items weren't moved")
+			}
+		}
+		return nil
 	}
 	var moved int64
 	var failed int
@@ -155,7 +162,7 @@ func cmdClean(args []string) error {
 	fmt.Println()
 	fmt.Println(dim(fmt.Sprintf("The space is freed when the vault empties, after %d days or now with 'leftover vault empty'.", a.Settings.Keep())))
 	if failed > 0 {
-		return errors.New("some items weren't moved")
+		return partialError("some items weren't moved")
 	}
 	return nil
 }

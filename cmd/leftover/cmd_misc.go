@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"runtime"
 	"sort"
@@ -34,7 +33,7 @@ func cmdIgnore(args []string) error {
 		return nil
 	}
 	if len(args) != 2 {
-		return errors.New("usage: leftover ignore [list|add <path>|remove <path>]")
+		return usageError("usage: leftover ignore [list|add <path>|remove <path>]")
 	}
 	switch args[0] {
 	case "add":
@@ -48,7 +47,7 @@ func cmdIgnore(args []string) error {
 		}
 		fmt.Printf("%s will be scanned again.\n", tilde(args[1]))
 	default:
-		return fmt.Errorf("unknown ignore command %q", args[0])
+		return usageError("unknown ignore command %q", args[0])
 	}
 	return nil
 }

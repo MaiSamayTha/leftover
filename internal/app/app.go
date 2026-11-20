@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -144,6 +145,7 @@ func (a *App) Scan(ctx context.Context, onProgress func(scan.Progress)) (*scan.R
 		a.mu.Unlock()
 		return nil, emptied, err
 	}
+	a.noteBusy(ctx, res)
 	a.mu.Lock()
 	a.last = res
 	a.mu.Unlock()
@@ -217,6 +219,7 @@ type Outcome struct {
 func (a *App) Clean(ids []string) []Outcome {
 	var out []Outcome
 	bc := &busyChecker{ctx: context.Background()}
+	batch := strconv.FormatInt(time.Now().UnixNano(), 36)
 	for _, id := range ids {
 		it, ok := a.Find(id)
 		if !ok {
@@ -236,7 +239,7 @@ func (a *App) Clean(ids []string) []Outcome {
 			continue
 		}
 		e, err := a.Vault.Move(vault.Request{
-			Item: it.ID, Rule: it.Rule, Name: it.Name, Tool: it.Tool, Verdict: r.Verdict,
+			Item: it.ID, Rule: it.Rule, Name: it.Name, Tool: it.Tool, Verdict: r.Verdict, Batch: batch,
 			Bytes: it.Bytes, Project: it.Project, Paths: it.Paths,
 		})
 		if err != nil {
@@ -264,6 +267,23 @@ func (a *App) Busy(items []scan.Item) map[string]string {
 		}
 	}
 	return out
+}
+
+// noteBusy adds a note to items Leftover only lists, like an agent's
+// scratch folder, when the program that uses them is running right now.
+func (a *App) noteBusy(ctx context.Context, res *scan.Result) {
+	bc := &busyChecker{ctx: ctx}
+	for i := range res.Items {
+		it := &res.Items[i]
+		if it.Verdict != rules.Review {
+			continue
+		}
+		if r, ok := a.Scanner.Catalog.Get(it.Rule); ok {
+			if bz, busy := bc.check(r); busy {
+				it.Notes = append(it.Notes, bz.Name+" is running, so a task may still be using this.")
+			}
+		}
+	}
 }
 
 func (a *App) dropFromLast(id string) {

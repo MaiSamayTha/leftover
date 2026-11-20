@@ -83,6 +83,14 @@ type Result struct {
 	Roots    []string      `json:"roots"`
 	Host     string        `json:"os"`
 	Warnings []string      `json:"warnings,omitempty"`
+	// Disk is the drive holding your home folder, when it could be read.
+	Disk *Disk `json:"disk,omitempty"`
+}
+
+// Disk is the size of a drive and how much of it is free for you.
+type Disk struct {
+	Total int64 `json:"total"`
+	Free  int64 `json:"free"`
 }
 
 // Totals adds up a result by verdict.
@@ -140,6 +148,14 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 	report("locations", "")
 	var cands []candidate
 	covered := newPathSet(nil)
+	// claimed holds every location some rule reports, so a rule that lists a
+	// shared folder entry by entry (like /tmp) doesn't report it twice.
+	claimed := map[string]bool{}
+	for _, r := range s.Catalog.LocationRules() {
+		for _, loc := range r.Locations(s.Host) {
+			claimed[norm(loc)] = true
+		}
+	}
 	for _, r := range s.Catalog.LocationRules() {
 		for _, loc := range r.Locations(s.Host) {
 			if ignore.has(loc) {
@@ -163,7 +179,7 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 					continue
 				}
 				p := filepath.Join(loc, e.Name())
-				if !ignore.has(p) {
+				if !ignore.has(p) && !claimed[norm(p)] {
 					cands = append(cands, candidate{rule: r, paths: []string{p}})
 				}
 			}
@@ -288,6 +304,9 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 		return res.Items[a].Paths[0] < res.Items[b].Paths[0]
 	})
 	res.Folders = sizer.Visited.Load()
+	if total, free, ok := DiskSpace(s.Host.Home); ok && total > 0 {
+		res.Disk = &Disk{Total: total, Free: free}
+	}
 	res.Took = time.Since(start)
 	report("done", "")
 	return res, nil
@@ -323,6 +342,7 @@ var generated = map[string]bool{
 	"dist": true, ".DS_Store": true, "_build": true, "deps": true, ".stack-work": true,
 	"dist-newstyle": true, ".zig-cache": true, "zig-cache": true, "zig-out": true, ".cpcache": true,
 	".angular": true, ".docusaurus": true, "storybook-static": true, "coverage": true,
+	"htmlcov": true, ".nyc_output": true,
 	"Library": true, "Temp": true, "Intermediate": true, "DerivedDataCache": true, ".godot": true,
 }
 

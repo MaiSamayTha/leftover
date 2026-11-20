@@ -133,6 +133,7 @@ leftover clean                   review the plan, then move safe items to the va
 leftover clean 3fa1c09e2b7d      clean specific items by id
 leftover vault                   see what's in the vault and how long it has left
 leftover vault restore <id>      put something back
+leftover vault restore --last    undo the most recent clean
 leftover vault empty --expired   free the space from expired items now
 leftover history                 every move, restore and deletion Leftover has made
 leftover ignore add ~/work/big   never look inside a folder
@@ -144,6 +145,18 @@ leftover update                  check for a newer version and install it
 ```
 
 Add `--json` to `scan`, `why`, `explore`, `docker`, `vault`, `history` or `rules` for machine-readable output. `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
+
+### Exit codes
+
+So `leftover clean --yes --idle 30` can run from cron or a CI runner:
+
+| Code | Meaning |
+|---|---|
+| `0` | Done. This includes "nothing to clear" and items skipped because a program was using them. |
+| `1` | Something went wrong, such as an unreadable data folder or a failed scan. |
+| `2` | Bad usage: an unknown command or flag, a bad value, or an id that isn't in the last scan. |
+| `3` | Partly done: some items couldn't be moved (`clean`) or restored (`vault restore`). The rest were. |
+| `130` | Stopped with Ctrl-C. |
 
 A note on space: moving into the vault is a rename, so the space comes back when the vault is emptied, after 14 days (automatically, at the start of the next scan) or right away with **Empty Vault** / `leftover vault empty`.
 

@@ -245,6 +245,21 @@
           "lcov-report"
         ]
       }
+    },
+    {
+      "id": "nyc-output",
+      "tool": "nyc",
+      "kind": "Report",
+      "name": ".nyc_output",
+      "verdict": "rebuild",
+      "what": "Raw coverage data nyc (Istanbul) collects while your tests run, before turning it into a report.",
+      "comeback": "nyc writes it again the next time you run your tests with it.",
+      "source": "https://github.com/istanbuljs/nyc#configuration-files",
+      "project": {
+        "dirs": [".nyc_output"],
+        "beside": ["package.json"],
+        "inside": ["processinfo"]
+      }
     }
   ]
 }

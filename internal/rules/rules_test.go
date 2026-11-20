@@ -121,3 +121,14 @@ func TestBesideGlobs(t *testing.T) {
 		t.Error("no beside rule means any folder qualifies")
 	}
 }
+
+func TestExpandUID(t *testing.T) {
+	h := Host{OS: "linux", Home: "/home/sam", UID: "1000"}
+	if got := h.Expand("/tmp/claude-{uid}"); got != "/tmp/claude-1000" {
+		t.Errorf("got %q", got)
+	}
+	h.UID = ""
+	if got := h.Expand("/tmp/claude-{uid}"); got != "" {
+		t.Errorf("without a uid the path must be skipped, got %q", got)
+	}
+}

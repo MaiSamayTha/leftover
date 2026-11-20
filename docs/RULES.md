@@ -72,6 +72,8 @@ Paths start with `~` or a placeholder, never a relative path:
 | `{localappdata}` | — | — | `%LOCALAPPDATA%` |
 | `{appdata}` | — | — | `%APPDATA%` |
 | `{temp}` | `$TMPDIR` | `$TMPDIR` or `/tmp` | `%TEMP%` |
+| `{tmp}` | `/private/tmp` | `/tmp` | — |
+| `{uid}` | your user id, anywhere in a path, e.g. `{tmp}/claude-{uid}` | same | — |
 
 Absolute paths like `/usr/share/ollama` work on macOS and Linux.
 

@@ -30,7 +30,13 @@ func testApp(t *testing.T) (*App, string) {
 	put(t, filepath.Join(home, ".claude/projects/chat.jsonl"), 9_000)
 	s := &scan.Scanner{
 		Catalog: rules.MustLoad(),
-		Host:    rules.Host{OS: "linux", Home: home, Getenv: func(string) string { return "" }},
+		Host: rules.Host{OS: "linux", Home: home, Getenv: func(k string) string {
+			// Keep {temp} inside the fake home, never the real /tmp.
+			if k == "TMPDIR" || k == "LEFTOVER_TMP" {
+				return filepath.Join(home, "tmp")
+			}
+			return ""
+		}},
 	}
 	a, err := OpenAt(filepath.Join(home, ".local/share/leftover"), s)
 	if err != nil {

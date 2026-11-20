@@ -17,7 +17,13 @@ import (
 func testServer(t *testing.T) *Server {
 	t.Helper()
 	home := t.TempDir()
-	s := &scan.Scanner{Catalog: rules.MustLoad(), Host: rules.Host{OS: "linux", Home: home, Getenv: func(string) string { return "" }}}
+	s := &scan.Scanner{Catalog: rules.MustLoad(), Host: rules.Host{OS: "linux", Home: home, Getenv: func(k string) string {
+		// Keep {temp} inside the fake home, never the real /tmp.
+		if k == "TMPDIR" {
+			return filepath.Join(home, "tmp")
+		}
+		return ""
+	}}}
 	a, err := app.OpenAt(filepath.Join(home, "data"), s)
 	if err != nil {
 		t.Fatal(err)

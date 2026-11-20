@@ -285,3 +285,23 @@ func TestCrashMidMoveStillRestorable(t *testing.T) {
 		t.Fatal("file not back")
 	}
 }
+
+func TestLastClean(t *testing.T) {
+	t0 := time.Now()
+	es := []Entry{
+		{ID: "a", Batch: "1", Created: t0},
+		{ID: "b", Batch: "2", Created: t0.Add(time.Minute)},
+		{ID: "c", Batch: "2", Created: t0.Add(2 * time.Minute)},
+		{ID: "d", Created: t0.Add(-time.Hour)},
+	}
+	got := LastClean(es)
+	if len(got) != 2 || got[0].ID != "b" || got[1].ID != "c" {
+		t.Fatalf("want b and c, got %+v", got)
+	}
+	if got := LastClean([]Entry{{ID: "old", Created: t0}}); len(got) != 1 || got[0].ID != "old" {
+		t.Fatalf("an entry from before batches is undone on its own, got %+v", got)
+	}
+	if LastClean(nil) != nil {
+		t.Fatal("empty vault has no last clean")
+	}
+}

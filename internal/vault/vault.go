@@ -48,6 +48,9 @@ type Entry struct {
 	Project string        `json:"project,omitempty"`
 	// Paths are the original locations, in the order they were moved.
 	Paths []string `json:"paths"`
+	// Batch is shared by every entry moved in one clean, so the whole
+	// clean can be undone at once.
+	Batch string `json:"batch,omitempty"`
 
 	dir string // the entry's folder inside a vault
 }
@@ -65,6 +68,8 @@ type Request struct {
 	Bytes   int64
 	Project string
 	Paths   []string
+	// Batch groups entries moved in one clean.
+	Batch string
 }
 
 // Vault manages every vault folder Leftover has made.
@@ -142,6 +147,7 @@ func (v *Vault) Move(req Request) (Entry, error) {
 		Expires: now.Add(time.Duration(v.KeepDays) * 24 * time.Hour),
 		Item:    req.Item, Rule: req.Rule, Name: req.Name, Tool: req.Tool, Verdict: req.Verdict,
 		Bytes: req.Bytes, Project: req.Project, Paths: append([]string(nil), req.Paths...),
+		Batch: req.Batch,
 	}
 	e.dir = filepath.Join(root, e.ID)
 	if err := os.MkdirAll(filepath.Join(e.dir, "items"), 0o700); err != nil {
@@ -494,4 +500,29 @@ func friendly(err error) error {
 		return le.Err
 	}
 	return err
+}
+
+// LastClean returns the entries moved by the most recent clean that are
+// still in the vault: every entry sharing the newest entry's batch, or just
+// the newest entry when it predates batches.
+func LastClean(entries []Entry) []Entry {
+	var newest *Entry
+	for i := range entries {
+		if newest == nil || entries[i].Created.After(newest.Created) {
+			newest = &entries[i]
+		}
+	}
+	if newest == nil {
+		return nil
+	}
+	if newest.Batch == "" {
+		return []Entry{*newest}
+	}
+	var out []Entry
+	for _, e := range entries {
+		if e.Batch == newest.Batch {
+			out = append(out, e)
+		}
+	}
+	return out
 }

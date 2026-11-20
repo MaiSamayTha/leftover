@@ -136,6 +136,21 @@
       "paths": {
         "all": ["~/miniconda3/envs", "~/anaconda3/envs", "~/miniforge3/envs", "~/.conda/envs"]
       }
+    },
+    {
+      "id": "coverage-py-html",
+      "tool": "coverage.py",
+      "kind": "Report",
+      "name": "htmlcov",
+      "verdict": "rebuild",
+      "what": "An HTML test coverage report written by coverage.py (or pytest-cov).",
+      "comeback": "Written again the next time you run coverage html, or your tests with an HTML coverage report.",
+      "source": "https://coverage.readthedocs.io/en/latest/cmd.html#html-reporting",
+      "project": {
+        "dirs": ["htmlcov"],
+        "beside": ["pyproject.toml", "setup.py", "setup.cfg", "tox.ini", "requirements.txt", ".coveragerc", "Pipfile"],
+        "inside": ["status.json"]
+      }
     }
   ]
 }

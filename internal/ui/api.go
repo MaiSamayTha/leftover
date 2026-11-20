@@ -80,7 +80,7 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 		add(e.Rule)
 	}
 	var d *disk
-	if total, free, ok := diskSpace(s.App.Scanner.Host.Home); ok && total > 0 {
+	if total, free, ok := scan.DiskSpace(s.App.Scanner.Host.Home); ok && total > 0 {
 		d = &disk{Total: total, Free: free}
 	}
 	writeJSON(w, stateResponse{

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -93,6 +94,10 @@ func fakeHome(t *testing.T) string {
 	// isn't treated as part of it and skipped.
 	t.Setenv("TEMP", filepath.Join(home, "AppData", "Local", "Temp"))
 	t.Setenv("TMP", filepath.Join(home, "AppData", "Local", "Temp"))
+	// Temporary folders are scanned too; keep them inside the fake home.
+	os.MkdirAll(filepath.Join(home, "tmp"), 0o755)
+	t.Setenv("TMPDIR", filepath.Join(home, "tmp"))
+	t.Setenv("LEFTOVER_TMP", filepath.Join(home, "tmp"))
 	t.Setenv("NO_COLOR", "1")
 
 	web := filepath.Join(home, "code", "web")
@@ -171,5 +176,64 @@ func TestBadFlagValuesAreErrors(t *testing.T) {
 		if _, err := captureRunStdout(t, func() error { return run(args) }); err == nil {
 			t.Errorf("leftover %s should fail", strings.Join(args, " "))
 		}
+	}
+}
+
+func TestScanSaysWhenEverythingIsUnderMin(t *testing.T) {
+	fakeHome(t)
+	out, err := captureRunStdout(t, func() error { return run([]string{"scan", "-q", "--min", "1GB"}) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, "0 B can be cleared") {
+		t.Fatalf("a scan with only small items must not claim 0 B:\n%s", out)
+	}
+	if !strings.Contains(out, "Nothing over 1.0 GB to clear") || !strings.Contains(out, "--min 0") {
+		t.Fatalf("should say what's hidden and how to see it:\n%s", out)
+	}
+}
+
+func TestVaultRestoreLastUndoesTheLatestClean(t *testing.T) {
+	nm := fakeHome(t)
+	if _, err := captureRunStdout(t, func() error { return run([]string{"clean", "--yes"}) }); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(nm); err == nil {
+		t.Fatal("clean --yes should have moved node_modules")
+	}
+	out, err := captureRunStdout(t, func() error { return run([]string{"vault", "restore", "--last"}) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(nm); err != nil {
+		t.Fatalf("vault restore --last should have put node_modules back:\n%s", out)
+	}
+	if _, err := captureRunStdout(t, func() error { return run([]string{"vault", "restore", "--last", "abc"}) }); err == nil {
+		t.Fatal("ids and --last together must be refused")
+	}
+}
+
+func TestExitCodes(t *testing.T) {
+	fakeHome(t)
+	for _, c := range []struct {
+		args []string
+		want int
+	}{
+		{[]string{"scan", "-q"}, exitOK},
+		{[]string{"nope"}, exitUsage},
+		{[]string{"scan", "--no-such-flag"}, exitUsage},
+		{[]string{"scan", "--min", "lots"}, exitUsage},
+		{[]string{"clean", "--json"}, exitUsage},
+		{[]string{"vault", "restore"}, exitUsage},
+		{[]string{"vault", "restore", "nosuchid"}, exitPartial},
+		{[]string{"scan", "-h"}, exitOK},
+	} {
+		_, err := captureRunStdout(t, func() error { return run(c.args) })
+		if got := exitCode(err); got != c.want {
+			t.Errorf("%v: exit %d, want %d (err: %v)", c.args, got, c.want, err)
+		}
+	}
+	if exitCode(context.Canceled) != exitInterrupted {
+		t.Error("a cancelled scan should exit 130")
 	}
 }

@@ -34,10 +34,11 @@ var commands []command
 func register(c command) { commands = append(commands, c) }
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
+	err := run(os.Args[1:])
+	if err != nil && !errors.Is(err, flag.ErrHelp) {
 		fmt.Fprintln(os.Stderr, "leftover:", err)
-		os.Exit(1)
 	}
+	os.Exit(exitCode(err))
 }
 
 func run(args []string) error {
@@ -62,7 +63,7 @@ func run(args []string) error {
 		}
 	}
 	usage(os.Stderr)
-	return fmt.Errorf("unknown command %q", args[0])
+	return usageError("unknown command %q", args[0])
 }
 
 func usage(w io.Writer) {
@@ -93,10 +94,10 @@ var openApp = func(args []string) error {
 	return nil
 }
 
-func newFlags(name string) *flag.FlagSet {
+func newFlags(name string) flagSet {
 	fs := flag.NewFlagSet("leftover "+name, flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
-	return fs
+	return flagSet{fs}
 }
 
 // interruptible returns a context cancelled by Ctrl-C.
@@ -138,7 +139,7 @@ func (f filter) keep(it scan.Item) bool {
 	return true
 }
 
-func addFilterFlags(fs *flag.FlagSet, f *filter, minSize *string) {
+func addFilterFlags(fs flagSet, f *filter, minSize *string) {
 	fs.BoolVar(&f.all, "all", false, "show small items Leftover won't clean, too")
 	fs.StringVar(minSize, "min", "1MB", "hide items smaller than this (e.g. 500MB)")
 	fs.IntVar(&f.idle, "idle", 0, "only items whose project hasn't changed in this many days")
@@ -157,7 +158,7 @@ func cmdScan(args []string) error {
 	}
 	var err error
 	if f.minSize, err = parseSize(minSize); err != nil {
-		return err
+		return usageError("--min: %v", err)
 	}
 
 	a, err := app.Open()
@@ -178,7 +179,7 @@ func cmdScan(args []string) error {
 	}
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
-			return errors.New("scan cancelled")
+			return &exitErr{exitInterrupted, errors.New("scan cancelled")}
 		}
 		return err
 	}
@@ -206,6 +207,16 @@ func printScan(res *scan.Result, f filter) {
 		{"Your data (never cleaned)", []rules.Verdict{rules.Keep}},
 	}
 	var safe int64
+	var shown, hidden int
+	var hiddenBytes int64
+	for _, it := range res.Items {
+		if f.keep(it) {
+			shown++
+		} else if it.Cleanable() {
+			hidden++
+			hiddenBytes += it.Bytes
+		}
+	}
 	for _, g := range groups {
 		var items []scan.Item
 		var total int64
@@ -255,11 +266,27 @@ func printScan(res *scan.Result, f filter) {
 			}
 		}
 	}
-	fmt.Printf("\n%s in %d folders, %.1fs.", bold(human(safe)+" can be cleared safely"), res.Folders, res.Took.Seconds())
-	if safe > 0 {
-		fmt.Printf(" Run %s to review and clear it.\n", bold("leftover clean"))
+	took := fmt.Sprintf("Looked through %d folders in %.1fs.", res.Folders, res.Took.Seconds())
+	switch {
+	case shown == 0 && hidden > 0:
+		what := fmt.Sprintf("%d smaller items (%s in all) are hidden; show them", hidden, human(hiddenBytes))
+		if hidden == 1 {
+			what = fmt.Sprintf("1 smaller item (%s) is hidden; show it", human(hiddenBytes))
+		}
+		fmt.Printf("\n%s %s with %s.\n", bold("Nothing over "+human(f.minSize)+" to clear."), what, bold("--min 0"))
+	case safe > 0:
+		fmt.Printf("\n%s. Run %s to review and clear it.\n", bold(human(safe)+" can be cleared safely"), bold("leftover clean"))
+	default:
+		fmt.Printf("\n%s\n", bold("Nothing to clear right now."))
+	}
+	if d := res.Disk; d != nil {
+		line := fmt.Sprintf("%s free of %s on this disk", human(d.Free), human(d.Total))
+		if after := human(d.Free + safe); after != human(d.Free) {
+			line += "; clearing would make it " + after
+		}
+		fmt.Println(dim(line + ". " + took))
 	} else {
-		fmt.Println()
+		fmt.Println(dim(took))
 	}
 }
 

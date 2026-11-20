@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -20,7 +19,7 @@ func cmdWhy(args []string) error {
 		return err
 	}
 	if fs.NArg() != 1 {
-		return errors.New("usage: leftover why <path>")
+		return usageError("usage: leftover why <path>")
 	}
 	a, err := app.Open()
 	if err != nil {

@@ -4,7 +4,18 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- **Coding agent scratch folders:** Claude Code's per-session scratch folders in `/tmp` are listed, one per project, as worth a look. Leftover never moves them, and says when Claude Code is running, since a task may still be using them.
+- **Old temporary files on macOS and Linux:** anything in your temporary folder untouched for over a week is listed as worth a look, never cleaned.
+- **Test coverage:** coverage.py's `htmlcov` and nyc's `.nyc_output` are recognised beside a project.
+- `leftover vault restore --last` puts back everything from the most recent clean.
+- `leftover scan` shows your disk's free space and how much clearing would add, and `--json` includes it.
+- Documented exit codes for scripts, cron and CI: 0 done, 1 error, 2 bad usage, 3 partly done, 130 interrupted.
+
 ### Fixed
+
+- When everything found is under `--min`, `leftover scan` now says nothing is over that size and how many smaller items are hidden, instead of "0 B can be cleared safely in 5 folders".
 
 - On macOS, Explore and the project scan no longer open your Photos library, Contacts or Calendars, so macOS no longer asks for access to your photos. Explore lists them as not opened.
 

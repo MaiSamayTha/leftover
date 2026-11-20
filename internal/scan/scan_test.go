@@ -59,7 +59,13 @@ func fakeHome(t *testing.T) string {
 func scanner(home string) *Scanner {
 	return &Scanner{
 		Catalog: rules.MustLoad(),
-		Host:    rules.Host{OS: "linux", Home: home, Getenv: func(string) string { return "" }},
+		Host: rules.Host{OS: "linux", Home: home, Getenv: func(k string) string {
+			// Keep {temp} inside the fake home, never the real /tmp.
+			if k == "TMPDIR" || k == "LEFTOVER_TMP" {
+				return filepath.Join(home, "tmp")
+			}
+			return ""
+		}},
 	}
 }
 
@@ -423,6 +429,10 @@ func TestMoreProjectTypes(t *testing.T) {
 	write(t, filepath.Join(home, "code/web/coverage/lcov.info"), 4_000)
 	write(t, filepath.Join(home, "code/notes/package.json"), 10)
 	write(t, filepath.Join(home, "code/notes/coverage/insurance.pdf"), 4_000)
+	write(t, filepath.Join(home, "code/web/.nyc_output/processinfo/index.json"), 4_000)
+	write(t, filepath.Join(home, "code/py/pyproject.toml"), 10)
+	write(t, filepath.Join(home, "code/py/htmlcov/status.json"), 4_000)
+	write(t, filepath.Join(home, "code/notes/htmlcov/status.json"), 4_000) // no Python project here
 	// Godot is shown but never offered: it can hold export credentials.
 	write(t, filepath.Join(home, "games/plat/project.godot"), 10)
 	write(t, filepath.Join(home, "games/plat/.godot/imported/a.ctex"), 4_000)
@@ -432,7 +442,7 @@ func TestMoreProjectTypes(t *testing.T) {
 		t.Fatal(err)
 	}
 	got := byRule(res)
-	for rule, n := range map[string]int{"unity-library": 1, "elixir-build": 1, "elixir-deps": 1, "zig-cache": 2, "coverage-report": 1, "godot-cache": 1} {
+	for rule, n := range map[string]int{"unity-library": 1, "elixir-build": 1, "elixir-deps": 1, "zig-cache": 2, "coverage-report": 1, "nyc-output": 1, "coverage-py-html": 1, "godot-cache": 1} {
 		if len(got[rule]) != n {
 			t.Errorf("%s: found %d, want %d", rule, len(got[rule]), n)
 		}
@@ -479,5 +489,50 @@ func TestTree(t *testing.T) {
 	}
 	if n.Find(filepath.Dir(root)) != nil {
 		t.Fatal("Find must not return anything outside the tree")
+	}
+}
+
+func TestAgentScratchAndOldTempFiles(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Unix paths")
+	}
+	root := t.TempDir()
+	home := filepath.Join(root, "home")
+	tmp := filepath.Join(root, "tmp")
+	os.MkdirAll(home, 0o755)
+	// Claude Code's scratch folder sits in the shared temp folder, so the
+	// temp rule must not list it again.
+	scratch := filepath.Join(tmp, "claude-501")
+	write(t, filepath.Join(scratch, "-Users-sam-app/shot.png"), 40_000)
+	write(t, filepath.Join(tmp, "old-build/out.bin"), 30_000)
+	write(t, filepath.Join(tmp, "fresh/out.bin"), 30_000)
+	old := time.Now().Add(-30 * 24 * time.Hour)
+	for _, p := range []string{filepath.Join(tmp, "old-build/out.bin"), filepath.Join(tmp, "old-build"), filepath.Join(scratch, "-Users-sam-app/shot.png")} {
+		os.Chtimes(p, old, old)
+	}
+
+	s := &Scanner{Catalog: rules.MustLoad(), Host: rules.Host{OS: "linux", Home: home, UID: "501", Getenv: func(k string) string {
+		if k == "TMPDIR" || k == "LEFTOVER_TMP" {
+			return tmp
+		}
+		return ""
+	}}}
+	res, err := s.Scan(context.Background(), Options{SkipProjects: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := byRule(res)
+	if n := len(got["claude-code-scratch"]); n != 1 {
+		t.Fatalf("want 1 scratch folder, got %d", n)
+	}
+	if it := got["claude-code-scratch"][0]; it.Verdict != rules.Review || it.Cleanable() {
+		t.Errorf("agent scratch must be review-only, got %s", it.Verdict)
+	}
+	temp := got["unix-temp"]
+	if len(temp) != 1 || filepath.Base(temp[0].Paths[0]) != "old-build" {
+		t.Fatalf("want only old-build as an old temp file, got %+v", temp)
+	}
+	if temp[0].Cleanable() {
+		t.Error("old temp files on Unix must be review-only")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -13,12 +14,19 @@ type Host struct {
 	OS     string // runtime.GOOS value
 	Home   string
 	Getenv func(string) string
+	// UID is the numeric user id on macOS and Linux, for paths like
+	// /tmp/claude-{uid}. Empty on Windows.
+	UID string
 }
 
 // CurrentHost describes the machine Leftover is running on.
 func CurrentHost() Host {
 	home, _ := os.UserHomeDir()
-	return Host{OS: runtime.GOOS, Home: home, Getenv: os.Getenv}
+	h := Host{OS: runtime.GOOS, Home: home, Getenv: os.Getenv}
+	if uid := os.Getuid(); uid >= 0 {
+		h.UID = strconv.Itoa(uid)
+	}
+	return h
 }
 
 func (h Host) env(k string) string {
@@ -97,6 +105,12 @@ func (h Host) placeholder(name string) string {
 				return filepath.ToSlash(filepath.Clean(t))
 			}
 			return "/tmp"
+		case "tmp":
+			if t := h.env("LEFTOVER_TMP"); t != "" {
+				return filepath.ToSlash(filepath.Clean(t))
+			}
+			// /tmp is a link on macOS, and links are never followed.
+			return "/private/tmp"
 		}
 	default: // linux and other unixes
 		switch name {
@@ -111,6 +125,11 @@ func (h Host) placeholder(name string) string {
 				return filepath.ToSlash(filepath.Clean(t))
 			}
 			return "/tmp"
+		case "tmp":
+			if t := h.env("LEFTOVER_TMP"); t != "" {
+				return filepath.ToSlash(filepath.Clean(t))
+			}
+			return "/tmp"
 		}
 	}
 	return ""
@@ -118,11 +137,17 @@ func (h Host) placeholder(name string) string {
 
 // Expand turns one catalogue path into a real path for this host. It
 // understands a leading ~ and the placeholders {cache}, {xdgcache}, {data},
-// {config}, {localappdata}, {appdata} and {temp}. It returns "" when the
-// path can't be expanded here.
+// {config}, {localappdata}, {appdata}, {temp} and {tmp}, and {uid} anywhere in the
+// path. It returns "" when the path can't be expanded here.
 func (h Host) Expand(p string) string {
 	if h.Home == "" {
 		return ""
+	}
+	if strings.Contains(p, "{uid}") {
+		if h.UID == "" {
+			return ""
+		}
+		p = strings.ReplaceAll(p, "{uid}", h.UID)
 	}
 	var head, rest string
 	switch {

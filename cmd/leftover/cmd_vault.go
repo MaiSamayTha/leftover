@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -27,7 +26,7 @@ func cmdVault(args []string) error {
 	case "empty":
 		return vaultEmpty(args)
 	}
-	return fmt.Errorf("unknown vault command %q (use list, restore or empty)", sub)
+	return usageError("unknown vault command %q (use list, restore or empty)", sub)
 }
 
 func vaultList(args []string) error {
@@ -69,25 +68,43 @@ func vaultList(args []string) error {
 		fmt.Printf("  %s  %s  %s  %s  %s\n", dim(e.ID), lpad(human(e.Bytes), 8), pad(clip(e.Name, 24), 24), pad(clip(tilde(where), 40), 40), state)
 	}
 	fmt.Printf("\n%s held. Restore with %s, or free the space now with %s.\n",
-		bold(human(total)), bold("leftover vault restore <id>"), bold("leftover vault empty"))
+		bold(human(total)), bold("leftover vault restore <id>")+" (or "+bold("--last")+")", bold("leftover vault empty"))
 	return nil
 }
 
 func vaultRestore(args []string) error {
 	fs := newFlags("vault restore")
 	strict := fs.Bool("strict", false, "fail instead of restoring beside a folder that came back")
+	last := fs.Bool("last", false, "restore everything from the most recent clean")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	if fs.NArg() == 0 {
-		return errors.New("usage: leftover vault restore <id> [id...]")
+	if fs.NArg() == 0 && !*last {
+		return usageError("usage: leftover vault restore <id> [id...], or --last")
+	}
+	if fs.NArg() > 0 && *last {
+		return usageError("give ids or --last, not both")
 	}
 	a, err := app.Open()
 	if err != nil {
 		return err
 	}
+	ids := fs.Args()
+	if *last {
+		entries, err := a.Vault.List()
+		if err != nil {
+			return err
+		}
+		for _, e := range vault.LastClean(entries) {
+			ids = append(ids, e.ID)
+		}
+		if len(ids) == 0 {
+			fmt.Println("The vault is empty; there's nothing to put back.")
+			return nil
+		}
+	}
 	var failed bool
-	for _, id := range fs.Args() {
+	for _, id := range ids {
 		e, restored, err := a.Vault.Restore(id, *strict)
 		if err != nil {
 			failed = true
@@ -103,7 +120,7 @@ func vaultRestore(args []string) error {
 		}
 	}
 	if failed {
-		return errors.New("some items weren't restored")
+		return partialError("some items weren't restored")
 	}
 	return nil
 }
