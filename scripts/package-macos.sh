@@ -45,7 +45,22 @@ ditto -c -k --keepParent "$app" "$out/Leftover-macos.zip"
 ln -s /Applications "$work/dmg/Applications"
 dmg="$out/Leftover.dmg"
 rm -f "$dmg"
-hdiutil create -quiet -volname "Leftover" -srcfolder "$work/dmg" -fs HFS+ -format UDZO -ov "$dmg"
+# hdiutil occasionally writes an image that won't mount ("corrupt image"),
+# seen on GitHub's macOS runners. Check each one opens, and try again.
+ok=
+for try in 1 2 3; do
+  rm -f "$dmg"
+  hdiutil create -quiet -volname "Leftover" -srcfolder "$work/dmg" -fs HFS+ -format UDZO -ov "$dmg" || continue
+  check=$(mktemp -d)
+  if hdiutil attach -quiet -nobrowse -readonly -mountpoint "$check" "$dmg"; then
+    hdiutil detach -quiet "$check" || hdiutil detach -force "$check"
+    ok=1
+    break
+  fi
+  echo "package-macos: Leftover.dmg didn't open (try $try of 3); making it again" >&2
+  sleep 2
+done
+[ -n "$ok" ] || { echo "package-macos: couldn't make a Leftover.dmg that opens" >&2; exit 1; }
 
 if [ -n "${MACOS_SIGN_IDENTITY:-}" ]; then
   codesign --force --timestamp --sign "$MACOS_SIGN_IDENTITY" "$dmg"
