@@ -1,16 +1,16 @@
 {
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Explains the space your dev tools leave behind and clears it safely.",
     "homepage": "https://maisamaytha.github.io/leftover/",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.2/leftover-windows-amd64.zip",
-            "hash": "19a1076805eec0b919325c3ffc07ed3c56e341948b05a4b1ed6a39c273808308"
+            "url": "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.3/leftover-windows-amd64.zip",
+            "hash": "638dd414c2e6504af4faa2ff888e0b2dac4b2ad5545e2037eed70248153225bf"
         },
         "arm64": {
-            "url": "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.2/leftover-windows-arm64.zip",
-            "hash": "c192eb7e619674ceed9a373108f3c602d00db28c255dfdbdc283ed2e37f4147e"
+            "url": "https://github.com/MaiSamayTha/leftover/releases/download/v0.1.3/leftover-windows-arm64.zip",
+            "hash": "e58ccf807f96a23d978e3d6f497fbcd14d9fd7a9af7c71ae95dbbd011d97632e"
         }
     },
     "bin": "leftover.exe",
