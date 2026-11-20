@@ -363,7 +363,7 @@ func (a *App) Explain(path string) (*rules.Rule, string) {
 	for i := range cat.Rules {
 		r := &cat.Rules[i]
 		for _, loc := range r.Locations(h) {
-			if sameOrUnder(abs, loc) {
+			if sameOrUnder(abs, loc) && !scan.ContainsHome(loc, h.Home) {
 				return r, loc
 			}
 		}

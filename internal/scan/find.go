@@ -158,7 +158,7 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 	}
 	for _, r := range s.Catalog.LocationRules() {
 		for _, loc := range r.Locations(s.Host) {
-			if ignore.has(loc) {
+			if ignore.has(loc) || ContainsHome(loc, s.Host.Home) {
 				continue
 			}
 			info, err := os.Lstat(loc)
@@ -310,6 +310,17 @@ func (s *Scanner) Scan(ctx context.Context, opt Options) (*Result, error) {
 	res.Took = time.Since(start)
 	report("done", "")
 	return res, nil
+}
+
+// ContainsHome reports whether loc is the home folder or a folder above it,
+// like a temporary folder a test's home was made in. Such a location is
+// never reported, or it would hide every project inside it.
+func ContainsHome(loc, home string) bool {
+	if home == "" {
+		return false
+	}
+	rel, err := filepath.Rel(norm(loc), norm(home))
+	return err == nil && !startsWithParent(rel) && !filepath.IsAbs(rel)
 }
 
 func itemID(rule string, paths []string) string {

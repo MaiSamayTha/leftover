@@ -209,12 +209,10 @@ func printScan(res *scan.Result, f filter) {
 		{"Your data (never cleaned)", []rules.Verdict{rules.Keep}},
 	}
 	var safe int64
-	var shown, hidden int
+	var hidden int
 	var hiddenBytes int64
 	for _, it := range res.Items {
-		if f.keep(it) {
-			shown++
-		} else if it.Cleanable() {
+		if !f.keep(it) && it.Cleanable() {
 			hidden++
 			hiddenBytes += it.Bytes
 		}
@@ -270,7 +268,7 @@ func printScan(res *scan.Result, f filter) {
 	}
 	took := fmt.Sprintf("Looked through %d folders in %.1fs.", res.Folders, res.Took.Seconds())
 	switch {
-	case shown == 0 && hidden > 0:
+	case safe == 0 && hidden > 0:
 		what := fmt.Sprintf("%d smaller items (%s in all) are hidden; show them", hidden, human(hiddenBytes))
 		if hidden == 1 {
 			what = fmt.Sprintf("1 smaller item (%s) is hidden; show it", human(hiddenBytes))

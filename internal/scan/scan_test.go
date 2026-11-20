@@ -585,3 +585,19 @@ func TestToolRulesAddedIn014(t *testing.T) {
 		}
 	}
 }
+
+func TestContainsHome(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Unix paths")
+	}
+	for _, c := range []struct {
+		loc  string
+		want bool
+	}{
+		{"/tmp", true}, {"/tmp/home", true}, {"/tmp/home/x", false}, {"/tmp/other", false}, {"/var", false},
+	} {
+		if got := ContainsHome(c.loc, "/tmp/home"); got != c.want {
+			t.Errorf("ContainsHome(%q) = %v, want %v", c.loc, got, c.want)
+		}
+	}
+}

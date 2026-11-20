@@ -19,7 +19,7 @@ func testServer(t *testing.T) *Server {
 	home := t.TempDir()
 	s := &scan.Scanner{Catalog: rules.MustLoad(), Host: rules.Host{OS: "linux", Home: home, Getenv: func(k string) string {
 		// Keep {temp} inside the fake home, never the real /tmp.
-		if k == "TMPDIR" {
+		if k == "TMPDIR" || k == "LEFTOVER_TMP" {
 			return filepath.Join(home, "tmp")
 		}
 		return ""
