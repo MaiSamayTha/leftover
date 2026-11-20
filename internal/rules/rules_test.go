@@ -132,3 +132,14 @@ func TestExpandUID(t *testing.T) {
 		t.Errorf("without a uid the path must be skipped, got %q", got)
 	}
 }
+
+func TestExpandUser(t *testing.T) {
+	h := Host{OS: "linux", Home: "/home/sam", Getenv: env(map[string]string{"USER": "sam"})}
+	if got := h.Expand("~/.cache/bazel/_bazel_{user}"); got != "/home/sam/.cache/bazel/_bazel_sam" {
+		t.Errorf("got %q", got)
+	}
+	h.Getenv = env(nil)
+	if got := h.Expand("~/_bazel_{user}"); got != "" {
+		t.Errorf("without $USER the path must be skipped, got %q", got)
+	}
+}

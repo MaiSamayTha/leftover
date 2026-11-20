@@ -137,7 +137,7 @@ func (h Host) placeholder(name string) string {
 
 // Expand turns one catalogue path into a real path for this host. It
 // understands a leading ~ and the placeholders {cache}, {xdgcache}, {data},
-// {config}, {localappdata}, {appdata}, {temp} and {tmp}, and {uid} anywhere in the
+// {config}, {localappdata}, {appdata}, {temp} and {tmp}, and {uid} and {user} (from $USER) anywhere in the
 // path. It returns "" when the path can't be expanded here.
 func (h Host) Expand(p string) string {
 	if h.Home == "" {
@@ -148,6 +148,13 @@ func (h Host) Expand(p string) string {
 			return ""
 		}
 		p = strings.ReplaceAll(p, "{uid}", h.UID)
+	}
+	if strings.Contains(p, "{user}") {
+		u := h.env("USER")
+		if u == "" || strings.ContainsAny(u, `/\`) {
+			return ""
+		}
+		p = strings.ReplaceAll(p, "{user}", u)
 	}
 	var head, rest string
 	switch {

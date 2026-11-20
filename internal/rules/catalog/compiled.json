@@ -116,6 +116,101 @@
       "source": "https://maven.apache.org/guides/introduction/introduction-to-the-standard-directory-layout.html",
       "command": "mvn clean",
       "project": { "dirs": ["target"], "beside": ["pom.xml"] }
+    },
+    {
+      "id": "ccache",
+      "tool": "ccache",
+      "kind": "Compiler cache",
+      "name": "ccache cache",
+      "verdict": "rebuild",
+      "what": "Compiled C and C++ objects ccache keeps so rebuilding the same code is instant.",
+      "comeback": "ccache fills it again as you compile. The first builds afterwards are slower.",
+      "source": "https://ccache.dev/manual/latest.html#config_cache_dir",
+      "command": "ccache -C",
+      "env": [
+        {
+          "var": "CCACHE_DIR"
+        }
+      ],
+      "paths": {
+        "all": [
+          "~/.ccache"
+        ],
+        "darwin": [
+          "{cache}/ccache"
+        ],
+        "linux": [
+          "{xdgcache}/ccache"
+        ],
+        "windows": [
+          "{localappdata}/ccache"
+        ]
+      }
+    },
+    {
+      "id": "sccache",
+      "tool": "sccache",
+      "kind": "Compiler cache",
+      "name": "sccache cache",
+      "verdict": "rebuild",
+      "what": "Compiled Rust, C and C++ output sccache keeps on disk so the same code doesn't compile twice.",
+      "comeback": "sccache fills it again as you compile. The first builds afterwards are slower.",
+      "source": "https://github.com/mozilla/sccache/blob/main/docs/Local.md",
+      "env": [
+        {
+          "var": "SCCACHE_DIR"
+        }
+      ],
+      "paths": {
+        "darwin": [
+          "{cache}/Mozilla.sccache"
+        ],
+        "linux": [
+          "{xdgcache}/sccache"
+        ],
+        "windows": [
+          "{localappdata}/Mozilla/sccache"
+        ]
+      },
+      "busy": [
+        {
+          "name": "The sccache server",
+          "process": [
+            "sccache"
+          ],
+          "stop": "Stop it with sccache --stop-server."
+        }
+      ]
+    },
+    {
+      "id": "bazel-output",
+      "tool": "Bazel",
+      "kind": "Build output",
+      "name": "Bazel output base",
+      "verdict": "rebuild",
+      "what": "Everything Bazel built and fetched, with one folder per workspace, plus its own install and download cache.",
+      "comeback": "Bazel rebuilds and fetches it again on the next build of that workspace.",
+      "source": "https://bazel.build/remote/output-directories",
+      "command": "bazel clean --expunge",
+      "each": true,
+      "paths": {
+        "darwin": [
+          "/private/var/tmp/_bazel_{user}",
+          "{cache}/bazel/_bazel_{user}"
+        ],
+        "linux": [
+          "{xdgcache}/bazel/_bazel_{user}"
+        ]
+      },
+      "busy": [
+        {
+          "name": "A Bazel server",
+          "args": [
+            "A-server.jar"
+          ],
+          "stop": "Run bazel shutdown in the workspace first."
+        }
+      ]
     }
   ]
 }

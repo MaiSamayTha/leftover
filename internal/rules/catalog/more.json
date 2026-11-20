@@ -103,6 +103,60 @@
       "comeback": "terraform init downloads them again.",
       "source": "https://developer.hashicorp.com/terraform/cli/init",
       "project": { "dirs": [".terraform"], "beside": ["*.tf"], "inside": ["providers", "modules"] }
+    },
+    {
+      "id": "nuget-http-cache",
+      "tool": "NuGet",
+      "kind": "Package cache",
+      "name": "NuGet HTTP cache",
+      "verdict": "redownload",
+      "what": "Package feeds and downloads NuGet keeps to make restores faster.",
+      "comeback": "NuGet downloads what it needs again on the next restore.",
+      "source": "https://learn.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders",
+      "command": "dotnet nuget locals http-cache --clear",
+      "env": [
+        {
+          "var": "NUGET_HTTP_CACHE_PATH"
+        }
+      ],
+      "paths": {
+        "unix": [
+          "~/.local/share/NuGet/v3-cache",
+          "~/.local/share/NuGet/http-cache"
+        ],
+        "windows": [
+          "{localappdata}/NuGet/v3-cache",
+          "{localappdata}/NuGet/http-cache"
+        ]
+      }
+    },
+    {
+      "id": "visual-studio-vs",
+      "tool": "Visual Studio",
+      "kind": "IDE cache",
+      "name": ".vs",
+      "verdict": "review",
+      "what": "Visual Studio's per-solution folder: the IntelliSense database, browse cache and your solution options, such as open tabs and breakpoints.",
+      "comeback": "Visual Studio recreates it when you open the solution, but you lose that solution's open tabs, breakpoints and other options. Close Visual Studio before deleting it.",
+      "project": {
+        "dirs": [
+          ".vs"
+        ],
+        "beside": [
+          "*.sln",
+          "*.slnx",
+          "CMakeLists.txt"
+        ]
+      },
+      "busy": [
+        {
+          "name": "Visual Studio",
+          "process": [
+            "devenv"
+          ],
+          "stop": "Close Visual Studio first."
+        }
+      ]
     }
   ]
 }

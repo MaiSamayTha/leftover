@@ -260,6 +260,26 @@
         "beside": ["package.json"],
         "inside": ["processinfo"]
       }
+    },
+    {
+      "id": "wrangler-state",
+      "tool": "Cloudflare Wrangler",
+      "kind": "Local dev data",
+      "name": ".wrangler",
+      "verdict": "review",
+      "what": "Wrangler's local folder: build output, plus the data your local KV, D1, R2 and Durable Objects hold during wrangler dev.",
+      "comeback": "Wrangler recreates it, but the local data in .wrangler/state is gone for good. Delete .wrangler/tmp alone if you want to keep that data.",
+      "source": "https://developers.cloudflare.com/workers/local-development/local-data/",
+      "project": {
+        "dirs": [
+          ".wrangler"
+        ],
+        "beside": [
+          "wrangler.toml",
+          "wrangler.json",
+          "wrangler.jsonc"
+        ]
+      }
     }
   ]
 }

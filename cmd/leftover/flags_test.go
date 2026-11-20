@@ -98,6 +98,7 @@ func fakeHome(t *testing.T) string {
 	os.MkdirAll(filepath.Join(home, "tmp"), 0o755)
 	t.Setenv("TMPDIR", filepath.Join(home, "tmp"))
 	t.Setenv("LEFTOVER_TMP", filepath.Join(home, "tmp"))
+	t.Setenv("USER", "leftover-test")
 	t.Setenv("NO_COLOR", "1")
 
 	web := filepath.Join(home, "code", "web")
@@ -235,5 +236,26 @@ func TestExitCodes(t *testing.T) {
 	}
 	if exitCode(context.Canceled) != exitInterrupted {
 		t.Error("a cancelled scan should exit 130")
+	}
+}
+
+func TestReport(t *testing.T) {
+	fakeHome(t)
+	home, _ := os.UserHomeDir()
+	out, err := captureRunStdout(t, func() error { return run([]string{"report"}) })
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"# Leftover report", "## By verdict", "node_modules", "`~/"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("report should contain %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, home) {
+		t.Errorf("paths under home must be written with ~:\n%s", out)
+	}
+	js, err := captureRunStdout(t, func() error { return run([]string{"report", "--json"}) })
+	if err != nil || !strings.Contains(js, `"cleanable_bytes"`) || strings.Contains(js, home) {
+		t.Fatalf("report --json: %v\n%s", err, js)
 	}
 }

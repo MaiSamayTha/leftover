@@ -56,6 +56,8 @@ func run(args []string) error {
 	case "-v", "--version":
 		fmt.Println("leftover", version)
 		return nil
+	case "__complete": // called by the completion scripts; not listed
+		return cmdComplete(args[1:])
 	}
 	for _, c := range commands {
 		if c.name == args[0] {

@@ -74,6 +74,7 @@ Paths start with `~` or a placeholder, never a relative path:
 | `{temp}` | `$TMPDIR` | `$TMPDIR` or `/tmp` | `%TEMP%` |
 | `{tmp}` | `/private/tmp` | `/tmp` | — |
 | `{uid}` | your user id, anywhere in a path, e.g. `{tmp}/claude-{uid}` | same | — |
+| `{user}` | your user name from `$USER`, anywhere in a path, e.g. `{xdgcache}/bazel/_bazel_{user}` | same | — |
 
 Absolute paths like `/usr/share/ollama` work on macOS and Linux.
 

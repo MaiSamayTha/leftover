@@ -52,6 +52,7 @@ class Leftover < Formula
 
   def install
     bin.install "leftover"
+    generate_completions_from_executable(bin/"leftover", "completion", shells: [:bash, :zsh, :fish])
   end
 
   test do

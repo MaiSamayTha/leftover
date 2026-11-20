@@ -78,6 +78,98 @@
       "comeback": "Downloaded again the first time you load a model.",
       "source": "https://github.com/openai/whisper/blob/main/whisper/__init__.py",
       "paths": { "all": ["~/.cache/whisper"] }
+    },
+    {
+      "id": "llamacpp-cache",
+      "tool": "llama.cpp",
+      "kind": "Model cache",
+      "name": "llama.cpp models",
+      "verdict": "review",
+      "what": "Models llama.cpp downloaded with -hf or --hf-repo. Newer versions use the Hugging Face cache instead.",
+      "comeback": "llama.cpp downloads a model again the next time you run it with -hf. Check that nothing points at these files by path first.",
+      "env": [
+        {
+          "var": "LLAMA_CACHE"
+        }
+      ],
+      "each": true,
+      "paths": {
+        "darwin": [
+          "{cache}/llama.cpp"
+        ],
+        "linux": [
+          "{xdgcache}/llama.cpp"
+        ],
+        "windows": [
+          "{localappdata}/llama.cpp"
+        ]
+      }
+    },
+    {
+      "id": "gpt4all-models",
+      "tool": "GPT4All",
+      "kind": "Model cache",
+      "name": "GPT4All models",
+      "verdict": "review",
+      "what": "Models the GPT4All app downloaded, and its LocalDocs index.",
+      "comeback": "Remove models from inside GPT4All, which can download them again. Models you added by hand won't come back.",
+      "each": true,
+      "paths": {
+        "darwin": [
+          "{data}/nomic.ai/GPT4All"
+        ],
+        "linux": [
+          "~/.local/share/nomic.ai/GPT4All"
+        ],
+        "windows": [
+          "{localappdata}/nomic.ai/GPT4All"
+        ]
+      }
+    },
+    {
+      "id": "jan-data",
+      "tool": "Jan",
+      "kind": "Models",
+      "name": "Jan models and chats",
+      "verdict": "keep",
+      "what": "Jan's data folder: downloaded models alongside your conversations and settings.",
+      "comeback": "Remove models from Jan's Hub or Settings rather than here, so your chats stay.",
+      "paths": {
+        "all": [
+          "~/jan"
+        ],
+        "darwin": [
+          "{data}/Jan/data"
+        ],
+        "linux": [
+          "{config}/Jan/data"
+        ],
+        "windows": [
+          "{appdata}/Jan/data"
+        ]
+      }
+    },
+    {
+      "id": "comfyui-models",
+      "tool": "ComfyUI",
+      "kind": "Models",
+      "name": "ComfyUI models",
+      "verdict": "review",
+      "what": "Checkpoints, LoRAs, VAEs and other models in a ComfyUI install. Many are downloaded by hand or by custom nodes.",
+      "comeback": "Leftover can't tell where each model came from, so it only lists them. Delete the ones you no longer use from inside the models folder.",
+      "project": {
+        "dirs": [
+          "models"
+        ],
+        "beside": [
+          "comfyui_version.py"
+        ],
+        "inside": [
+          "checkpoints",
+          "loras",
+          "vae"
+        ]
+      }
     }
   ]
 }

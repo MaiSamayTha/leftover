@@ -151,6 +151,34 @@
         "beside": ["pyproject.toml", "setup.py", "setup.cfg", "tox.ini", "requirements.txt", ".coveragerc", "Pipfile"],
         "inside": ["status.json"]
       }
+    },
+    {
+      "id": "hypothesis-db",
+      "tool": "Hypothesis",
+      "kind": "Test cache",
+      "name": ".hypothesis",
+      "verdict": "rebuild",
+      "what": "Hypothesis's example database: inputs that broke your tests before, saved so they're tried first next time.",
+      "comeback": "Hypothesis creates it again when tests run. Saved failing inputs are lost, so pin any that matter with @example.",
+      "source": "https://hypothesis.readthedocs.io/en/latest/database.html",
+      "project": {
+        "dirs": [
+          ".hypothesis"
+        ],
+        "beside": [
+          "pyproject.toml",
+          "setup.py",
+          "setup.cfg",
+          "tox.ini",
+          "requirements.txt",
+          "pytest.ini",
+          "Pipfile"
+        ],
+        "inside": [
+          "examples",
+          "unicode_data"
+        ]
+      }
     }
   ]
 }

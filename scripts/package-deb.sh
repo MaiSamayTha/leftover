@@ -17,12 +17,18 @@ for arch in $arches; do
   work=$(mktemp -d)
   pkg="$work/leftover"
   mkdir -p "$pkg/DEBIAN" "$pkg/usr/bin" "$pkg/usr/share/applications" \
-    "$pkg/usr/share/icons/hicolor/scalable/apps" "$pkg/usr/share/doc/leftover"
+    "$pkg/usr/share/icons/hicolor/scalable/apps" "$pkg/usr/share/doc/leftover" \
+    "$pkg/usr/share/bash-completion/completions" "$pkg/usr/share/zsh/vendor-completions" \
+    "$pkg/usr/share/fish/vendor_completions.d"
   (cd "$root" && GOOS=linux GOARCH=$arch CGO_ENABLED=0 go build -trimpath \
     -ldflags "-s -w -X main.version=$version" -o "$pkg/usr/bin/leftover" ./cmd/leftover)
   cp "$root/assets/leftover.svg" "$pkg/usr/share/icons/hicolor/scalable/apps/leftover.svg"
   cp "$root/packaging/linux/leftover.desktop" "$pkg/usr/share/applications/leftover.desktop"
   cp "$root/LICENSE" "$pkg/usr/share/doc/leftover/copyright"
+  # Completion scripts are the same on every architecture.
+  (cd "$root" && go run ./cmd/leftover completion bash) > "$pkg/usr/share/bash-completion/completions/leftover"
+  (cd "$root" && go run ./cmd/leftover completion zsh) > "$pkg/usr/share/zsh/vendor-completions/_leftover"
+  (cd "$root" && go run ./cmd/leftover completion fish) > "$pkg/usr/share/fish/vendor_completions.d/leftover.fish"
   size=$(du -sk "$pkg/usr" | cut -f1)
   cat > "$pkg/DEBIAN/control" <<EOF
 Package: leftover

@@ -9,7 +9,10 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 - **Coding agent scratch folders:** Claude Code's per-session scratch folders in `/tmp` are listed, one per project, as worth a look. Leftover never moves them, and says when Claude Code is running, since a task may still be using them.
 - **Old temporary files on macOS and Linux:** anything in your temporary folder untouched for over a week is listed as worth a look, never cleaned.
 - **Test coverage:** coverage.py's `htmlcov` and nyc's `.nyc_output` are recognised beside a project.
+- **More tools:** ccache, sccache and Bazel output, NuGet's HTTP cache, Hypothesis's `.hypothesis` database, and Xcode Simulator runtimes. Visual Studio's `.vs`, Cloudflare Wrangler's `.wrangler`, Flatpak, Snap, and local models from llama.cpp, GPT4All, Jan and ComfyUI are shown as worth a look or as your data, never cleaned.
 - `leftover vault restore --last` puts back everything from the most recent clean.
+- `leftover report` prints a Markdown summary of the last scan to share: totals by verdict and tool, the biggest items and idle projects, with paths under your home written as `~`. `--json` gives the same for scripts.
+- `leftover completion bash|zsh|fish|powershell` prints a tab-completion script for commands, flags, item ids and vault ids. Homebrew and the `.deb` install it for you.
 - `leftover scan` shows your disk's free space and how much clearing would add, and `--json` includes it.
 - Documented exit codes for scripts, cron and CI: 0 done, 1 error, 2 bad usage, 3 partly done, 130 interrupted.
 

@@ -536,3 +536,52 @@ func TestAgentScratchAndOldTempFiles(t *testing.T) {
 		t.Error("old temp files on Unix must be review-only")
 	}
 }
+
+func TestToolRulesAddedIn014(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("uses Linux host layout")
+	}
+	home := t.TempDir()
+	// Bazel: one output base per workspace under _bazel_$USER.
+	write(t, filepath.Join(home, ".cache/bazel/_bazel_sam/0f3a/execroot/x"), 9_000)
+	write(t, filepath.Join(home, ".cache/bazel/_bazel_sam/install/y"), 9_000)
+	write(t, filepath.Join(home, ".cache/ccache/a/b.o"), 9_000)
+	// Project folders.
+	write(t, filepath.Join(home, "code/py/pyproject.toml"), 10)
+	write(t, filepath.Join(home, "code/py/.hypothesis/examples/ab/cd"), 4_000)
+	write(t, filepath.Join(home, "code/worker/wrangler.toml"), 10)
+	write(t, filepath.Join(home, "code/worker/.wrangler/state/v3/d1/db.sqlite"), 4_000)
+	write(t, filepath.Join(home, "code/app/App.sln"), 10)
+	write(t, filepath.Join(home, "code/app/.vs/App/v17/Browse.VC.db"), 4_000)
+	write(t, filepath.Join(home, "ai/ComfyUI/comfyui_version.py"), 10)
+	write(t, filepath.Join(home, "ai/ComfyUI/models/checkpoints/sd.safetensors"), 9_000)
+	// A models folder that isn't ComfyUI's.
+	write(t, filepath.Join(home, "code/ml/models/checkpoints/x.pt"), 9_000)
+
+	s := &Scanner{Catalog: rules.MustLoad(), Host: rules.Host{OS: "linux", Home: home, Getenv: func(k string) string {
+		switch k {
+		case "USER":
+			return "sam"
+		case "TMPDIR", "LEFTOVER_TMP":
+			return filepath.Join(home, "tmp")
+		}
+		return ""
+	}}}
+	res, err := s.Scan(context.Background(), Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := byRule(res)
+	for rule, n := range map[string]int{"bazel-output": 2, "ccache": 1, "hypothesis-db": 1, "wrangler-state": 1, "visual-studio-vs": 1, "comfyui-models": 1} {
+		if len(got[rule]) != n {
+			t.Errorf("%s: found %d, want %d", rule, len(got[rule]), n)
+		}
+	}
+	for _, rule := range []string{"wrangler-state", "visual-studio-vs", "comfyui-models"} {
+		for _, it := range got[rule] {
+			if it.Cleanable() {
+				t.Errorf("%s must be review-only", rule)
+			}
+		}
+	}
+}

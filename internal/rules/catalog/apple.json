@@ -141,6 +141,24 @@
       "what": "Emulators you created, with everything installed on them. Remove unused ones from Android Studio's Device Manager.",
       "each": true,
       "paths": { "all": ["~/.android/avd"] }
+    },
+    {
+      "id": "simulator-runtimes",
+      "tool": "Xcode",
+      "kind": "Simulator runtimes",
+      "name": "Simulator runtime",
+      "verdict": "review",
+      "what": "iOS, watchOS, tvOS and visionOS Simulator runtimes. Each one is several gigabytes, and older ones stay after you upgrade Xcode.",
+      "comeback": "Remove ones you don't need from Xcode's Settings > Components, or with xcrun simctl runtime delete. You can download them again there.",
+      "source": "https://developer.apple.com/documentation/xcode/installing-additional-simulator-runtimes",
+      "command": "xcrun simctl runtime list",
+      "each": true,
+      "paths": {
+        "darwin": [
+          "/Library/Developer/CoreSimulator/Images",
+          "~/Library/Developer/CoreSimulator/Profiles/Runtimes"
+        ]
+      }
     }
   ]
 }

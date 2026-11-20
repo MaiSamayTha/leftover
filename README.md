@@ -136,6 +136,7 @@ leftover vault restore <id>      put something back
 leftover vault restore --last    undo the most recent clean
 leftover vault empty --expired   free the space from expired items now
 leftover history                 every move, restore and deletion Leftover has made
+leftover report                  a shareable Markdown summary of the last scan (--json too)
 leftover ignore add ~/work/big   never look inside a folder
 leftover rules                   everything Leftover recognises
 leftover docker                  what Docker is holding, and what's reclaimable
@@ -144,7 +145,16 @@ leftover where                   where Leftover keeps its own files
 leftover update                  check for a newer version and install it
 ```
 
-Add `--json` to `scan`, `why`, `explore`, `docker`, `vault`, `history` or `rules` for machine-readable output. `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
+Add `--json` to `scan`, `why`, `explore`, `docker`, `vault`, `history`, `report` or `rules` for machine-readable output.
+
+Tab completion for commands, flags and vault ids comes with the Homebrew and `.deb` installs. Otherwise add one line to your shell's startup file:
+
+```
+eval "$(leftover completion bash)"                            # ~/.bashrc
+source <(leftover completion zsh)                             # ~/.zshrc
+leftover completion fish > ~/.config/fish/completions/leftover.fish
+leftover completion powershell | Out-String | Invoke-Expression  # $PROFILE
+``` `clean` always shows its plan and asks first; it won't run unattended unless you pass `--yes`.
 
 ### Exit codes
 

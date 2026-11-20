@@ -222,6 +222,39 @@
       "paths": {
         "unix": ["{temp}", "{tmp}"]
       }
+    },
+    {
+      "id": "flatpak-installs",
+      "tool": "Flatpak",
+      "kind": "Apps and runtimes",
+      "name": "Flatpak apps and runtimes",
+      "verdict": "review",
+      "what": "Apps you installed with Flatpak and the runtimes they share. Runtimes no app uses anymore can pile up after updates.",
+      "comeback": "Let Flatpak remove what nothing needs, and never delete these folders by hand.",
+      "source": "https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-uninstall",
+      "command": "flatpak uninstall --unused",
+      "paths": {
+        "linux": [
+          "{data}/flatpak",
+          "/var/lib/flatpak"
+        ]
+      }
+    },
+    {
+      "id": "snap-revisions",
+      "tool": "Snap",
+      "kind": "Apps and runtimes",
+      "name": "Snap packages",
+      "verdict": "review",
+      "what": "Every installed Snap package, including the older revisions snapd keeps after each update (up to three per snap by default).",
+      "comeback": "snap list --all shows old revisions as disabled. Remove one with sudo snap remove <name> --revision=<rev>, or keep fewer with sudo snap set system refresh.retain=2.",
+      "source": "https://snapcraft.io/docs/managing-updates",
+      "command": "snap list --all",
+      "paths": {
+        "linux": [
+          "/var/lib/snapd/snaps"
+        ]
+      }
     }
   ]
 }
