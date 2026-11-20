@@ -40,7 +40,7 @@ jobs:
         if: runner.os == 'Windows'
         run: go test ./...
       - name: end to end
-        if: runner.os != 'Windows'
+        shell: bash
         run: sh scripts/e2e.sh
 
   cross-build:
