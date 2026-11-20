@@ -1,0 +1,14 @@
+{
+  "group": "Python",
+  "rules": [{
+    "id": "hypothesis-examples",
+    "tool": "Hypothesis",
+    "kind": "Example database",
+    "name": ".hypothesis",
+    "verdict": "review",
+    "what": "Hypothesis stores saved failing test inputs in .hypothesis/examples. This folder may also contain other Hypothesis data.",
+    "comeback": "Review and preserve saved failures before removing anything. Running tests again does not guarantee rediscovering the same inputs.",
+    "source": "https://hypothesis.readthedocs.io/en/latest/database.html",
+    "project": { "dirs": [".hypothesis"], "inside": ["examples"] }
+  }]
+}
