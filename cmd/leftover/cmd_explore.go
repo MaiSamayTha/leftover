@@ -84,7 +84,11 @@ func cmdExplore(args []string) error {
 		if e.Dir {
 			name += string(os.PathSeparator)
 		}
-		fmt.Printf("  %s %s  %s  %s\n", bar(e.Bytes, biggest, 12), lpad(human(e.Bytes), 8), pad(clip(name, 32), 32), note(e))
+		size := human(e.Bytes)
+		if e.Private != "" {
+			size = "—"
+		}
+		fmt.Printf("  %s %s  %s  %s\n", bar(e.Bytes, biggest, 12), lpad(size, 8), pad(clip(name, 32), 32), note(e))
 	}
 	if hidden > 0 {
 		fmt.Printf("  %s %s  %s\n", strings.Repeat(" ", 12), lpad(human(hidden), 8), dim("in smaller items"))
@@ -99,6 +103,8 @@ func cmdExplore(args []string) error {
 // note says what Leftover knows about an entry.
 func note(e app.ExploreEntry) string {
 	switch {
+	case e.Private != "":
+		return dim("your " + e.Private + " library · not opened, so macOS never asks")
 	case e.Rule != nil && e.Rule.At == e.Path:
 		return verdictMark(e.Rule.Verdict) + " " + dim(e.Rule.Name+" · "+e.Rule.Verdict.Label())
 	case e.Rule != nil:

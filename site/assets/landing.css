@@ -189,3 +189,9 @@ a:focus-visible,button:focus-visible{border-radius:6px}
 [data-x="brew"]{max-width:100%;min-width:0}
 [data-x="brew"] code{min-width:0;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:520px){.hbtn{font-size:14px!important;padding:0 14px!important;height:46px!important}[data-x="tank"] [data-x="hin"]>div:first-child{height:46px!important}}
+/* The install cards stay white in dark mode, so their text stays dark too. */
+.cta .steps,.cta .steps h3,.cta .steps ol,.cta .steps li,.cta .steps b,.cta .install,.cta .install summary,.cta .install .cmdlab,.cta .install code{color:#141614!important}
+.cta .steps .fine,.cta .install p{color:rgba(20,22,20,.72)!important}
+.cta .steps a,.cta .install a{color:#141614!important;text-decoration:underline;text-underline-offset:3px}
+.cta .install .cmdrow{background:#F2F2F4!important;border-color:rgba(20,22,20,.15)!important}
+.cta .install .copy{background:#141614!important;color:#fff!important;border:0!important}

@@ -137,7 +137,7 @@ func (pf *projectFinder) walk(ctx context.Context, dir string, depth int, projec
 			pf.add(r, child, dir, project)
 			continue // never look inside a match
 		}
-		if skipNames[name] || (atHome && homeSkips[pf.host.OS][name]) {
+		if skipNames[name] || (atHome && homeSkips[pf.host.OS][name]) || Private(child) != "" {
 			continue
 		}
 		// ~/.some-editor/extensions and the like: app data, not projects.

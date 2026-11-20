@@ -700,6 +700,7 @@ function renderExplore() {
   }
   const max = Math.max(1, ...v.entries.map((e) => e.bytes));
   const note = (e) => {
+    if (e.private) return `<span class="muted small">Your ${esc(e.private)} library · not opened, so macOS never asks</span>`;
     if (e.rule && e.rule.at === e.path) {
       const vd = VERDICTS[e.rule.verdict] || VERDICTS.keep;
       return `<span class="pill pill-${vd.cls}">${esc(e.rule.name)} · ${vd.short}</span>`;
@@ -719,11 +720,11 @@ function renderExplore() {
       ${v.rule ? `<div class="note">Leftover knows this as ${esc(v.rule.name)} (${esc(v.rule.tool)}): ${(VERDICTS[v.rule.verdict] || VERDICTS.keep).long}.</div>` : ""}
       <div class="table">
         ${v.entries.map((e) => `
-          <div class="tr tr-explore" ${e.dir ? `data-explore="${esc(e.path)}" tabindex="0" role="button"` : ""}>
+          <div class="tr tr-explore" ${e.dir && !e.private ? `data-explore="${esc(e.path)}" tabindex="0" role="button"` : ""}>
             <span class="xbar"><i data-width="${Math.max(2, (e.bytes / max) * 100).toFixed(1)}%"></i></span>
             <span class="name">${esc(e.name)}${e.dir ? "/" : ""}</span>
             <span class="x-note">${note(e)}</span>
-            <span class="r size">${bytes(e.bytes)}</span>
+            <span class="r size">${e.private ? "—" : bytes(e.bytes)}</span>
             <button class="btn-link" data-reveal="${esc(e.path)}" title="${SHOW()}">Show</button>
           </div>`).join("")}
         ${v.rest ? `<div class="tr tr-explore muted"><span></span><span class="name">Smaller items</span><span></span><span class="r size">${bytes(v.rest)}</span><span></span></div>` : ""}

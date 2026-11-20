@@ -25,6 +25,9 @@ type Node struct {
 	Rest int64 `json:"rest,omitempty"`
 	// Unread counts folders inside that couldn't be read.
 	Unread int64 `json:"unread,omitempty"`
+	// Private names the personal library this is (Photos, Contacts,
+	// Calendar) when Leftover didn't open it, so macOS never asks.
+	Private string `json:"private,omitempty"`
 }
 
 // TreeOptions controls Tree.
@@ -138,6 +141,9 @@ func (t *treeWalk) walk(n *Node) {
 		if t.dev != 0 && deviceOf(info) != t.dev {
 			continue // another drive is mounted here
 		}
+		if child.Private = Private(child.Path); child.Private != "" {
+			continue
+		}
 		select {
 		case t.s.sem <- struct{}{}:
 			<-t.s.sem
@@ -161,7 +167,7 @@ func (t *treeWalk) walk(n *Node) {
 		return kids[i].Name < kids[j].Name
 	})
 	for _, k := range kids {
-		if k.Bytes >= t.opt.Keep && len(n.Children) < t.opt.MaxChildren {
+		if (k.Bytes >= t.opt.Keep || k.Private != "") && len(n.Children) < t.opt.MaxChildren {
 			n.Children = append(n.Children, k)
 		} else {
 			n.Rest += k.Bytes

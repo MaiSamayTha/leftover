@@ -4,6 +4,10 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Fixed
+
+- On macOS, Explore and the project scan no longer open your Photos library, Contacts or Calendars, so macOS no longer asks for access to your photos. Explore lists them as not opened.
+
 ## [0.1.3] - 2026-11-20
 
 A new look for the app.

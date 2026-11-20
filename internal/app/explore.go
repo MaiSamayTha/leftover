@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"time"
 
@@ -21,6 +22,9 @@ type ExploreEntry struct {
 	Rule *ExploreRule `json:"rule,omitempty"`
 	// Clearable is how much of it the last scan found safe to clear.
 	Clearable int64 `json:"clearable,omitempty"`
+	// Private names the personal library this is (Photos, Contacts,
+	// Calendar). Leftover doesn't open it, so its size isn't known.
+	Private string `json:"private,omitempty"`
 }
 
 // ExploreRule names a rule an entry matched.
@@ -59,6 +63,9 @@ func (a *App) Explore(ctx context.Context, path string, refresh bool, progress f
 	if err != nil {
 		return nil, err
 	}
+	if lib := scan.Private(path); lib != "" {
+		return nil, fmt.Errorf("that's your %s library; Leftover doesn't open it, so macOS never has to ask for access", lib)
+	}
 	a.mu.Lock()
 	tree, at, took := a.tree, a.treeAt, a.treeTook
 	a.mu.Unlock()
@@ -93,7 +100,7 @@ func (a *App) Explore(ctx context.Context, path string, refresh bool, progress f
 	clearable := a.clearableUnder()
 	v.Clearable = clearable(node.Path)
 	for _, c := range node.Children {
-		e := ExploreEntry{Name: c.Name, Path: c.Path, Dir: c.Dir, Bytes: c.Bytes, Files: c.Files}
+		e := ExploreEntry{Name: c.Name, Path: c.Path, Dir: c.Dir, Bytes: c.Bytes, Files: c.Files, Private: c.Private}
 		if c.Dir {
 			e.Rule = a.ruleFor(c.Path)
 			e.Clearable = clearable(c.Path)
