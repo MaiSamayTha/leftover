@@ -246,7 +246,7 @@ func TestReport(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"# Leftover report", "## By verdict", "node_modules", "`~/"} {
+	for _, want := range []string{"# Leftover report", "## By verdict", "node_modules", "`~" + string(filepath.Separator)} {
 		if !strings.Contains(out, want) {
 			t.Errorf("report should contain %q:\n%s", want, out)
 		}

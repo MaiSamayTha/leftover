@@ -140,10 +140,10 @@ jobs:
       - name: Leftover.dmg
         if: runner.os == 'macOS'
         run: |
-          set -eu
+          set -eux
           sh scripts/package-macos.sh 0.0.0 dist
           mnt=$(mktemp -d)
-          hdiutil attach -quiet -nobrowse -readonly -mountpoint "$mnt" dist/Leftover.dmg
+          hdiutil attach -nobrowse -readonly -mountpoint "$mnt" dist/Leftover.dmg
           [ -L "$mnt/Applications" ] || { echo "no Applications shortcut in the dmg"; exit 1; }
           # Dragging Leftover onto Applications is a copy.
           cp -R "$mnt/Leftover.app" "$RUNNER_TEMP/"
