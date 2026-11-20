@@ -195,3 +195,29 @@ a:focus-visible,button:focus-visible{border-radius:6px}
 .cta .steps a,.cta .install a{color:#141614!important;text-decoration:underline;text-underline-offset:3px}
 .cta .install .cmdrow{background:#F2F2F4!important;border-color:rgba(20,22,20,.15)!important}
 .cta .install .copy{background:#141614!important;color:#fff!important;border:0!important}
+
+/* Handwritten notes around the tank, in Excalidraw's hand. */
+@font-face{font-family:"Excalifont";font-style:normal;font-weight:400;font-display:swap;src:url(vendor/excalifont.woff2) format("woff2")}
+.hn{position:absolute;z-index:3;color:var(--ink);font-family:"Excalifont","Comic Sans MS",cursive;font-weight:400;letter-spacing:.01em;pointer-events:none;display:flex;flex-direction:column}
+.hn svg{display:block;height:auto}
+/* Narrow screens: under the tank, arrows pointing up into it. */
+.hn{top:calc(100% + 6px);font-size:20px;line-height:1.1;align-items:center;text-align:center;max-width:44%}
+.hn-left{left:6%}
+.hn-right{right:4%}
+.hn-wide{display:none!important}
+.hn-narrow{width:30px;order:-1}
+.hn-right .hn-narrow{transform:scaleX(-1)}
+[data-x="tank"]{margin-bottom:72px}
+@media (max-width:520px){.hn{font-size:17px}}
+/* Wide screens: beside the tank, like a sketch on the page. */
+@media (min-width:1500px){
+  [data-x="tank"]{margin-bottom:0}
+  .hn{top:auto;max-width:none;align-items:flex-start;text-align:left;font-size:34px;line-height:1.15}
+  .hn-wide{display:block!important}
+  .hn-narrow{display:none!important}
+  .hn-left{left:auto;right:calc(100% + 14px);bottom:18%;width:230px}
+  .hn-left svg{width:190px;margin:6px 0 0 30px}
+  .hn-right{right:auto;left:calc(100% - 6px);top:-26px;width:240px}
+  .hn-right svg{width:150px;margin:0 0 4px 0}
+  .hn-right span{margin-left:40px}
+}
