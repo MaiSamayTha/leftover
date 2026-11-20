@@ -4,6 +4,10 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-20
+
+A new look for the app.
+
 ### Changed
 
 - A new look for the app: an overview with a ring chart of what can be cleared, five categories (AI models, Containers, Packages, Build output, Caches) with a switch on each item, a details panel, the disk's free space in the sidebar, and Undo right after cleaning.
@@ -76,7 +80,8 @@ The first release.
 - Single binaries for macOS, Linux and Windows (x86-64 and ARM64), with SHA-256 checksums.
 - Install scripts that verify the checksums and add a launcher; Homebrew and Scoop installs from this repository.
 
-[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/MaiSamayTha/leftover/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/MaiSamayTha/leftover/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/MaiSamayTha/leftover/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/MaiSamayTha/leftover/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/MaiSamayTha/leftover/releases/tag/v0.1.0
