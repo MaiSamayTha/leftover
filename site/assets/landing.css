@@ -126,3 +126,66 @@ html{scroll-behavior:smooth}
 }
 @media (max-width:460px){.cmp-kinds{grid-template-columns:1fr}}
 .cmp .nw{white-space:nowrap}
+
+/* ---------- v2: bold type, hard shadows, colour blocks ---------- */
+
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 800;font-display:swap;src:url(vendor/schibsted-grotesk.woff2) format("woff2")}
+:root{--bg:#FFFFFF;--bg2:#F5F5F7;--ink:#1D1D1F;--ink2:#6E6E73;--ink3:#AEAEB2;--hair:rgba(60,60,67,.13);--win:#FFFFFF;--card:#FFFFFF;--appbg:#F5F5F7;--appcard:#FFFFFF;--sidebg:rgba(236,236,241,.78);--chip:#E8E8ED;--field:rgba(118,118,128,.12);--sel:rgba(120,120,128,.16);--dk:#000;--pv:#000;--accent:oklch(0.6 0.15 150);--accent-ink:oklch(0.5 0.13 150);--accent-hi:oklch(0.72 0.15 150);--accent-dk:oklch(0.78 0.16 150);--on-accent:#fff;--warn:#FF9500;--warn-ink:#C76A00}
+:root[data-theme=dark]{--bg:#000;--bg2:#0B0B0C;--ink:#F5F5F7;--ink2:#98989D;--ink3:#636366;--hair:rgba(255,255,255,.1);--win:#1C1C1E;--card:#1C1C1E;--appbg:#1C1C1E;--appcard:#2C2C2E;--sidebg:rgba(44,44,48,.78);--chip:#3A3A3C;--field:rgba(118,118,128,.24);--sel:rgba(255,255,255,.1);--dk:#111113;--accent:oklch(0.7 0.17 150);--accent-ink:oklch(0.8 0.15 150);--accent-hi:oklch(0.8 0.15 150);--on-accent:#04140A;--warn:#FF9F0A;--warn-ink:#FFB340;color-scheme:dark}
+@media (prefers-color-scheme: dark){:root.no-js{--bg:#000;--bg2:#0B0B0C;--ink:#F5F5F7;--ink2:#98989D;--ink3:#636366;--hair:rgba(255,255,255,.1);--card:#1C1C1E;--appbg:#1C1C1E;--appcard:#2C2C2E;--sidebg:rgba(44,44,48,.78);--chip:#3A3A3C;--accent-ink:oklch(0.8 0.15 150);--dk:#111113}}
+body{font-family:"Schibsted Grotesk",-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",sans-serif}
+[data-ui]{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI","Helvetica Neue",sans-serif}
+a:focus-visible,button:focus-visible{border-radius:6px}
+
+/* Nav */
+.nav-bar{position:fixed;top:0;left:0;right:0;z-index:100;background:color-mix(in oklch, var(--bg) 86%, transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid transparent;transition:border-color .3s ease}
+.nav-in{max-width:1240px;margin:0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 clamp(20px,4vw,56px)}
+.nav-brand{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:18px;font-weight:700;letter-spacing:-0.03em;text-decoration:none!important}
+.nav-right{display:flex;align-items:center;gap:clamp(8px,2vw,28px)}
+.nav-links{position:relative;display:var(--navl,flex);align-items:center;gap:4px}
+.nav-ind{position:absolute;left:0;bottom:2px;height:2px;width:0;border-radius:2px;background:var(--ink);opacity:0;transition:transform .45s cubic-bezier(.2,.7,.2,1),width .45s cubic-bezier(.2,.7,.2,1),opacity .3s ease}
+.nav-a{position:relative;padding:10px 12px;font-size:14px;font-weight:500;color:var(--ink2);text-decoration:none!important;transition:color .3s ease}
+.nav-a:hover{color:var(--ink)!important}
+.nav-dl{display:flex;align-items:center;gap:5px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:600;padding:9px 16px;border-radius:8px;text-decoration:none!important;white-space:nowrap}
+.nav-dl:hover{opacity:.85}
+.nav-os{font-weight:500;opacity:.7;display:var(--navl,inline)}
+.hbtn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)!important}
+[data-x="brew"]:hover{border-color:var(--ink3)!important}
+[data-chip]:active{cursor:grabbing}
+
+/* Compare, in the same colour blocks */
+.cmp-sec{background:#9FD3FF;color:#141614}
+.cmp-eyebrow{display:inline-flex;align-items:center;padding:4px 14px;border:2px solid #141614;border-radius:999px;background:#fff;color:#141614;font-size:15px;font-weight:700;box-shadow:2px 2px 0 #141614}
+.cmp-head h2{font-weight:700;letter-spacing:-0.04em}
+.cmp-head p{color:rgba(20,22,20,.78)}
+.cmp-kind{background:#fff!important;color:#141614!important;border:2px solid #141614!important;box-shadow:4px 4px 0 #141614;border-radius:22px!important}
+.cmp-kind p,.cmp-kind .cmp-ex{color:rgba(20,22,20,.72)!important}
+.cmp-kind.me{background:#B7F36B!important}
+.cmp-card{border:2px solid #141614!important;box-shadow:8px 8px 0 #141614!important;border-radius:22px!important}
+.cmp-foot,.cmp-foot p,.cmp-legend{color:rgba(20,22,20,.78)!important}
+.cmp-foot a{color:#141614;text-decoration:underline}
+.cmp-pick button{border:2px solid #141614!important;color:#141614!important;background:#fff!important}
+.cmp-pick button[aria-pressed=true]{background:#141614!important;color:#fff!important}
+
+/* Docs */
+.docs-pill{margin-top:8px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:15px;font-weight:600;padding:10px 18px;border-radius:999px;background:#B7F36B;border:2px solid #F5F5F7;color:#141614!important;text-decoration:none!important}
+.docs-pill:hover{transform:translate(-1px,-1px)}
+
+/* Download, on the lime block */
+.cta .dl{background:#fff!important;color:#141614!important;border:2px solid #141614!important;box-shadow:3px 3px 0 #141614}
+.cta .dl small{color:rgba(20,22,20,.7)!important}
+.cta .dl.mine{background:#141614!important;color:#fff!important}
+.cta .dl.mine small{color:rgba(255,255,255,.7)!important}
+.cta .steps,.cta .install{background:#fff!important;color:#141614!important;border:2px solid #141614!important;box-shadow:4px 4px 0 #141614;border-radius:18px!important}
+.cta .steps .fine,.cta .install p{color:rgba(20,22,20,.72)!important}
+.cta a:not(.dl):not([data-dl]){color:#141614}
+.cta .cmdrow code{color:#141614}
+
+/* Hero without the script: no pile, just the tank. */
+.no-js [data-x="pile"]{display:none}
+.no-js [data-x="hin"],.no-js [data-x="swin"],.no-js [data-x="ecard"],.no-js [data-x="qstage"]{opacity:1!important}
+/* Phones: the long Homebrew command shrinks instead of running off the edge. */
+[data-x="hin"][data-d="2"]{min-width:0;max-width:100%}
+[data-x="brew"]{max-width:100%;min-width:0}
+[data-x="brew"] code{min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:520px){.hbtn{font-size:14px!important;padding:0 14px!important;height:46px!important}[data-x="tank"] [data-x="hin"]>div:first-child{height:46px!important}}

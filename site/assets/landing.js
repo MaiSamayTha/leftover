@@ -1,5 +1,6 @@
-// Leftover landing page: scroll-triggered scenes, the background field and
-// the download button. Plain JavaScript, nothing loaded from anywhere else.
+// Leftover landing page: scroll-triggered scenes, the throwable pile in the
+// hero and the download button. Plain JavaScript; the one library (Matter.js)
+// is served from this site, so nothing is loaded from anywhere else.
 "use strict";
 
 (() => {
@@ -16,12 +17,12 @@
   const DELAY = { hero: 0.8, scan: 0.1, explain: 0.1, quar: 0.1, privacy: 0.1 };
   // Sizes and categories of the scan window's rows, in page order.
   const SCAN = [
+    { size: 31.2, cat: "Containers", path: "~/Library/Containers/com.docker.docker" },
     { size: 29.1, cat: "AI models", path: "~/.ollama/models" },
     { size: 21.3, cat: "Packages", path: "~/code/**/node_modules" },
     { size: 18.2, cat: "AI models", path: "~/.cache/huggingface/hub" },
     { size: 16.0, cat: "Build output", path: "~/Library/Developer/Xcode/DerivedData" },
     { size: 12.4, cat: "Build output", path: "~/code/**/target" },
-    { size: 8.6, cat: "Build output", path: "~/.gradle/caches" },
     { size: 7.2, cat: "AI models", path: "~/.lmstudio/models" },
     { size: 4.8, cat: "Packages", path: "~/.npm/_cacache" },
     { size: 4.1, cat: "Packages", path: "~/Library/Caches/pip" },
@@ -115,6 +116,7 @@
 
     cli(t, mode, H);
     nav(H);
+    pileFrame(now, dt, H);
     root.querySelectorAll('[data-x="lbg"]').forEach((cv) => { const r = cv.getBoundingClientRect(); if (r.bottom > 0 && r.top < H) bgStep(cv, dt); });
   }
 
@@ -273,7 +275,7 @@
   function nav(H) {
     const el = root.querySelector('[data-x="nav"]'); if (!el) return;
     const sc = scrollY > 10;
-    if (el.__sc !== sc) { el.__sc = sc; el.style.boxShadow = sc ? "0 14px 40px -14px rgba(0,0,0,.4)" : "0 8px 32px -12px rgba(0,0,0,.18)"; }
+    if (el.__sc !== sc) { el.__sc = sc; el.style.borderBottomColor = sc ? "var(--hair)" : "transparent"; }
     const links = Array.from(root.querySelectorAll("[data-nav]")), ind = root.querySelector('[data-x="navind"]');
     let act = null;
     links.forEach((l) => { const sec = document.getElementById(l.dataset.nav); if (sec && sec.getBoundingClientRect().top < H * 0.45) act = l; });
@@ -286,27 +288,7 @@
 
   const SCENES = {
     hero(el, p, t) {
-      const X = (k) => q(el, k);
-      X("hin").forEach((e) => { const d = +e.dataset.d || 0; const k = S.mode === "static" ? 1 : ease(clamp((t - 0.1 - d * 0.12) / 0.9)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * 26}px)`; });
-      const f = ease(seg(p, 0.04, 0.36)); const used = 150 + 330 * f; const frac = used / 500;
-      const s = ease(seg(p, 0.4, 0.54));
-      const z = eio(seg(p, 0.56, 0.8));
-      const h = 150 - 125 * seg(frac, 0.45, 0.96), col = `oklch(0.68 0.16 ${h.toFixed(1)})`;
-      const fill = X("hfill")[0]; if (fill) { fill.style.width = frac * 100 + "%"; fill.style.background = col; fill.style.opacity = 1 - s; }
-      const wPct = 96 + 4 * z + "%", gap = s * 2 + z * 4 + "px";
-      const sg = X("hsegs")[0]; if (sg) { sg.style.opacity = s; sg.style.width = wPct; sg.style.gap = gap; }
-      const segs = X("hseg"); if (segs[0]) { segs[0].style.flexGrow = 332 * (1 - z); segs[0].style.opacity = 1 - z; segs[0].style.display = z > 0.985 ? "none" : ""; }
-      const labs = X("hlabs")[0]; if (labs) { labs.style.width = wPct; labs.style.gap = gap; }
-      X("hlab").forEach((e, i) => {
-        if (i === 0) { e.style.flexGrow = 332 * (1 - z); e.style.paddingRight = "0"; e.style.opacity = 0; e.style.display = z > 0.985 ? "none" : ""; return; }
-        const k = ease(seg(p, 0.72 + i * 0.025, 0.84 + i * 0.025)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * 10}px)`;
-      });
-      setT(X("hused")[0], Math.round(used) + "");
-      const w = X("hwarn")[0]; if (w) w.style.opacity = seg(frac, 0.86, 0.95) * (1 - seg(p, 0.56, 0.64));
-      const ha = X("hA")[0], hb = X("hB")[0];
-      if (ha) { const o = 1 - seg(p, 0.56, 0.64); ha.style.opacity = o; ha.style.transform = `translateY(${-(1 - o) * 12}px)`; }
-      if (hb) { const o = ease(seg(p, 0.62, 0.72)); hb.style.opacity = o; hb.style.transform = `translateY(${(1 - o) * 12}px)`; }
-      setT(X("hsumn")[0], Math.round(LEFTOVER_GB * ease(seg(p, 0.62, 0.86))) + "");
+      q(el, "hin").forEach((e) => { const d = +e.dataset.d || 0; const k = S.mode === "static" ? 1 : ease(clamp((t - 0.1 - d * 0.12) / 0.9)); e.style.opacity = k; e.style.transform = `translateY(${(1 - k) * 26}px)`; });
     },
 
     scan(el, p, t, dt) {
@@ -350,7 +332,7 @@
       const z = eio(seg(p, 0.14, 0.36));
       X("eg").forEach((g) => { g.style.opacity = (1 - z) * 0.55; g.style.maxHeight = (1 - z) * 68 + "px"; });
       const f = X("ef")[0];
-      if (f) { f.style.transform = `scale(${1 + z * 0.035})`; f.style.boxShadow = `0 0 0 1px rgba(255,255,255,${(0.06 + z * 0.12).toFixed(3)}), 0 ${z * 30}px ${z * 60}px -20px rgba(0,0,0,.6)`; }
+      if (f) { f.style.transform = `scale(${1 + z * 0.035})`; f.style.boxShadow = `${(z * 6).toFixed(1)}px ${(z * 6).toFixed(1)}px 0 #141614`; }
       const u = ease(seg(p, 0.3, 0.58)); const c = X("ecard")[0];
       if (c) { c.style.opacity = Math.min(1, u * 1.6); c.style.transform = `perspective(1600px) rotateX(${((1 - u) * -80).toFixed(2)}deg)`; }
       X("eblk").forEach((b, k) => { const e = ease(seg(p, 0.42 + k * 0.05, 0.6 + k * 0.05)); b.style.opacity = e; b.style.transform = `translateY(${(1 - e) * 18}px)`; });
@@ -422,6 +404,207 @@
       X("pbar").forEach((b, i) => { const w = still ? 40 + i * 10 : 22 + 68 * (0.5 + 0.5 * Math.sin(t * (0.9 + i * 0.21) + i * 1.9)); b.style.width = w.toFixed(1) + "%"; });
     },
   };
+
+  // ---------- hero pile ----------
+
+  // A tank of leftovers you can throw around. "Clean up leftovers" sends
+  // the safe ones to the vault and leaves the two that need a person's call.
+  // Matter.js is served from this site; without it the pile just sits still.
+  const PILE = [
+    ["node_modules", 6, "pkg"], ["node_modules", 5, "pkg"], ["node_modules", 4, "pkg"], ["node_modules", 3, "pkg"], [".venv", 3, "pkg"], ["pnpm-store", 4, "pkg"], [".cargo/registry", 3, "pkg"],
+    ["ollama/models", 14, "models"], ["huggingface/hub", 10, "models"], ["LM Studio models", 7, "models"],
+    ["Docker build cache", 12, "docker"], ["buildx cache", 4, "docker"],
+    ["DerivedData", 8, "build"], ["target/", 6, "build"], ["target/", 4, "build"], ["CoreSimulator", 6, "build"], [".next", 2, "build"], ["dist/", 1, "build"], ["build/", 2, "build"], [".gradle", 3, "build"], ["Pods/", 3, "build"],
+    ["__pycache__", 1, "cache"], [".turbo", 1, "cache"], [".expo", 1, "cache"], ["~/.cache", 3, "cache"], [".npm/_cacache", 3, "cache"], ["uv cache", 2, "cache"], ["Homebrew cache", 2, "cache"],
+  ];
+  const REVIEW = [["Docker volumes", 5.1], ["postgres data", 2.1]];
+  const PCOL = { pkg: "#B7F36B", models: "#CDB8FF", docker: "#9FD3FF", build: "#FFB27A", cache: "#FFE27A", review: "#FFFFFF" };
+  const PL = { want: performance.now() + 450, pile: null, eng: null, drag: null, mode: "full", used: 332 };
+  const $x = (k) => root.querySelector(`[data-x="${k}"]`);
+
+  function pileLabels(btn, msg) {
+    if (btn != null) setT($x("hbtnl"), btn);
+    if (msg != null) setT($x("hmsg"), msg);
+  }
+
+  function pileClear() {
+    if (PL.pile) PL.pile.chips.forEach((c) => c.el.remove());
+    if (PL.eng && window.Matter) { Matter.Composite.clear(PL.eng.world, false); Matter.Engine.clear(PL.eng); }
+    PL.eng = null; PL.drag = null; PL.pile = null;
+  }
+
+  function pileBuild() {
+    const hero = $x("hero"), box = $x("pile"), tank = $x("tank");
+    if (!hero || !box || !tank) return;
+    pileClear();
+    PL.hero = hero;
+    const M = window.Matter, W = hero.clientWidth, H = hero.clientHeight, hr = hero.getBoundingClientRect(), tr = tank.getBoundingClientRect();
+    const T = { x0: tr.left - hr.left + 2, x1: tr.right - hr.left - 2, y0: tr.top - hr.top, y1: tr.bottom - hr.top - 2 };
+    const sc = W < 640 ? 0.74 : W < 1000 ? 0.88 : 1;
+    const target = (T.x1 - T.x0) * (T.y1 - T.y0) * 0.6;
+    const pool = PILE.slice().sort(() => Math.random() - 0.5);
+    const ink = "#141614", mono = "ui-monospace,'SF Mono',SFMono-Regular,Menlo,monospace", sans = "'Schibsted Grotesk',-apple-system,sans-serif";
+    const chips = []; let area = 0, i = 0;
+    const mk = (label, gb, cat, review) => {
+      const h = Math.round((36 + Math.min(1, gb / 14) * 26) * sc), fs = Math.round(h * 0.34);
+      const el = document.createElement("div");
+      el.setAttribute("data-chip", "");
+      el.style.cssText = `position:absolute;left:0;top:0;height:${h}px;padding:0 ${Math.round(h * 0.4)}px;display:flex;align-items:center;gap:${Math.round(h * 0.2)}px;border:2px solid ${ink};border-radius:999px;background:${PCOL[cat]};color:${ink};box-shadow:3px 3px 0 ${ink};white-space:nowrap;font-family:${mono};font-size:${fs}px;font-weight:600;letter-spacing:-0.02em;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:manipulation;pointer-events:auto;will-change:transform;transform:translate(-9999px,0);`;
+      const lab = document.createElement("span"); lab.textContent = label; el.appendChild(lab);
+      const tag = document.createElement("span");
+      if (review) { tag.textContent = "review"; tag.style.cssText = `font-family:${sans};font-size:${Math.round(fs * 0.8)}px;font-weight:700;background:#FF9F0A;border:1.5px solid ${ink};border-radius:999px;padding:1px ${Math.round(fs * 0.5)}px;`; }
+      else { tag.setAttribute("data-gb", ""); tag.style.cssText = `font-family:${sans};font-size:${Math.round(fs * 0.86)}px;font-weight:500;opacity:.62;`; }
+      el.appendChild(tag);
+      box.appendChild(el);
+      const c = { el, w: el.offsetWidth, h, gb, cat, review, crumb: false };
+      el.__c = c; chips.push(c); area += c.w * h; return c;
+    };
+    REVIEW.forEach(([l, g]) => mk(l, g, "review", true));
+    while (area < target && chips.length < 56) { const [l, wg, cat] = pool[i++ % pool.length]; mk(l, wg * (0.6 + Math.random() * 0.8), cat, false); }
+    const safe = chips.filter((c) => !c.review), total = safe.reduce((a, c) => a + c.gb, 0) || 1;
+    safe.forEach((c) => { c.gb = Math.max(0.1, Math.round((c.gb * 140.8) / total * 10) / 10); c.el.querySelector("[data-gb]").textContent = c.gb.toFixed(1) + " GB"; c.w = c.el.offsetWidth; });
+    const nCr = Math.round(8 + W / 110);
+    for (let k = 0; k < nCr; k++) {
+      const d = Math.round((7 + Math.random() * 9) * sc), el = document.createElement("div");
+      el.style.cssText = `position:absolute;left:0;top:0;width:${d}px;height:${d}px;border-radius:50%;background:var(--ink);pointer-events:none;will-change:transform;transform:translate(-9999px,0);`;
+      box.appendChild(el);
+      const c = { el, w: d, h: d, gb: 0, crumb: true }; el.__c = c; chips.push(c);
+    }
+    PL.pile = { W, H, chips, sc, T };
+    if (M) {
+      const eng = M.Engine.create(); eng.gravity.y = 1.15; eng.positionIterations = 8; eng.velocityIterations = 6;
+      const wall = { isStatic: true, friction: 0.6 };
+      const cx = (T.x0 + T.x1) / 2, tw = T.x1 - T.x0;
+      M.Composite.add(eng.world, [
+        M.Bodies.rectangle(cx, T.y1 + 60, tw + 400, 120, wall),
+        M.Bodies.rectangle(T.x0 - 60, T.y1 - H * 1.5, 120, H * 3, wall),
+        M.Bodies.rectangle(T.x1 + 60, T.y1 - H * 1.5, 120, H * 3, wall),
+        M.Bodies.rectangle(T.x0 + 14, T.y1 - 14, 40, 40, Object.assign({ angle: Math.PI / 4 }, wall)),
+        M.Bodies.rectangle(T.x1 - 14, T.y1 - 14, 40, 40, Object.assign({ angle: Math.PI / 4 }, wall)),
+      ]);
+      PL.eng = eng;
+      chips.slice().sort(() => Math.random() - 0.5).forEach((c, k) => { pileSpawn(c, k); M.Composite.add(eng.world, c.body); });
+      if (S.mode === "static") for (let k = 0; k < 700; k++) M.Engine.update(eng, 1000 / 60);
+    } else pileStatic();
+    if (!box.__pd) { box.__pd = 1; box.addEventListener("pointerdown", pileDown); }
+    PL.mode = "full";
+    pileLabels("Clean up leftovers", "Everything in there is throwable. Go on.");
+  }
+
+  function pileSpawn(c, k) {
+    const M = window.Matter, P = PL.pile, T = P.T;
+    const x = T.x0 + c.w / 2 + 4 + Math.random() * Math.max(1, T.x1 - T.x0 - c.w - 8), y = -c.h - 40 - k * 58 * P.sc;
+    const opt = { restitution: c.crumb ? 0.45 : 0.22, friction: 0.5, frictionAir: 0.012, density: 0.0015, angle: (Math.random() - 0.5) * 0.9 };
+    c.body = c.crumb ? M.Bodies.circle(x, y, c.w / 2, opt) : M.Bodies.rectangle(x, y, c.w, c.h, Object.assign({ chamfer: { radius: c.h / 2 - 0.5 } }, opt));
+  }
+
+  function pileStatic() {
+    const P = PL.pile, T = P.T; let x = T.x0 + 10, y = T.y1 - 6, rowH = 0;
+    P.chips.filter((c) => !c.gone).slice().sort(() => Math.random() - 0.5).forEach((c) => {
+      if (x + c.w > T.x1 - 10) { x = T.x0 + 10; y -= rowH + 4; rowH = 0; }
+      c.sx = x + c.w / 2; c.sy = y - c.h / 2; c.sa = (Math.random() - 0.5) * 0.14; x += c.w + 6; rowH = Math.max(rowH, c.h);
+    });
+  }
+
+  function pileAct() {
+    const P = PL.pile; if (!P) return;
+    const now = performance.now(), M = window.Matter;
+    if (PL.mode === "full") {
+      const hr = PL.hero.getBoundingClientRect(), br = $x("hbtn").getBoundingClientRect();
+      const tx = br.left + br.width / 2 - hr.left, ty = br.top + br.height / 2 - hr.top;
+      const pos = (c) => (c.body ? c.body.position : { x: c.sx, y: c.sy });
+      const list = P.chips.filter((c) => !c.review && !c.gone);
+      list.sort((a, b) => Math.hypot(pos(a).x - tx, pos(a).y - ty) - Math.hypot(pos(b).x - tx, pos(b).y - ty));
+      const still = S.mode === "static";
+      list.forEach((c, k) => { c.fly = { t0: now + (still ? 0 : k * 26), d: still ? 1 : 520 + Math.random() * 180, tx, ty }; });
+      PL.mode = "cleaning";
+      pileLabels("Cleaning…", "Moving everything to the vault…");
+    } else if (PL.mode === "clean") {
+      const back = P.chips.filter((c) => c.gone);
+      back.forEach((c, k) => { c.gone = false; c.el.style.display = ""; c.el.style.opacity = 1; if (M && PL.eng) { pileSpawn(c, k); M.Composite.add(PL.eng.world, c.body); } });
+      if (M && PL.eng && S.mode === "static") for (let k = 0; k < 700; k++) M.Engine.update(PL.eng, 1000 / 60);
+      if (!M) pileStatic();
+      PL.mode = "full";
+      pileLabels("Clean up leftovers", "Put back from the vault, exactly as it was.");
+    }
+  }
+
+  function pileDown(e) {
+    const el = e.target.closest && e.target.closest("[data-chip]"), M = window.Matter;
+    if (!el || !el.__c || !M || !PL.eng || !PL.hero) return;
+    const c = el.__c; if (c.fly || c.gone || !c.body) return;
+    if (e.pointerType === "touch") { M.Body.setVelocity(c.body, { x: (Math.random() - 0.5) * 14, y: -15 - Math.random() * 7 }); M.Body.setAngularVelocity(c.body, (Math.random() - 0.5) * 0.35); return; }
+    e.preventDefault();
+    const hr = PL.hero.getBoundingClientRect(), px = e.clientX - hr.left, py = e.clientY - hr.top, b = c.body;
+    pileUp();
+    PL.drag = M.Constraint.create({ pointA: { x: px, y: py }, bodyB: b, pointB: { x: px - b.position.x, y: py - b.position.y }, stiffness: 0.2, damping: 0.08, length: 0 });
+    M.Composite.add(PL.eng.world, PL.drag);
+    el.style.cursor = "grabbing"; PL.dragEl = el;
+    window.addEventListener("pointermove", pileMove);
+    window.addEventListener("pointerup", pileUp);
+  }
+  function pileMove(e) { if (!PL.drag || !PL.hero) return; const hr = PL.hero.getBoundingClientRect(); PL.drag.pointA.x = e.clientX - hr.left; PL.drag.pointA.y = e.clientY - hr.top; }
+  function pileUp() {
+    if (PL.drag && PL.eng) Matter.Composite.remove(PL.eng.world, PL.drag);
+    PL.drag = null;
+    if (PL.dragEl) { PL.dragEl.style.cursor = "grab"; PL.dragEl = null; }
+    window.removeEventListener("pointermove", pileMove); window.removeEventListener("pointerup", pileUp);
+  }
+
+  function pileFrame(now, dt, VH) {
+    const P = PL.pile;
+    if (!P) { if (PL.want && now >= PL.want) { PL.want = 0; pileBuild(); } return; }
+    const hero = PL.hero;
+    if (Math.abs(hero.clientWidth - P.W) > 40 || Math.abs(hero.clientHeight - P.H) > 120) { if (!PL.rb) PL.rb = now + 350; }
+    if (PL.rb && now >= PL.rb) { PL.rb = 0; pileBuild(); return; }
+    const r = hero.getBoundingClientRect(); if (r.bottom < 0 || r.top > VH) return;
+    const M = window.Matter, eng = PL.eng, still = S.mode === "static";
+    if (eng && !still) M.Engine.update(eng, Math.min(dt, 1 / 30) * 1000);
+    let used = 332, flying = 0, freed = 0;
+    for (const c of P.chips) {
+      if (c.gone) { freed += c.gb; continue; }
+      if (c.fly && now >= c.fly.t0) {
+        const f = c.fly;
+        if (!f.on) {
+          f.on = 1;
+          const p = c.body ? c.body.position : { x: c.sx, y: c.sy };
+          f.x0 = p.x; f.y0 = p.y; f.a0 = c.body ? c.body.angle : c.sa;
+          if (c.body && eng) { if (PL.drag && PL.drag.bodyB === c.body) pileUp(); M.Composite.remove(eng.world, c.body); c.body = null; }
+        }
+        const k = clamp((now - f.t0) / f.d), e = k * k;
+        const cx = f.x0 + (f.tx - f.x0) * 0.25, cy = Math.min(f.y0, f.ty) - 160, u = 1 - e;
+        const x = u * u * f.x0 + 2 * u * e * cx + e * e * f.tx, y = u * u * f.y0 + 2 * u * e * cy + e * e * f.ty;
+        c.el.style.transform = `translate3d(${(x - c.w / 2).toFixed(1)}px,${(y - c.h / 2).toFixed(1)}px,0) rotate(${(f.a0 + e * 5).toFixed(3)}rad) scale(${(1 - 0.88 * e).toFixed(3)})`;
+        c.el.style.opacity = (1 - seg(k, 0.72, 1)).toFixed(3);
+        used += c.gb * (1 - e); freed += c.gb * e;
+        if (k >= 1) { c.gone = true; c.fly = null; c.el.style.display = "none"; } else flying++;
+        continue;
+      }
+      if (c.fly) flying++;
+      let x, y, a;
+      if (c.body) { x = c.body.position.x; y = c.body.position.y; a = c.body.angle; }
+      else { x = c.sx; y = c.sy; a = c.sa; }
+      if (x == null) continue;
+      c.el.style.transform = `translate3d(${(x - c.w / 2).toFixed(1)}px,${(y - c.h / 2).toFixed(1)}px,0) rotate(${a.toFixed(3)}rad)`;
+      if (y > -c.h / 2) used += c.gb;
+    }
+    if (PL.mode === "cleaning" && !flying) {
+      PL.mode = "clean";
+      pileLabels("Undo", `Moved ${freed.toFixed(1)} GB to the vault. Kept 2 items that need your call. Undo works for 14 days.`);
+    }
+    PL.used = still ? used : PL.used + (used - PL.used) * (1 - Math.exp(-dt * 7));
+    const u = PL.used;
+    setT($x("hgb"), Math.round(u) + "");
+    const bar = $x("hbar"); if (bar) { bar.style.width = (u / 5).toFixed(2) + "%"; bar.style.background = u > 440 ? "var(--warn)" : "var(--accent)"; }
+    const st = $x("hstate"); if (st) { const full = u > 440; setT(st, full ? "Almost full" : "Plenty of room"); st.style.color = full ? "var(--warn-ink)" : "var(--accent-ink)"; }
+  }
+
+  $x("hbtn")?.addEventListener("click", pileAct);
+  $x("brew")?.addEventListener("click", async (e) => {
+    const b = e.currentTarget, lab = b.querySelector("[aria-live]");
+    try { await navigator.clipboard.writeText(b.dataset.copy); setT(lab, "Copied"); } catch (_) { setT(lab, "Select it"); }
+    setTimeout(() => setT(lab, "Copy"), 1600);
+  });
 
   // ---------- terminal ----------
 
