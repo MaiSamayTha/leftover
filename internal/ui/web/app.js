@@ -50,13 +50,56 @@ function ago(days) {
   return Math.round(days / 365) + " years ago";
 }
 
+function since(date) {
+  const s = (Date.now() - new Date(date)) / 1000;
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) { const h = Math.round(s / 3600); return h + (h === 1 ? " hour ago" : " hours ago"); }
+  return new Date(date).toLocaleDateString([], { dateStyle: "medium" });
+}
+
+const plural = (n, one, many) => n + " " + (n === 1 ? one : many || one + "s");
+
+// mono makes the two-letter monogram on an item's tile.
+const itemMono = (it) => mono(/[,/]/.test(it.tool) ? it.name : it.tool);
+function mono(s) {
+  const w = String(s || "?").replace(/[^A-Za-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
+  if (w.length >= 2) return (w[0][0] + w[1][0]).toUpperCase();
+  const x = w[0] || "?";
+  return x[0].toUpperCase() + (x[1] || "").toLowerCase();
+}
+
+// ---------- verdicts and categories ----------
+
 const VERDICTS = {
-  rebuild: { label: "Rebuilds itself", cls: "safe" },
-  redownload: { label: "Downloads again", cls: "safe" },
-  review: { label: "Worth a look", cls: "review" },
-  keep: { label: "Your data", cls: "keep" },
+  rebuild: { short: "Rebuilds", long: "Rebuilds automatically", cls: "safe" },
+  redownload: { short: "Re-downloads", long: "Downloads again", cls: "safe" },
+  review: { short: "Review", long: "Worth a look first", cls: "review" },
+  keep: { short: "Yours", long: "Your data", cls: "keep" },
 };
 const cleanable = (it) => it.verdict === "rebuild" || it.verdict === "redownload";
+
+const CATS = [
+  { key: "ai", label: "AI models", mono: "AI", blurb: "Local model weights and hub caches" },
+  { key: "containers", label: "Containers", mono: "Dk", blurb: "Docker, OrbStack, Colima and virtual machines" },
+  { key: "packages", label: "Packages", mono: "Pk", blurb: "Dependencies your lockfiles can restore" },
+  { key: "build", label: "Build output", mono: "Bd", blurb: "Compiled output your builds recreate" },
+  { key: "caches", label: "Caches", mono: "Ca", blurb: "Downloads and app caches your tools refill" },
+];
+const CAT = Object.fromEntries(CATS.map((c) => [c.key, c]));
+const DOCKER = new Set(["docker-disk", "docker-engine", "orbstack-data", "colima-disk"]);
+
+// category sorts a rule into one of the five groups the window shows.
+function category(ruleID, kind) {
+  const k = String(kind || "").toLowerCase();
+  if (/^(model cache|dataset cache|models)$/.test(k)) return "ai";
+  if (DOCKER.has(ruleID) || /virtual (disk|machines)|containers/.test(k)) return "containers";
+  if (/depend|package|environment|module cache|providers|classpath/.test(k)) return "packages";
+  if (/build|compiled|generated|report|header cache|import cache|asset cache|debug symbols|archives/.test(k)) return "build";
+  return "caches";
+}
+const itemCat = (it) => category(it.rule, it.kind);
+const entryCat = (e) => category(e.rule, (state.rules[e.rule] || {}).kind);
 
 // ---------- state ----------
 
@@ -67,14 +110,16 @@ const state = {
   settings: {},
   status: { running: false },
   home: "",
-  selected: new Set(),
+  excluded: new Set(),
   focused: null,
   query: "",
   meta: {},
   rules: {},
 };
 
-const TITLES = { overview: "Overview", safe: "Safe to clear", review: "Worth a look", keep: "Your data", vault: "Vault", explore: "Explore", why: "What's this folder?", history: "History", settings: "Settings" };
+const TITLES = { overview: "Overview", keep: "Your data", vault: "Vault", explore: "Explore", why: "What's this folder?", history: "History", settings: "Settings" };
+const MACHINE = () => ({ darwin: "Mac", windows: "PC" }[state.meta.os] || "computer");
+const SHOW = () => ({ darwin: "Show in Finder", windows: "Show in Explorer" }[state.meta.os] || "Open folder");
 
 async function refresh() {
   const s = await api("state");
@@ -85,66 +130,382 @@ async function refresh() {
   state.home = s.home;
   state.meta = s;
   state.rules = s.rules || {};
-  $("#version").textContent = "Version " + s.version;
+  $("#version").textContent = s.version;
   render();
   if (s.status.running) pollScan();
 }
 
 function items() { return (state.scan && state.scan.items) || []; }
+function sum(list) { return list.reduce((n, it) => n + it.bytes, 0); }
+const label = (it) => it.label || it.name;
+const included = (it) => cleanable(it) && !state.excluded.has(it.id);
+const keepDays = () => state.settings.keep_days || 14;
 
-function itemsFor(view) {
-  return items().filter((it) => {
-    if (view === "safe") return cleanable(it);
-    if (view === "review") return it.verdict === "review";
-    if (view === "keep") return it.verdict === "keep";
-    return true;
-  });
+// shown lists what the categories hold: everything Leftover can clean or
+// thinks is worth a look. Your data is listed on its own.
+const shown = () => items().filter((it) => it.verdict !== "keep");
+const inCat = (key) => shown().filter((it) => itemCat(it) === key);
+
+function matches(it) {
+  const q = state.query.toLowerCase();
+  return [it.name, it.label, it.tool, it.kind, it.project, ...it.paths].some((s) => (s || "").toLowerCase().includes(q));
 }
 
-function sum(list) { return list.reduce((n, it) => n + it.bytes, 0); }
+// rowsFor is the list a view shows, biggest first.
+function rowsFor(view) {
+  let list = [];
+  if (state.query) list = items().filter(matches);
+  else if (view === "keep") list = items().filter((it) => it.verdict === "keep");
+  else if (view.startsWith("cat:")) list = inCat(view.slice(4));
+  return list.slice().sort((a, b) => b.bytes - a.bytes);
+}
 
-// label prefers the specific name (a model, an Xcode version) over the
-// rule's generic one.
-function label(it) { return it.label || it.name; }
+const isList = () => !!state.query || state.view === "keep" || state.view.startsWith("cat:");
 
 // ---------- rendering ----------
 
 function render() {
-  document.querySelectorAll(".nav").forEach((a) => a.classList.toggle("active", a.dataset.view === state.view));
-  $("#title").textContent = TITLES[state.view];
-  for (const v of ["safe", "review", "keep"]) {
-    const list = itemsFor(v);
-    $("#count-" + v).textContent = list.length ? bytes(sum(list)) : "";
-  }
-  const held = sum(state.vault);
-  $("#count-vault").textContent = state.vault.length ? bytes(held) : "";
-  const listView = ["safe", "review", "keep"].includes(state.view);
-  $("#search").hidden = !listView;
-  $("#scan-btn").textContent = state.status.running ? "Stop" : state.scan ? "Scan again" : "Scan";
+  renderNav();
+  renderDisk();
+  const running = state.status.running;
+  $("#scan-btn").classList.toggle("running", running);
+  $("#scan-btn").title = running ? "Stop scanning" : "Scan again (⌘R)";
+  $("#scanbar").hidden = !running;
+  $("#view").classList.toggle("dim", running && !!state.scan && (state.view === "overview" || isList()));
 
-  if (state.status.running) return renderScanning();
-  if (!state.scan && ["overview", "safe", "review", "keep"].includes(state.view)) return renderEmpty();
+  if (running && !state.scan) { setTitle("Scanning"); return renderScanning(); }
+  if (!state.scan && (state.view === "overview" || isList())) { setTitle("Overview", ""); return renderWelcome(); }
 
-  const views = { overview: renderOverview, safe: renderList, review: renderList, keep: renderList, vault: renderVault, explore: renderExplore, why: renderWhy, history: renderHistory, settings: renderSettings };
+  if (isList()) return renderList();
+  const views = { overview: renderOverview, vault: renderVault, explore: renderExplore, why: renderWhy, history: renderHistory, settings: renderSettings };
+  $("#inspector").hidden = true;
   (views[state.view] || renderOverview)();
+}
+
+function setTitle(title, sub) {
+  $("#title").textContent = title;
+  if (sub !== undefined) $("#subtitle").textContent = sub;
+}
+
+function renderNav() {
+  const v = state.query ? "" : state.view;
+  $("#nav-cats").innerHTML = CATS.map((c) => {
+    const n = sum(inCat(c.key));
+    return `<a class="nav ${v === "cat:" + c.key ? "active" : ""}" data-view="cat:${c.key}" href="#${c.key}">
+      <span class="tile cat-${c.key}">${c.mono}</span><span class="nav-text">${c.label}</span><span class="meta">${n ? bytes(n) : "—"}</span></a>`;
+  }).join("");
+  document.querySelectorAll("#nav > .nav").forEach((a) => a.classList.toggle("active", a.dataset.view === v));
+  const keep = items().filter((it) => it.verdict === "keep");
+  $("#count-keep").textContent = keep.length ? bytes(sum(keep)) : "";
+  const badge = $("#count-vault");
+  badge.hidden = !state.vault.length;
+  badge.textContent = state.vault.length;
+}
+
+function renderDisk() {
+  const d = state.meta.disk;
+  $("#disk").hidden = !d;
+  if (!d) return;
+  const left = sum(items().filter(cleanable)) + sum(state.vault);
+  const used = Math.max(0, d.total - d.free);
+  const pct = (n) => Math.min(100, (n / d.total) * 100).toFixed(2) + "%";
+  $("#disk-name").textContent = "This " + MACHINE();
+  $("#disk-total").textContent = bytes(d.total);
+  $("#disk-used").style.width = pct(Math.max(0, used - left));
+  $("#disk-left").style.width = pct(Math.min(used, left));
+  $("#disk-note").textContent = `${bytes(d.free)} available` + (left ? ` · ${bytes(left)} leftovers` : "");
+}
+
+// The page's security policy forbids inline style attributes, so widths
+// are carried in data attributes and applied through the DOM.
+function applyStyles(root) {
+  root.querySelectorAll("[data-width]").forEach((el) => { el.style.width = el.dataset.width; });
+}
+
+// ---------- welcome and scanning ----------
+
+function renderWelcome() {
+  $("#inspector").hidden = true;
+  $("#view").innerHTML = `
+    <div class="welcome">
+      <img src="icon.svg" alt="">
+      <h2>See what your tools left behind.</h2>
+      <p>Leftover looks through caches, build folders and AI models, explains each one, and clears what's safe.</p>
+      <button class="btn btn-primary btn-lg" data-act="scan">Scan this ${MACHINE()}</button>
+      <div class="fine">Scanning only reads. Nothing is moved until you choose.</div>
+    </div>`;
+}
+
+const PHASES = { starting: "Getting ready", locations: "Checking tool caches", projects: "Looking through your projects", measuring: "Measuring what was found", done: "Finishing up" };
+
+function scanLine() {
+  const p = state.status.progress || {};
+  return `${PHASES[p.phase] || "Scanning"} · ${(p.folders || 0).toLocaleString()} folders checked · ${p.found || 0} found`;
+}
+
+function renderScanning() {
+  $("#inspector").hidden = true;
+  const p = state.status.progress || {};
+  $("#subtitle").textContent = scanLine();
+  $("#view").innerHTML = `
+    <div class="scanning">
+      <div class="spinner"></div>
+      <div class="big">${bytes(p.bytes || 0)}</div>
+      <div class="sub">${esc(scanLine())}</div>
+      <div class="path">${esc(tilde(p.current || ""))}</div>
+    </div>`;
+}
+
+// ---------- overview ----------
+
+function ring(segs, total) {
+  const R = 88, W = 18, C = 2 * Math.PI * R, gap = segs.length > 1 ? 4 : 0;
+  let off = 0;
+  const parts = segs.map(([key, n]) => {
+    const len = total ? (n / total) * C : 0;
+    const o = off;
+    off += len;
+    return `<circle class="seg cat-${key}" cx="104" cy="104" r="${R}" fill="none" stroke-width="${W}" stroke-dasharray="${Math.max(0, len - gap).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-o).toFixed(2)}"/>`;
+  });
+  return `<svg width="208" height="208" viewBox="0 0 208 208" aria-hidden="true">
+    <circle class="seg-track" cx="104" cy="104" r="${R}" fill="none" stroke-width="${W}"/>${parts.join("")}</svg>`;
+}
+
+function renderOverview() {
+  const live = items().filter(cleanable);
+  const review = items().filter((it) => it.verdict === "review");
+  const liveT = sum(live);
+  const chosenT = sum(live.filter(included));
+  const s = state.scan;
+  setTitle("Overview", `${plural(shown().length, "item")} found · scanned ${since(s.started)}`);
+
+  const segs = CATS.map((c) => [c.key, sum(live.filter((it) => itemCat(it) === c.key))]).filter(([, n]) => n > 0);
+  const firstCat = CATS.find((c) => inCat(c.key).length);
+  const free = state.meta.disk ? state.meta.disk.free : 0;
+  const num = (n) => { const t = bytes(n).split(" "); return { n: t[0], u: t[1] }; };
+  const hero = live.length ? num(liveT) : num(free);
+
+  const stat = (cls, title, sub, n) => `
+    <div class="stat"><span class="stat-label"><i class="swatch sw-${cls}"></i>${title}</span>
+      <span class="stat-size">${bytes(n)}</span><span class="stat-sub">${sub}</span></div>`;
+
+  const allT = sum(shown()) + sum(state.vault) || 1;
+  const card = (key, title, tileCls, monoText, size, count) => `
+    <button class="cat-card ${tileCls}" data-go="${key}">
+      <div class="cat-card-top"><span class="tile tile-lg ${tileCls}">${monoText}</span><i class="ico ico-chevron"></i></div>
+      <div class="cat-card-name"><b>${title}</b><span>${count}</span></div>
+      <div><div class="cat-card-size">${bytes(size)}</div>
+      <div class="share"><i data-width="${((size / allT) * 100).toFixed(2)}%"></i></div></div>
+    </button>`;
+  const cards = CATS.map((c) => {
+    const list = inCat(c.key);
+    return card("cat:" + c.key, c.label, "cat-" + c.key, c.mono, sum(list), list.length ? `${plural(list.length, "item")} · ${c.blurb.toLowerCase()}` : "All clean");
+  });
+  cards.push(card("vault", "Vault", "tile-vault", "V", sum(state.vault), state.vault.length ? `${plural(state.vault.length, "item")} · restorable for up to ${keepDays()} days` : "Empty"));
+
+  $("#view").innerHTML = `
+    <div class="page">
+      <div class="hero">
+        <div class="hero-top">
+          <div class="ring">${ring(segs, liveT)}
+            <div class="ring-label"><span class="ring-num">${hero.n}</span><span class="ring-unit">${hero.u} ${live.length ? "clearable" : "available"}</span></div>
+          </div>
+          <div class="hero-copy">
+            <span class="eyebrow">${live.length ? "Ready to clean" : "All clean"}</span>
+            <h2 class="hero-head">${live.length ? `${bytes(liveT)} of leftovers on this ${MACHINE()}` : "Nothing left to clean"}</h2>
+            <p class="hero-sub">${live.length
+              ? `Caches, dependencies and build output your tools bring back on their own. Anything you clean waits in the vault for ${keepDays()} days.`
+              : free ? `You have ${bytes(free)} free. Scan again any time.` : "Scan again any time."}</p>
+            <div class="hero-actions">
+              ${live.length
+                ? `<button class="btn btn-primary btn-lg" data-act="clean-all" ${chosenT ? "" : "disabled"}>${chosenT ? `Clean ${bytes(chosenT)}` : "Nothing selected"}</button>`
+                : `<button class="btn btn-primary btn-lg" data-act="scan">Scan again</button>`}
+              ${firstCat ? `<button class="btn btn-lg" data-go="cat:${firstCat.key}">Review items</button>` : ""}
+            </div>
+          </div>
+        </div>
+        <div class="stats">
+          ${stat("rebuild", "Rebuilds automatically", "Your next build recreates it", sum(live.filter((it) => it.verdict === "rebuild")))}
+          ${stat("redownload", "Downloads again", "Your tools fetch it when needed", sum(live.filter((it) => it.verdict === "redownload")))}
+          ${stat("review", "Worth a look", "Shown, never cleaned for you", sum(review))}
+        </div>
+      </div>
+
+      <h3 class="section-title">By category</h3>
+      <div class="cards">${cards.join("")}</div>
+
+      <div class="foot-note"><i class="ico ico-lock"></i>Scanned ${esc(new Date(s.started).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }))} · ${s.folders.toLocaleString()} folders in ${(s.took_ns / 1e9).toFixed(1)}s. Nothing left this ${MACHINE()}.</div>
+    </div>`;
+  applyStyles($("#view"));
+}
+
+// ---------- lists ----------
+
+function activity(it) {
+  const parts = [it.project ? tilde(it.project) : it.label ? it.name : it.tool];
+  if (it.paths.length > 1) parts.push(it.paths.length + " folders");
+  if (it.idle_days >= 1) parts.push((it.project ? "untouched " : "last changed ") + ago(it.idle_days));
+  return parts.join(" · ");
+}
+
+function renderList() {
+  const rows = rowsFor(state.view);
+  if (!rows.some((it) => it.id === state.focused)) state.focused = rows.length ? rows[0].id : null;
+  const chosen = rows.filter(included);
+  let head;
+  if (state.query) {
+    const t = `Results for “${state.query}”`;
+    setTitle("Search", `${plural(rows.length, "item")} · ${bytes(sum(rows))}`);
+    head = `<div class="list-title"><div><h2>${esc(t)}</h2><span>${plural(rows.length, "item")} · ${bytes(sum(rows))}</span></div></div>`;
+  } else if (state.view === "keep") {
+    setTitle("Your data", `${plural(rows.length, "item")} · ${bytes(sum(rows))}`);
+    head = `<div class="list-title"><span class="tile tile-xl tile-keep"><i class="ico ico-lock"></i></span><div><h2>Your data</h2><span>Listed so you can see where the space goes. Leftover never moves it.</span></div></div>`;
+  } else {
+    const c = CAT[state.view.slice(4)];
+    setTitle(c.label, `${plural(rows.length, "item")} · ${bytes(sum(rows))}`);
+    head = `<div class="list-title"><span class="tile tile-xl cat-${c.key}">${c.mono}</span><div><h2>${c.label}</h2><span>${c.blurb}</span></div></div>`;
+  }
+  const canClean = rows.some(cleanable);
+  $("#view").innerHTML = `
+    <div class="page page-list">
+      <div class="list-head">${head}
+        ${canClean ? `<button class="btn btn-primary" data-act="clean-list" ${chosen.length ? "" : "disabled"}>${chosen.length ? `Clean ${bytes(sum(chosen))}` : "Nothing selected"}</button>` : ""}
+      </div>
+      ${rows.length ? `<div class="rows" role="list">${rows.map(row).join("")}</div>`
+        : `<div class="empty-state"><b>${state.query ? "No matches" : "All clean here"}</b><span>${state.query ? `Nothing matches “${esc(state.query)}”.` : "Nothing left in this category."}</span></div>`}
+      ${rows.some((it) => it.verdict === "review") ? `<p class="hint">Items marked Review hold data only you can judge. Leftover explains them but never cleans them for you.</p>` : ""}
+    </div>`;
   renderInspector();
-  renderActionBar();
+}
+
+function row(it) {
+  const v = VERDICTS[it.verdict];
+  const cat = it.verdict === "keep" ? "tile-keep" : "cat-" + itemCat(it);
+  const toggle = cleanable(it)
+    ? `<button class="switch" role="switch" aria-checked="${included(it)}" aria-label="Include ${esc(label(it))} in clean" data-toggle="${esc(it.id)}"></button>`
+    : `<span class="row-spacer"></span>`;
+  return `<div class="row ${state.focused === it.id ? "focused" : ""}" role="listitem" data-focus="${esc(it.id)}">
+    <span class="tile tile-md ${cat}">${esc(itemMono(it))}</span>
+    <div class="row-main">
+      <div class="row-text"><b>${esc(label(it))}</b><span>${esc(activity(it))}</span></div>
+      ${it.notes && it.notes.length ? `<span class="flag" title="${esc(it.notes[0])}">!</span>` : ""}
+      <span class="pill pill-${v.cls}">${v.short}</span>
+      <span class="row-size">${bytes(it.bytes)}</span>
+      ${toggle}
+    </div>
+  </div>`;
+}
+
+function renderInspector() {
+  const el = $("#inspector");
+  const it = items().find((x) => x.id === state.focused);
+  if (!it || !isList()) { el.hidden = true; return; }
+  const v = VERDICTS[it.verdict];
+  const rule = state.rules[it.rule] || {};
+  const catKey = itemCat(it);
+  const tileCls = it.verdict === "keep" ? "tile-keep" : "cat-" + catKey;
+  const comebackTitle = cleanable(it) ? "How it comes back" : it.verdict === "review" ? "Before you remove it" : "About removing it";
+  let foot;
+  if (cleanable(it)) foot = `<div class="insp-foot"><span>Include in clean</span><button class="switch" role="switch" aria-checked="${included(it)}" aria-label="Include in clean" data-toggle="${esc(it.id)}"></button></div>`;
+  else if (it.verdict === "review") foot = `<div class="insp-foot quiet">Leftover only shows this. Check it, then remove it yourself if you don't need it.</div>`;
+  else foot = `<div class="insp-foot quiet">This is your data. Leftover never moves it.</div>`;
+
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="insp-head"><span>Details</span><button class="insp-close" data-act="close-inspector" aria-label="Close details">×</button></div>
+    <div class="insp-body">
+      <div class="insp-hero">
+        <span class="tile tile-xxl ${tileCls}">${esc(itemMono(it))}</span>
+        <h2>${esc(label(it))}</h2>
+        <span class="sub">${esc(it.tool)} · ${esc(it.kind)}</span>
+        <span class="insp-size">${bytes(it.bytes)}</span>
+        <span class="pill pill-${v.cls}">${v.long}</span>
+      </div>
+      ${(it.notes || []).map((n) => `<div class="note">${esc(n)}</div>`).join("")}
+      ${rule.what ? `<div class="block"><b>What it is</b><p>${esc(rule.what)}</p></div>` : ""}
+      ${rule.comeback || rule.command ? `<div class="callout">
+        ${rule.comeback ? `<b>${comebackTitle}</b><p>${esc(rule.comeback)}</p>` : ""}
+        ${rule.command ? `${rule.comeback ? "" : "<b>The tool's own command</b>"}<div class="cmdline"><span>$</span><code>${esc(rule.command)}</code><button class="btn-link" data-copy="${esc(rule.command)}">Copy</button></div>
+          ${rule.comeback ? `<p class="small">The tool's own command for this, if you'd rather use it.</p>` : ""}` : ""}
+      </div>` : ""}
+      ${it.details && it.details.length ? `<div class="block"><b>Inside</b><div class="details">${it.details.map((d) => `
+        <div class="detail"><span>${esc(d.name)}${d.shared ? ` <small>shares layers</small>` : ""}${d.reclaimable ? ` <small>${bytes(d.reclaimable)} reclaimable</small>` : ""}</span><span>${bytes(d.bytes)}</span></div>`).join("")}</div></div>` : ""}
+      ${DOCKER.has(it.rule) && it.details && it.details.length ? `<div><button class="btn btn-small" data-act="docker-prune">Reclaim Docker space…</button></div>` : ""}
+      <div class="facts">
+        <div class="fact"><span>Category</span><span>${it.verdict === "keep" ? "Your data" : CAT[catKey].label}</span></div>
+        <div class="fact"><span>Files</span><span>${(it.files || 0).toLocaleString()}</span></div>
+        ${it.idle_days ? `<div class="fact"><span>Last changed</span><span>${ago(it.idle_days)}</span></div>` : ""}
+        ${it.project ? `<div class="fact fact-col"><span>Project</span><span class="path"><code>${esc(tilde(it.project))}</code><button class="btn-link" data-reveal="${esc(it.project)}">Show</button></span></div>` : ""}
+        <div class="fact fact-col"><span>Location${it.paths.length > 1 ? "s" : ""}</span>
+          <span>${it.paths.map((p) => `<span class="path"><code>${esc(tilde(p))}</code><button class="btn-link" data-reveal="${esc(p)}" title="${SHOW()}">Show</button></span>`).join("")}</span></div>
+        ${rule.source ? `<div class="fact"><span>Source</span><span><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, "").replace(/\/.*$/, ""))}</a></span></div>` : ""}
+      </div>
+      <div class="insp-actions"><button class="btn btn-small" data-ignore="${esc(it.project || it.paths[0])}">Ignore this folder</button></div>
+    </div>
+    ${foot}`;
 }
 
 // ---------- cleaning ----------
 
-function selectedItems() { return items().filter((it) => state.selected.has(it.id)); }
-
-function renderActionBar() {
-  const sel = selectedItems();
-  const bar = $("#actionbar");
-  bar.hidden = state.view !== "safe" || sel.length === 0;
-  if (bar.hidden) return;
-  $("#selection-summary").innerHTML = `<b>${sel.length} selected</b> · ${bytes(sum(sel))}`;
+// confirmClean sums up a clean you haven't looked at item by item: what
+// goes, per category, and the parts that cost something to get back.
+function confirmClean(chosen) {
+  const byCat = CATS.map((c) => [c.label, sum(chosen.filter((it) => itemCat(it) === c.key))]).filter(([, n]) => n > 0);
+  const recent = new Set(chosen.filter((it) => it.project && it.idle_days < 7).map((it) => it.project));
+  const again = sum(chosen.filter((it) => it.verdict === "redownload"));
+  const warns = [];
+  if (recent.size) warns.push(`<b>${plural(recent.size, "project")} you changed this week</b>${recent.size === 1 ? "Its" : "Their"} next build will be slower.`);
+  if (again >= 1e9) warns.push(`<b>${bytes(again)} will be downloaded again</b>Your tools fetch it when they next need it.`);
+  return sheet({
+    title: `Move ${bytes(sum(chosen))} to the vault?`,
+    body: `<div class="sum-list">${byCat.map(([l, n]) => `<div><span>${l}</span><span>${bytes(n)}</span></div>`).join("")}</div>
+      ${warns.map((w) => `<div class="sum-warn">${w}</div>`).join("")}
+      <p class="sum-fine">The space comes back when the vault is emptied: automatically after ${keepDays()} days, or from the Vault page.</p>`,
+    ok: "Move to Vault",
+    wide: true,
+  });
 }
 
-function sheet({ title, body, ok, danger }) {
+async function clean(list, ask) {
+  const chosen = list.filter(included);
+  const ids = chosen.map((it) => it.id);
+  if (!ids.length) return;
+  if (ask && !(await confirmClean(chosen))) return;
+  try {
+    const out = await api("clean", { ids });
+    const moved = out.filter((o) => !o.error && o.entry);
+    const failed = out.filter((o) => o.error);
+    const freed = moved.reduce((n, o) => n + o.bytes, 0);
+    await refresh();
+    let msg = moved.length ? `Moved ${bytes(freed)} to the vault · frees up when emptied` : "Nothing was moved.";
+    if (failed.length) msg += `. ${plural(failed.length, "item")} couldn't be moved: ${failed[0].error}`;
+    const entries = moved.map((o) => o.entry.id);
+    toast(msg, entries.length ? () => undoClean(entries) : null);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+async function undoClean(ids) {
+  let back = 0;
+  let err = "";
+  for (const id of ids) {
+    try { await api("restore", { id }); back++; } catch (e) { err = e.message; }
+  }
+  await refresh();
+  toast(err ? `Put back ${back} of ${ids.length}: ${err}` : `Put back ${plural(back, "item")}. Scan again to see ${back === 1 ? "it" : "them"} in your lists.`);
+}
+
+function toggleInclude(id) {
+  state.excluded.has(id) ? state.excluded.delete(id) : state.excluded.add(id);
+  render();
+}
+
+// ---------- alert ----------
+
+function sheet({ title, body, ok, danger, wide }) {
   return new Promise((resolve) => {
+    $(".sheet").classList.toggle("sheet-wide", !!wide);
     $("#sheet-title").textContent = title;
     $("#sheet-body").innerHTML = body;
     const okBtn = $("#sheet-ok");
@@ -165,44 +526,14 @@ function sheet({ title, body, ok, danger }) {
   });
 }
 
-async function clean() {
-  const sel = selectedItems();
-  if (!sel.length) return;
-  const days = state.settings.keep_days || 14;
-  const okd = await sheet({
-    title: `Move ${sel.length} item${sel.length === 1 ? "" : "s"} to the vault?`,
-    body: `<p>${bytes(sum(sel))} will be set aside, not deleted. You can put any of it back for ${days} days.</p>
-      <ul class="sheet-list">${sel.slice(0, 6).map((it) => `<li><span>${esc(label(it))}</span><span>${bytes(it.bytes)}</span></li>`).join("")}${sel.length > 6 ? `<li class="muted">and ${sel.length - 6} more</li>` : ""}</ul>`,
-    ok: "Move to Vault",
-  });
-  if (!okd) return;
-  const btn = $("#clean-btn");
-  btn.disabled = true;
-  try {
-    const out = await api("clean", { ids: sel.map((it) => it.id) });
-    const failed = out.filter((o) => o.error);
-    const moved = out.filter((o) => !o.error).reduce((n, o) => n + o.bytes, 0);
-    state.selected.clear();
-    state.focused = null;
-    await refresh();
-    toast(failed.length ? `Moved ${bytes(moved)}. ${failed.length} couldn't be moved: ${failed[0].error}` : `Moved ${bytes(moved)} to the vault.`);
-  } catch (e) {
-    toast(e.message);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
 // ---------- docker ----------
-
-const DOCKER = new Set(["docker-disk", "docker-engine", "orbstack-data", "colima-disk"]);
 
 // Docker's own prune, for what Docker re-creates on demand. Leftover never
 // moves Docker's disk itself, and never prunes containers or volumes.
 async function dockerPrune() {
   const okd = await sheet({
     title: "Reclaim space inside Docker?",
-    body: `<p>Leftover will ask Docker to remove its build cache and dangling images. Docker rebuilds the cache and pulls images again when they're next needed.</p>
+    body: `<p>Leftover asks Docker to remove its build cache and dangling images. Docker rebuilds the cache and pulls images again when they're next needed.</p>
       <p>This is Docker's own cleanup, so it can't be undone from the vault. Containers and volumes are never touched.</p>
       <label class="sheet-check"><input type="checkbox" id="prune-images"> Also remove every image no container uses</label>`,
     ok: "Reclaim",
@@ -224,46 +555,43 @@ async function dockerPrune() {
 
 function daysLeft(e) {
   const ms = new Date(e.expires) - Date.now();
-  if (ms <= 0) return "Expired";
-  const d = Math.ceil(ms / 864e5);
-  return d === 1 ? "1 day left" : d + " days left";
+  return ms <= 0 ? 0 : Math.ceil(ms / 864e5);
 }
 
 function renderVault() {
-  $("#inspector").hidden = true;
-  const v = state.vault;
+  const v = state.vault.slice().sort((a, b) => new Date(b.created) - new Date(a.created));
   const total = sum(v);
-  if (!v.length) {
-    $("#view").innerHTML = `
-      <div class="empty">
-        <h2>The vault is empty.</h2>
-        <p>When you clear something, it waits here for ${state.settings.keep_days || 14} days so you can change your mind. Nothing is deleted until then.</p>
-      </div>`;
-    return;
-  }
-  const expired = v.filter((e) => new Date(e.expires) <= Date.now());
+  const auto = state.settings.auto_empty !== false;
+  setTitle("Vault", v.length ? `${plural(v.length, "item")} · ${bytes(total)}` : "Empty");
+  const expired = v.filter((e) => daysLeft(e) === 0);
   $("#view").innerHTML = `
-    <div class="vault-head">
-      <div>
-        <div class="hero-number small-hero">${bytes(total)}</div>
-        <div class="muted">held in the vault. The space comes back when it's emptied${state.settings.auto_empty === false ? "" : ", which happens automatically as items expire"}.</div>
+    <div class="page page-narrow">
+      <div class="vault-head">
+        <div>
+          <h2>${v.length ? bytes(total) + " held" : "Nothing held"}</h2>
+          <p>Cleaned items wait here for ${keepDays()} days${auto ? ", then clear themselves" : " until you empty them"}. Put Back returns them exactly where they were. The space comes back when they're emptied.</p>
+        </div>
+        ${v.length ? `<div class="vault-actions">
+          ${expired.length ? `<button class="btn" data-act="empty-expired">Empty expired</button>` : ""}
+          <button class="btn btn-danger" data-act="empty-all">Empty Vault…</button>
+        </div>` : ""}
       </div>
-      <div class="vault-actions">
-        ${expired.length ? `<button class="btn" data-act="empty-expired">Empty expired (${bytes(sum(expired))})</button>` : ""}
-        <button class="btn btn-danger" data-act="empty-all">Empty Vault…</button>
-      </div>
-    </div>
-    <div class="table">
-      ${v.map((e) => `
-        <div class="tr tr-vault">
-          <span class="dot dot-safe"></span>
-          <span class="name">${esc(e.name)}<small>${esc(e.tool)}${e.state === "moving" ? " · interrupted" : ""}</small></span>
-          <span class="where">${esc(tilde(e.project || e.paths[0]))}</span>
-          <span class="r size">${bytes(e.bytes)}</span>
-          <span class="r muted small">${daysLeft(e)}</span>
-          <span class="r"><button class="btn btn-small" data-restore="${esc(e.id)}">Put Back</button></span>
-        </div>`).join("")}
+      ${v.length ? `<div class="rows">${v.map((e) => {
+        const d = daysLeft(e);
+        const when = d === 0 ? (auto ? "Expired · clears at the next scan" : "Expired") : `Clears in ${plural(d, "day")}`;
+        return `<div class="row">
+          <span class="tile tile-md cat-${entryCat(e)}">${esc(mono(/[,/]/.test(e.tool) ? e.name : e.tool))}</span>
+          <div class="row-main">
+            <div class="row-text"><b>${esc(e.name)}</b><span>${esc(tilde(e.project || e.paths[0]))} · ${when}${e.state === "moving" ? " · interrupted" : ""}</span></div>
+            <div class="life"><i data-width="${Math.min(100, (d / keepDays()) * 100).toFixed(1)}%"></i></div>
+            <span class="row-size">${bytes(e.bytes)}</span>
+            <button class="btn btn-small" data-restore="${esc(e.id)}">Put Back</button>
+          </div>
+        </div>`;
+      }).join("")}</div>`
+      : `<div class="empty-state"><b>The vault is empty</b><span>Anything you clean waits here for ${keepDays()} days, so you can change your mind.</span></div>`}
     </div>`;
+  applyStyles($("#view"));
 }
 
 async function restore(id) {
@@ -272,36 +600,36 @@ async function restore(id) {
     const e = out.entry;
     const beside = out.restored.some((p, i) => p !== e.paths[i]);
     await refresh();
-    toast(beside ? `Put back next to the copy your tools already rebuilt.` : `Put back ${e.name}. Scan again to see it in your lists.`);
+    toast(beside ? "Put back next to the copy your tools already rebuilt." : `Put back ${e.name}. Scan again to see it in your lists.`);
   } catch (err) { toast(err.message); }
 }
 
 async function emptyVault(expiredOnly) {
-  const list = expiredOnly ? state.vault.filter((e) => new Date(e.expires) <= Date.now()) : state.vault;
+  const list = expiredOnly ? state.vault.filter((e) => daysLeft(e) === 0) : state.vault;
   const okd = await sheet({
     title: expiredOnly ? "Empty expired items?" : "Empty the vault?",
-    body: `<p>${bytes(sum(list))} will be deleted for good. This can't be undone.</p>`,
-    ok: "Empty",
+    body: `<p>${plural(list.length, "item")} (${bytes(sum(list))}) will be deleted for good. This can't be undone.</p>`,
+    ok: "Delete",
     danger: true,
   });
   if (!okd) return;
   try {
     const out = await api("empty", expiredOnly ? { expired: true } : { all: true });
     await refresh();
-    toast(`Freed ${bytes(out.freed)}.`);
+    toast(`${bytes(out.freed)} freed`);
   } catch (err) { toast(err.message); }
 }
 
 // ---------- history ----------
 
 async function renderHistory() {
-  $("#inspector").hidden = true;
-  $("#view").innerHTML = `<p class="muted">Loading…</p>`;
+  setTitle("History", "Everything Leftover has changed");
+  $("#view").innerHTML = `<div class="page page-narrow"><p class="muted">Loading…</p></div>`;
   const events = await api("history");
-  if (state.view !== "history") return;
+  if (state.view !== "history" || state.query) return;
   const verbs = { move: "Moved to vault", restore: "Put back", empty: "Deleted for good", "docker-prune": "Pruned by Docker" };
-  $("#view").innerHTML = events.length ? `
-    <p class="intro">Everything Leftover has changed on this computer, newest first. Scans aren't listed because they only read.</p>
+  $("#view").innerHTML = `<div class="page page-narrow">${events.length ? `
+    <p class="intro">Everything Leftover has changed on this ${MACHINE()}, newest first. Scans aren't listed because they only read.</p>
     <div class="table">
       ${events.map((ev) => `
         <div class="tr tr-history">
@@ -310,167 +638,7 @@ async function renderHistory() {
           <span class="where">${esc(tilde((ev.paths || [])[0] || ""))}${ev.paths && ev.paths.length > 1 ? ` +${ev.paths.length - 1}` : ""}</span>
           <span class="r size">${bytes(ev.bytes)}</span>
         </div>`).join("")}
-    </div>` : `<div class="empty"><h2>Nothing yet.</h2><p>Leftover hasn't changed anything on this computer.</p></div>`;
-}
-
-function renderEmpty() {
-  $("#inspector").hidden = true;
-  $("#view").innerHTML = `
-    <div class="empty">
-      <img src="icon.svg" alt="">
-      <h2>See what your tools left behind.</h2>
-      <p>Leftover looks through caches, build folders and AI models, explains each one, and clears what's safe.</p>
-      <button class="btn btn-primary" data-act="scan">Scan this computer</button>
-      <div class="fine">Scanning only reads. Nothing is moved until you choose.</div>
-    </div>`;
-}
-
-function renderScanning() {
-  $("#inspector").hidden = true;
-  const p = state.status.progress || {};
-  const phase = { starting: "Getting ready", locations: "Checking tool caches", projects: "Looking through your projects", measuring: "Measuring what was found", done: "Finishing up" }[p.phase] || "Scanning";
-  $("#view").innerHTML = `
-    <div class="scanning">
-      <div class="spinner"></div>
-      <div class="big">${bytes(p.bytes || 0)}</div>
-      <div class="sub">${esc(phase)} · ${(p.folders || 0).toLocaleString()} folders · ${p.found || 0} found</div>
-      <div class="path">${esc(tilde(p.current || ""))}</div>
-    </div>`;
-}
-
-const GROUP_COLORS = ["#0071e3", "#34c759", "#ff9f0a", "#af52de", "#ff375f", "#5ac8fa", "#ffcc00", "#8e8e93"];
-
-function renderOverview() {
-  const safe = itemsFor("safe");
-  const safeBytes = sum(safe);
-  const byGroup = new Map();
-  for (const it of safe) byGroup.set(it.group, (byGroup.get(it.group) || 0) + it.bytes);
-  const groups = [...byGroup.entries()].sort((a, b) => b[1] - a[1]);
-  const top = safe.slice(0, 6);
-  const idle = safe.filter((it) => it.project && it.idle_days >= 90);
-  const s = state.scan;
-  const took = (s.took_ns / 1e9).toFixed(1);
-  const when = new Date(s.started).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
-
-  $("#view").innerHTML = `
-    <div class="hero">
-      <div class="hero-number">${bytes(safeBytes)}</div>
-      <div class="hero-label">can be cleared safely</div>
-      <div class="bar" role="img" aria-label="Space by tool">
-        ${groups.map(([g, n], i) => `<span data-flex="${n}" data-color="${GROUP_COLORS[i % GROUP_COLORS.length]}" title="${esc(g)} · ${bytes(n)}"></span>`).join("")}
-      </div>
-      <div class="legend">
-        ${groups.map(([g, n], i) => `<span><i data-color="${GROUP_COLORS[i % GROUP_COLORS.length]}"></i>${esc(g)} <b>${bytes(n)}</b></span>`).join("")}
-      </div>
-      <div class="hero-actions">
-        ${safe.length ? `<button class="btn btn-primary" data-act="review-safe">Review ${safe.length} item${safe.length === 1 ? "" : "s"}</button>` : ""}
-        <span class="meta">Scanned ${esc(when)} · ${s.folders.toLocaleString()} folders in ${took}s</span>
-      </div>
-    </div>
-
-    <div class="cards">
-      <div class="card">
-        <h3>Biggest</h3>
-        ${top.length ? top.map(rowMini).join("") : `<p class="muted">Nothing safe to clear right now. Nice.</p>`}
-      </div>
-      <div class="card">
-        <h3>Projects you haven't touched in 3 months</h3>
-        ${idle.length ? idle.slice(0, 6).map(rowMini).join("") : `<p class="muted">Every project with leftovers has been worked on recently.</p>`}
-      </div>
-    </div>
-
-    <div class="trust">
-      <i class="ico ico-lock"></i>
-      <div><b>Everything stays on this computer.</b> Leftover has no account, sends nothing anywhere, and only moves things you pick into a vault you can restore from for ${state.settings.keep_days || 14} days.</div>
-    </div>`;
-  applyStyles($("#view"));
-}
-
-// The page's security policy forbids inline style attributes, so sizes and
-// colours are carried in data attributes and applied through the DOM.
-function applyStyles(root) {
-  root.querySelectorAll("[data-flex]").forEach((el) => { el.style.flex = el.dataset.flex; });
-  root.querySelectorAll("[data-color]").forEach((el) => { el.style.background = el.dataset.color; });
-  root.querySelectorAll("[data-width]").forEach((el) => { el.style.width = el.dataset.width; });
-}
-
-function rowMini(it) {
-  const where = it.project || it.paths[0];
-  return `<button class="mini" data-focus="${it.id}">
-    <span class="mini-name">${esc(label(it))}<small>${esc(tilde(where))}</small></span>
-    <span class="mini-size">${bytes(it.bytes)}</span>
-  </button>`;
-}
-
-function matches(it) {
-  if (!state.query) return true;
-  const q = state.query.toLowerCase();
-  return [it.name, it.tool, it.kind, it.project, ...it.paths].some((s) => (s || "").toLowerCase().includes(q));
-}
-
-function renderList() {
-  const list = itemsFor(state.view).filter(matches);
-  const intro = {
-    safe: "These come back on their own: your tools rebuild them or download them again when needed.",
-    review: "Leftover knows what these are but can't promise they come back, so it only shows them. Each one explains how to check.",
-    keep: "This is your data. It's listed so you can see where the space goes, and Leftover never moves it.",
-  }[state.view];
-  const selectable = state.view === "safe";
-  const allOn = selectable && list.length > 0 && list.every((it) => state.selected.has(it.id));
-
-  $("#view").innerHTML = `
-    <p class="intro">${intro}</p>
-    ${list.length === 0 ? `<p class="muted">${state.query ? "Nothing matches your search." : "Nothing here."}</p>` : `
-    <div class="table">
-      <div class="thead">
-        ${selectable ? `<label class="check"><input type="checkbox" data-act="select-all" ${allOn ? "checked" : ""} aria-label="Select all"></label>` : `<span></span>`}
-        <span>Name</span><span>Where</span><span class="r">Size</span>
-      </div>
-      ${list.map((it) => row(it, selectable)).join("")}
-    </div>`}`;
-}
-
-function row(it, selectable) {
-  const where = it.project || it.paths[0];
-  const v = VERDICTS[it.verdict];
-  const multi = it.paths.length > 1 ? ` · ${it.paths.length} folders` : "";
-  const idle = it.project && it.idle_days >= 30 ? `<span class="tag">untouched ${ago(it.idle_days)}</span>` : "";
-  const warn = it.notes && it.notes.length ? `<span class="tag tag-warn">!</span>` : "";
-  return `<div class="tr ${state.focused === it.id ? "focused" : ""}" data-focus="${it.id}">
-    ${selectable ? `<label class="check"><input type="checkbox" data-select="${it.id}" ${state.selected.has(it.id) ? "checked" : ""} aria-label="Select ${esc(it.name)}"></label>` : `<span class="dot dot-${v.cls}"></span>`}
-    <span class="name">${esc(label(it))}<small>${esc(it.label ? it.name : it.tool)}${multi}</small></span>
-    <span class="where">${esc(tilde(where))}${idle}${warn}</span>
-    <span class="r size">${bytes(it.bytes)}</span>
-  </div>`;
-}
-
-function renderInspector() {
-  const el = $("#inspector");
-  const it = items().find((x) => x.id === state.focused);
-  if (!it || !["overview", "safe", "review", "keep"].includes(state.view)) { el.hidden = true; return; }
-  const v = VERDICTS[it.verdict];
-  const rule = state.rules[it.rule] || {};
-  el.hidden = false;
-  el.innerHTML = `
-    <button class="close" data-act="close-inspector" aria-label="Close">×</button>
-    <div class="pill pill-${v.cls}">${v.label}</div>
-    <h2>${esc(label(it))}</h2>
-    <div class="muted">${esc(it.tool)} · ${esc(it.kind)}</div>
-    <div class="size-big">${bytes(it.bytes)}</div>
-    <div class="muted small">${it.files.toLocaleString()} files${it.idle_days ? ` · last changed ${ago(it.idle_days)}` : ""}</div>
-    ${(it.notes || []).map((n) => `<div class="note">${esc(n)}</div>`).join("")}
-    <h4>What it is</h4><p>${esc(rule.what || "")}</p>
-    ${rule.comeback ? `<h4>${cleanable(it) ? "How it comes back" : "Before you remove it"}</h4><p>${esc(rule.comeback)}</p>` : ""}
-    ${rule.command ? `<h4>The tool's own command</h4><code class="cmd">${esc(rule.command)}</code>` : ""}
-    ${it.details && it.details.length ? `<h4>Inside</h4><div class="details">${it.details.map((d) => `
-      <div class="detail"><span>${esc(d.name)}${d.shared ? ` <small>shares layers</small>` : ""}${d.reclaimable ? ` <small>${bytes(d.reclaimable)} reclaimable</small>` : ""}</span><span>${bytes(d.bytes)}</span></div>`).join("")}</div>` : ""}
-    ${DOCKER.has(it.rule) && it.details && it.details.length ? `<button class="btn btn-small" data-act="docker-prune">Reclaim Docker space…</button>` : ""}
-    <h4>Location</h4>
-    ${it.paths.map((p) => `<div class="path-row"><code>${esc(tilde(p))}</code><button class="btn-link" data-reveal="${esc(p)}">Show</button></div>`).join("")}
-    ${rule.source ? `<h4>Source</h4><p><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, ""))}</a></p>` : ""}
-    <div class="inspector-actions">
-      <button class="btn btn-small" data-ignore="${esc(it.project || it.paths[0])}">Ignore this folder</button>
-    </div>`;
+    </div>` : `<div class="empty-state"><b>Nothing yet</b><span>Leftover hasn't changed anything on this ${MACHINE()}.</span></div>`}</div>`;
 }
 
 // ---------- explore ----------
@@ -479,12 +647,12 @@ function renderInspector() {
 // folder; opening anything inside it reuses that measurement.
 const ex = { path: "", view: null, loading: false, error: "" };
 
-async function explore(path, refresh) {
+async function explore(path, again) {
   ex.loading = true;
   ex.error = "";
   if (state.view === "explore") render();
   try {
-    ex.view = await api("explore", { path: path || "", refresh: !!refresh });
+    ex.view = await api("explore", { path: path || "", refresh: !!again });
     ex.path = ex.view.path;
   } catch (e) {
     ex.error = e.message;
@@ -496,7 +664,8 @@ async function explore(path, refresh) {
 function crumbs(path) {
   const sep = path.includes("\\") ? "\\" : "/";
   const home = state.home;
-  let base = "", parts = path.split(sep).filter(Boolean), out = [];
+  let base = "", parts = path.split(sep).filter(Boolean);
+  const out = [];
   if (home && (path === home || path.startsWith(home + sep))) {
     out.push(`<button class="crumb" data-explore="${esc(home)}">~</button>`);
     base = home;
@@ -508,59 +677,59 @@ function crumbs(path) {
     base = base ? (base.endsWith(sep) ? base + p : base + sep + p) : p + sep;
     out.push(`<button class="crumb" data-explore="${esc(base)}">${esc(p)}</button>`);
   }
-  return out.join(`<span class="crumb-sep">${sep === "/" ? "/" : "\\"}</span>`);
+  return out.join(`<span class="crumb-sep">${sep}</span>`);
 }
 
 function renderExplore() {
-  $("#inspector").hidden = true;
+  setTitle("Explore", "What any folder holds, biggest first");
   if (!ex.view && !ex.loading && !ex.error) { explore(""); return; }
   const v = ex.view;
   const head = `
-    <form id="explore-form" class="why-form">
-      <input id="explore-path" class="search why-input" type="text" placeholder="~/code" autocomplete="off" spellcheck="false" value="${esc(v ? tilde(v.path) : "")}">
+    <form id="explore-form" class="field-row">
+      <input id="explore-path" class="field" type="text" placeholder="~/code" autocomplete="off" spellcheck="false" value="${esc(v ? tilde(v.path) : "")}" aria-label="Folder to explore">
       <button class="btn" type="submit">Open</button>
       ${v ? `<button class="btn" type="button" data-act="explore-refresh">Measure again</button>` : ""}
     </form>`;
   if (ex.loading) {
-    $("#view").innerHTML = `<div class="explore">${head}<div class="empty"><div class="spinner"></div><p>Measuring${v ? "" : " your home folder"}… the first look takes a few seconds.</p></div></div>`;
+    $("#view").innerHTML = `<div class="page page-narrow">${head}<div class="scanning"><div class="spinner"></div><p class="muted">Measuring${v ? "" : " your home folder"}… the first look takes a few seconds.</p></div></div>`;
     return;
   }
   if (ex.error) {
-    $("#view").innerHTML = `<div class="explore">${head}<div class="note">${esc(ex.error)}</div></div>`;
+    $("#view").innerHTML = `<div class="page page-narrow">${head}<div class="note">${esc(ex.error)}</div></div>`;
     return;
   }
   const max = Math.max(1, ...v.entries.map((e) => e.bytes));
   const note = (e) => {
     if (e.rule && e.rule.at === e.path) {
       const vd = VERDICTS[e.rule.verdict] || VERDICTS.keep;
-      return `<span class="pill pill-${vd.cls}">${esc(e.rule.name)} · ${vd.label}</span>`;
+      return `<span class="pill pill-${vd.cls}">${esc(e.rule.name)} · ${vd.short}</span>`;
     }
     if (e.rule) return `<span class="muted small">inside ${esc(e.rule.name)}</span>`;
-    if (e.clearable) return `<span class="tag tag-safe">${bytes(e.clearable)} safe to clear</span>`;
+    if (e.clearable) return `<span class="safe-text small">${bytes(e.clearable)} safe to clear</span>`;
     return "";
   };
   $("#view").innerHTML = `
-    <div class="explore">
+    <div class="page page-narrow">
       ${head}
       <div class="crumbs">${crumbs(v.path)}</div>
-      <div class="explore-sum">
-        <span class="size-big">${bytes(v.bytes)}</span>
+      <div>
+        <div class="big-num">${bytes(v.bytes)}</div>
         <span class="muted small">${v.files.toLocaleString()} files${v.clearable ? ` · <b class="safe-text">${bytes(v.clearable)} safe to clear</b> from your last scan` : ""}</span>
       </div>
-      ${v.rule ? `<div class="note">Leftover knows this as ${esc(v.rule.name)} (${esc(v.rule.tool)}): ${(VERDICTS[v.rule.verdict] || VERDICTS.keep).label}.</div>` : ""}
+      ${v.rule ? `<div class="note">Leftover knows this as ${esc(v.rule.name)} (${esc(v.rule.tool)}): ${(VERDICTS[v.rule.verdict] || VERDICTS.keep).long}.</div>` : ""}
       <div class="table">
         ${v.entries.map((e) => `
           <div class="tr tr-explore" ${e.dir ? `data-explore="${esc(e.path)}" tabindex="0" role="button"` : ""}>
             <span class="xbar"><i data-width="${Math.max(2, (e.bytes / max) * 100).toFixed(1)}%"></i></span>
             <span class="name">${esc(e.name)}${e.dir ? "/" : ""}</span>
-            <span class="where">${note(e)}</span>
+            <span class="x-note">${note(e)}</span>
             <span class="r size">${bytes(e.bytes)}</span>
-            <button class="btn-link" data-reveal="${esc(e.path)}">Show</button>
+            <button class="btn-link" data-reveal="${esc(e.path)}" title="${SHOW()}">Show</button>
           </div>`).join("")}
         ${v.rest ? `<div class="tr tr-explore muted"><span></span><span class="name">Smaller items</span><span></span><span class="r size">${bytes(v.rest)}</span><span></span></div>` : ""}
       </div>
-      ${v.unread ? `<p class="muted small">${v.unread.toLocaleString()} folder${v.unread === 1 ? "" : "s"} couldn't be read, so the real total may be higher.</p>` : ""}
-      <p class="muted small">Measured ${new Date(v.measured).toLocaleTimeString([], { timeStyle: "short" })}. Leftover only reads here; to clear something, use Safe to clear.</p>
+      ${v.unread ? `<p class="muted small">${plural(v.unread, "folder")} couldn't be read, so the real total may be higher.</p>` : ""}
+      <p class="muted small">Measured ${new Date(v.measured).toLocaleTimeString([], { timeStyle: "short" })}. Leftover only reads here; to clear something, use the categories.</p>
     </div>`;
   applyStyles($("#view"));
 }
@@ -572,7 +741,7 @@ function renderExplore() {
 const why = { path: "", result: null, error: "" };
 
 function renderWhy() {
-  $("#inspector").hidden = true;
+  setTitle("What's this folder?", "Nothing is read or changed");
   const r = why.result;
   let out = "";
   if (why.error) {
@@ -580,9 +749,9 @@ function renderWhy() {
   } else if (r && !r.known) {
     out = `
       <div class="why-card">
-        <div class="pill pill-keep">Not recognised</div>
+        <span class="pill pill-keep">Not recognised</span>
         <h2>${esc(tilde(r.path))}</h2>
-        <p>Leftover doesn't know what this is, so it treats it as yours and never offers to clean it.</p>
+        <p class="muted">Leftover doesn't know what this is, so it treats it as yours and never offers to clean it.</p>
         <p class="muted small">If it belongs to a dev tool, a rule for it would be a welcome contribution.</p>
       </div>`;
   } else if (r) {
@@ -591,22 +760,21 @@ function renderWhy() {
     const safe = rule.verdict === "rebuild" || rule.verdict === "redownload";
     out = `
       <div class="why-card">
-        <div class="pill pill-${v.cls}">${v.label}</div>
-        <h2>${esc(rule.name)}</h2>
-        <div class="muted">${esc(rule.tool)} · ${esc(rule.kind)}</div>
-        ${r.matched ? `<code class="cmd">${esc(tilde(r.matched))}</code>` : ""}
-        <h4>What it is</h4><p>${esc(rule.what || "")}</p>
-        ${rule.comeback ? `<h4>${safe ? "How it comes back" : "Before you remove it"}</h4><p>${esc(rule.comeback)}</p>` : ""}
+        <span class="pill pill-${v.cls}">${v.long}</span>
+        <div><h2>${esc(rule.name)}</h2><span class="muted">${esc(rule.tool)} · ${esc(rule.kind)}</span></div>
+        ${r.matched ? `<div class="cmdline"><code>${esc(tilde(r.matched))}</code></div>` : ""}
+        <div class="block"><b>What it is</b><p>${esc(rule.what || "")}</p></div>
+        ${rule.comeback ? `<div class="block"><b>${safe ? "How it comes back" : "Before you remove it"}</b><p>${esc(rule.comeback)}</p></div>` : ""}
         ${safe ? "" : `<p class="muted small">Leftover shows this but never cleans it.</p>`}
-        ${rule.command ? `<h4>The tool's own command</h4><code class="cmd">${esc(rule.command)}</code>` : ""}
-        ${rule.source ? `<h4>Source</h4><p><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, ""))}</a></p>` : ""}
+        ${rule.command ? `<div class="block"><b>The tool's own command</b><div class="cmdline"><span>$</span><code>${esc(rule.command)}</code><button class="btn-link" data-copy="${esc(rule.command)}">Copy</button></div></div>` : ""}
+        ${rule.source ? `<div class="block"><b>Source</b><p><a href="${esc(rule.source)}" target="_blank" rel="noopener noreferrer">${esc(rule.source.replace(/^https:\/\//, ""))}</a></p></div>` : ""}
       </div>`;
   }
   $("#view").innerHTML = `
-    <div class="why">
-      <p class="intro">Paste the path of any folder to see what it is, which tool made it, and whether it's safe to clear. Nothing is read or changed.</p>
-      <form id="why-form" class="why-form">
-        <input id="why-path" class="search why-input" type="text" placeholder="~/code/app/node_modules" autocomplete="off" spellcheck="false" value="${esc(why.path)}">
+    <div class="page page-narrow">
+      <p class="intro">Paste the path of any folder to see what it is, which tool made it, and whether it's safe to clear.</p>
+      <form id="why-form" class="field-row">
+        <input id="why-path" class="field" type="text" placeholder="~/code/app/node_modules" autocomplete="off" spellcheck="false" value="${esc(why.path)}" aria-label="Folder path">
         <button class="btn btn-primary" type="submit">Explain</button>
       </form>
       ${out}
@@ -618,8 +786,7 @@ async function explain(path) {
   why.error = "";
   why.result = null;
   if (path.trim()) {
-    try { why.result = await api("why", { path }); }
-    catch (err) { why.error = err.message; }
+    try { why.result = await api("why", { path }); } catch (err) { why.error = err.message; }
   }
   if (state.view === "why") { render(); $("#why-path")?.focus(); }
 }
@@ -627,49 +794,69 @@ async function explain(path) {
 // ---------- settings ----------
 
 function renderSettings() {
-  $("#inspector").hidden = true;
+  setTitle("Settings", "");
   const st = state.settings;
-  const keep = st.keep_days || 14;
+  const keep = keepDays();
   const auto = st.auto_empty !== false;
   const ignored = st.ignore || [];
   $("#view").innerHTML = `
-    <div class="settings">
-      <div class="group">
-        <div class="setting">
-          <div><b>Keep cleared items for</b><small>How long the vault holds things before they can be emptied.</small></div>
-          <select id="keep-days">${[3, 7, 14, 30, 60, 90].map((d) => `<option value="${d}" ${d === keep ? "selected" : ""}>${d} days</option>`).join("")}</select>
-        </div>
-        <div class="setting">
-          <div><b>Empty expired items automatically</b><small>When a scan starts, items past their time are deleted to free the space.</small></div>
-          <label class="switch"><input type="checkbox" id="auto-empty" ${auto ? "checked" : ""}><span></span></label>
-        </div>
-      </div>
-
-      <h3>Ignored folders</h3>
-      <div class="group">
-        ${ignored.length ? ignored.map((p) => `
-          <div class="setting"><code>${esc(tilde(p))}</code><button class="btn btn-small" data-unignore="${esc(p)}">Remove</button></div>`).join("")
-          : `<div class="setting"><span class="muted">None. Use “Ignore this folder” on any item to keep Leftover out of it.</span></div>`}
-      </div>
-
-      <h3>Updates</h3>
-      <div class="group">
-        <div class="setting">
-          <div><b>Leftover ${esc(state.meta.version || "")}</b><small id="update-status">${updateStatus()}</small></div>
-          <div class="update-actions">${updateButtons()}</div>
+    <div class="page page-narrow">
+      <div class="settings-group">
+        <h3>Vault</h3>
+        <div class="group">
+          <div class="setting">
+            <div><b>Keep cleared items for</b><small>How long the vault holds things before they can be emptied.</small></div>
+            <select id="keep-days">${[3, 7, 14, 30, 60, 90].map((d) => `<option value="${d}" ${d === keep ? "selected" : ""}>${d} days</option>`).join("")}</select>
+          </div>
+          <div class="setting">
+            <div><b>Empty expired items automatically</b><small>When a scan starts, items past their time are deleted to free the space.</small></div>
+            <button class="switch" role="switch" id="auto-empty" aria-checked="${auto}" aria-label="Empty expired items automatically"></button>
+          </div>
         </div>
       </div>
 
-      <h3>Privacy</h3>
-      <div class="group">
-        <div class="setting setting-text">
-          <p>Leftover runs entirely on this computer. It has no account and no analytics, and it never sends anything about you or your files anywhere. The only time it goes online is when you click Check for updates: it asks GitHub for the latest version, and downloads it if you choose Update now. Each update is checked against the release's signature before anything is replaced. This window is served only to this machine, on a private address with a key that changes every launch.</p>
-          <p>Scanning only reads. Leftover writes to one folder of its own, for settings, the last scan, history and the vault: <code>${esc(tilde(state.meta.data_dir || ""))}</code>. Outside it, the only changes are the ones you choose, and every move, restore and deletion is listed under History.</p>
+      <div class="settings-group">
+        <h3>Ignored folders</h3>
+        <div class="group">
+          ${ignored.length ? ignored.map((p) => `
+            <div class="setting"><code>${esc(tilde(p))}</code><button class="btn btn-small" data-unignore="${esc(p)}">Remove</button></div>`).join("")
+            : `<div class="setting"><span class="muted">None. Use “Ignore this folder” on any item to keep Leftover out of it.</span></div>`}
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Updates</h3>
+        <div class="group">
+          <div class="setting">
+            <div><b>Leftover ${esc(state.meta.version || "")}</b><small id="update-status">${updateStatus()}</small></div>
+            <div class="update-actions">${updateButtons()}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h3>Privacy</h3>
+        <div class="group">
+          <div class="setting setting-text">
+            <p>Leftover runs entirely on this ${MACHINE()}. It has no account and no analytics, and it never sends anything about you or your files anywhere. The only time it goes online is when you click Check for updates: it asks GitHub for the latest version, and downloads it if you choose Update now. Each update is checked against the release's signature before anything is replaced. This window is served only to this machine, on a private address with a key that changes every launch.</p>
+            <p>Scanning only reads. Leftover writes to one folder of its own, for settings, the last scan, history and the vault: <code>${esc(tilde(state.meta.data_dir || ""))}</code>. Outside it, the only changes are the ones you choose, and every move, restore and deletion is listed under History.</p>
+          </div>
         </div>
       </div>
     </div>`;
   $("#keep-days").onchange = (e) => saveSettings({ keep_days: Number(e.target.value) });
-  $("#auto-empty").onchange = (e) => saveSettings({ auto_empty: e.target.checked });
+  $("#auto-empty").onclick = (e) => {
+    const on = e.currentTarget.getAttribute("aria-checked") !== "true";
+    e.currentTarget.setAttribute("aria-checked", on);
+    saveSettings({ auto_empty: on });
+  };
+}
+
+async function saveSettings(patch) {
+  try {
+    state.settings = await api("settings", patch);
+    toast("Saved");
+  } catch (e) { toast(e.message); renderSettings(); }
 }
 
 // ---------- updates ----------
@@ -724,16 +911,9 @@ async function applyUpdate() {
 async function restartUpdate() {
   try {
     await api("update/restart", {});
-    $("#view").innerHTML = `<div class="empty"><div class="spinner"></div><h2>Restarting…</h2><p>The new version opens in its own window. You can close this one.</p></div>`;
+    $("#view").innerHTML = `<div class="scanning"><div class="spinner"></div><div class="big">Restarting…</div><div class="sub">The new version opens in its own window. You can close this one.</div></div>`;
     setTimeout(() => window.close(), 1500);
   } catch (e) { upd.error = e.message; rerenderUpdate(); }
-}
-
-async function saveSettings(patch) {
-  try {
-    state.settings = await api("settings", patch);
-    toast("Saved.");
-  } catch (e) { toast(e.message); renderSettings(); }
 }
 
 // ---------- scanning ----------
@@ -746,15 +926,15 @@ async function pollScan() {
     for (;;) {
       state.status = await api("status");
       if (!state.status.running) break;
-      if (["overview", "safe", "review", "keep"].includes(state.view)) renderScanning();
-      $("#scan-btn").textContent = "Stop";
+      if (!state.scan) renderScanning();
+      else if (state.view === "overview" || isList()) $("#subtitle").textContent = scanLine();
       await new Promise((r) => setTimeout(r, 250));
     }
   } finally {
     polling = false;
   }
   if (state.status.error && !/cancel/i.test(state.status.error)) toast(state.status.error);
-  state.selected.clear();
+  state.excluded.clear();
   await refresh();
 }
 
@@ -763,10 +943,25 @@ async function scan() {
   try {
     await api("scan", {});
     state.status.running = true;
-    if (!["overview", "safe", "review", "keep"].includes(state.view)) go("overview");
+    if (!(state.view === "overview" || isList())) go("overview");
     render();
     pollScan();
   } catch (e) { toast(e.message); }
+}
+
+// ---------- toast ----------
+
+let toastTimer;
+function toast(msg, undo) {
+  const t = $("#toast");
+  $("#toast-text").textContent = msg;
+  const btn = $("#toast-undo");
+  btn.hidden = !undo;
+  t.classList.toggle("has-undo", !!undo);
+  btn.onclick = undo ? () => { t.hidden = true; clearTimeout(toastTimer); undo(); } : null;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), undo ? 9000 : Math.max(3200, msg.length * 55));
 }
 
 // ---------- events ----------
@@ -776,27 +971,31 @@ function go(view) {
   state.focused = null;
   state.query = "";
   $("#search").value = "";
+  $("#view").scrollTop = 0;
   render();
 }
 
-let toastTimer;
-function toast(msg) {
-  const t = $("#toast");
-  t.textContent = msg;
-  t.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), Math.max(3200, msg.length * 55));
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); toast("Command copied"); }
+  catch (_) { toast("Couldn't copy. Select the command and copy it instead."); }
 }
 
 document.addEventListener("click", async (e) => {
   const nav = e.target.closest(".nav");
   if (nav) { e.preventDefault(); go(nav.dataset.view); return; }
+  const tg = e.target.closest("[data-toggle]");
+  if (tg) { e.stopPropagation(); return toggleInclude(tg.dataset.toggle); }
+  const gt = e.target.closest("[data-go]");
+  if (gt) return go(gt.dataset.go);
+  const cp = e.target.closest("[data-copy]");
+  if (cp) return copy(cp.dataset.copy);
   const act = e.target.closest("[data-act]");
   if (act) {
     const a = act.dataset.act;
     if (a === "scan") return scan();
-    if (a === "review-safe") return go("safe");
-    if (a === "close-inspector") { state.focused = null; return render(); }
+    if (a === "clean-all") return clean(items(), true);
+    if (a === "clean-list") return clean(rowsFor(state.view));
+    if (a === "close-inspector") { $("#inspector").hidden = true; return; }
     if (a === "empty-expired") return emptyVault(true);
     if (a === "empty-all") return emptyVault(false);
     if (a === "docker-prune") return dockerPrune();
@@ -807,89 +1006,72 @@ document.addEventListener("click", async (e) => {
   }
   const un = e.target.closest("[data-unignore]");
   if (un) {
-    await api("ignore", { path: un.dataset.unignore, remove: true });
+    try { await api("ignore", { path: un.dataset.unignore, remove: true }); } catch (err) { return toast(err.message); }
     await refresh();
     toast("Leftover will scan that folder again.");
     return;
   }
   const rs = e.target.closest("[data-restore]");
   if (rs) return restore(rs.dataset.restore);
-  if (e.target.closest("input[type=checkbox], label.check")) return;
   const rev = e.target.closest("[data-reveal]");
-  const xp = !rev && e.target.closest("[data-explore]");
-  if (xp) return explore(xp.dataset.explore);
   if (rev) { api("reveal", { path: rev.dataset.reveal }).catch((err) => toast(err.message)); return; }
+  const xp = e.target.closest("[data-explore]");
+  if (xp) return explore(xp.dataset.explore);
   const ign = e.target.closest("[data-ignore]");
   if (ign) {
-    await api("ignore", { path: ign.dataset.ignore });
+    try { await api("ignore", { path: ign.dataset.ignore }); } catch (err) { return toast(err.message); }
     state.focused = null;
-    toast("Leftover will leave that folder alone.");
+    toast("Leftover will leave that folder alone from the next scan.");
     return refresh();
   }
   const f = e.target.closest("[data-focus]");
   if (f) {
     state.focused = f.dataset.focus;
-    const it = items().find((x) => x.id === state.focused);
-    if (it && state.view === "overview") state.view = cleanable(it) ? "safe" : it.verdict;
-    render();
-  }
-});
-
-document.addEventListener("change", (e) => {
-  const id = e.target.dataset.select;
-  if (id) {
-    e.target.checked ? state.selected.add(id) : state.selected.delete(id);
-    render();
-  } else if (e.target.dataset.act === "select-all") {
-    const list = itemsFor("safe").filter(matches);
-    list.forEach((it) => (e.target.checked ? state.selected.add(it.id) : state.selected.delete(it.id)));
-    render();
+    renderList();
   }
 });
 
 document.addEventListener("submit", (e) => {
-  if (e.target.id === "explore-form") { e.preventDefault(); return explore($("#explore-path").value); }
-  if (e.target.id !== "why-form") return;
   e.preventDefault();
-  explain($("#why-path").value);
+  if (e.target.id === "explore-form") return explore($("#explore-path").value);
+  if (e.target.id === "why-form") return explain($("#why-path").value);
 });
 
 $("#scan-btn").addEventListener("click", scan);
-$("#clean-btn").addEventListener("click", clean);
-$("#clear-selection").addEventListener("click", () => { state.selected.clear(); render(); });
-$("#search").addEventListener("input", (e) => { state.query = e.target.value; renderList(); });
+$("#search").addEventListener("input", (e) => {
+  state.query = e.target.value.trim();
+  state.focused = null;
+  render();
+});
 
 // Keyboard: ⌘R / Ctrl+R scans, ⌘F / Ctrl+F or / searches, arrows move
-// through a list, space selects, Escape closes things.
+// through a list, space includes or leaves out the focused item, Escape
+// leaves the search.
 document.addEventListener("keydown", (e) => {
+  if (!$("#sheet").hidden) return;
   const mod = e.metaKey || e.ctrlKey;
   const typing = e.target.matches("input[type=search], input[type=text], select");
   if (mod && e.key.toLowerCase() === "r") { e.preventDefault(); scan(); return; }
-  if ((mod && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) {
-    if (!$("#search").hidden) { e.preventDefault(); $("#search").focus(); }
-    return;
-  }
+  if ((mod && e.key.toLowerCase() === "f") || (e.key === "/" && !typing)) { e.preventDefault(); $("#search").focus(); return; }
   if (e.key === "Enter" && e.target.matches(".tr-explore[data-explore]")) { explore(e.target.dataset.explore); return; }
-  if (e.key === "Escape" && $("#sheet").hidden) {
-    if (typing) { e.target.blur(); return; }
-    if (state.focused) { state.focused = null; render(); }
+  if (e.key === "Escape") {
+    if (e.target.id === "search" && state.query) { e.target.value = ""; state.query = ""; render(); }
+    if (typing) e.target.blur();
     return;
   }
-  if (typing || !["safe", "review", "keep"].includes(state.view)) return;
-  const list = itemsFor(state.view).filter(matches);
+  if (typing || !isList()) return;
+  const list = rowsFor(state.view);
   if (!list.length) return;
   const i = list.findIndex((it) => it.id === state.focused);
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
     e.preventDefault();
     const next = e.key === "ArrowDown" ? Math.min(i + 1, list.length - 1) : Math.max(i - 1, 0);
     state.focused = list[next].id;
-    render();
-    document.querySelector(`[data-focus="${state.focused}"]`)?.scrollIntoView({ block: "nearest" });
-  } else if (e.key === " " && state.view === "safe" && i >= 0) {
+    renderList();
+    document.querySelector(`[data-focus="${CSS.escape(state.focused)}"]`)?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === " " && i >= 0 && cleanable(list[i]) && !e.target.matches("button")) {
     e.preventDefault();
-    const id = list[i].id;
-    state.selected.has(id) ? state.selected.delete(id) : state.selected.add(id);
-    render();
+    toggleInclude(list[i].id);
   }
 });
 

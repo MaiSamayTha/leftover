@@ -4,6 +4,11 @@ Every release of Leftover, newest first. The format follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Changed
+
+- A new look for the app: an overview with a ring chart of what can be cleared, five categories (AI models, Containers, Packages, Build output, Caches) with a switch on each item, a details panel, the disk's free space in the sidebar, and Undo right after cleaning.
+- Cleaning everything from the overview first shows a summary by category, warns about projects you changed this week and large re-downloads, and says when the space actually frees up.
+
 ## [0.1.2] - 2026-11-20
 
 Explore any folder, Docker beyond Docker Desktop, and updates from inside the app.

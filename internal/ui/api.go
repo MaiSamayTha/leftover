@@ -47,8 +47,16 @@ type stateResponse struct {
 	Vault    []vault.Entry   `json:"vault"`
 	Settings config.Settings `json:"settings"`
 	Now      time.Time       `json:"now"`
-	// Rules has the explanation for every rule the scan's items use.
+	// Rules has the explanation for every rule the scan's items and the
+	// vault's entries use.
 	Rules map[string]*rules.Rule `json:"rules"`
+	// Disk is the size and free space of the disk holding the home folder.
+	Disk *disk `json:"disk,omitempty"`
+}
+
+type disk struct {
+	Total int64 `json:"total"`
+	Free  int64 `json:"free"`
 }
 
 func (s *Server) state(w http.ResponseWriter, r *http.Request) {
@@ -58,17 +66,27 @@ func (s *Server) state(w http.ResponseWriter, r *http.Request) {
 	}
 	last := s.App.Last()
 	used := map[string]*rules.Rule{}
+	add := func(id string) {
+		if r, ok := s.App.Scanner.Catalog.Get(id); ok {
+			used[id] = r
+		}
+	}
 	if last != nil {
 		for _, it := range last.Items {
-			if r, ok := s.App.Scanner.Catalog.Get(it.Rule); ok {
-				used[it.Rule] = r
-			}
+			add(it.Rule)
 		}
+	}
+	for _, e := range entries {
+		add(e.Rule)
+	}
+	var d *disk
+	if total, free, ok := diskSpace(s.App.Scanner.Host.Home); ok && total > 0 {
+		d = &disk{Total: total, Free: free}
 	}
 	writeJSON(w, stateResponse{
 		Version: s.Version, OS: runtime.GOOS, Host: hostname(), Home: s.App.Scanner.Host.Home,
 		DataDir: s.App.Dir, Status: s.App.Status(), Scan: last, Vault: entries,
-		Settings: s.App.Settings, Now: time.Now(), Rules: used,
+		Settings: s.App.Settings, Now: time.Now(), Rules: used, Disk: d,
 	})
 }
 
